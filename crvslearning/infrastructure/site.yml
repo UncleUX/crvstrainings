@@ -1,0 +1,7 @@
+---
+- name: Provisionner le serveur
+  hosts: all
+  become: true
+  roles:
+    - docker
+    - app

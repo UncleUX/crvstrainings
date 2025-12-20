@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Créer un cours{% endblock %}
+{% load static%}
+{% block content %}
+<div class="container py-1">
+  <div class="row align-items-center g-5">
+
+    <!-- SECTION GAUCHE : TEXTE -->
+    <div class="col-md-6">
+      <h2 class="fw-bold mb-3">
+        Créer un nouveau cours
+      </h2>
+
+      <p class="text-muted fs-5 mb-4">
+        Configurez les informations principales de votre cours afin de le rendre
+        clair, structuré et attractif pour vos apprenants.
+      </p>
+
+      <ul class="list-unstyled text-muted">
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Donnez un titre clair et engageant
+        </li>
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Choisissez la catégorie adaptée
+        </li>
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Définissez la langue du cours
+        </li>
+      </ul>
+      <img src="" alt="">
+    </div>
+
+    <!-- SECTION DROITE : FORMULAIRE -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-lg rounded-4">
+        <div class="card-body p-4">
+
+          <h5 class="fw-semibold mb-4">Informations du cours</h5>
+
+          <form method="post" id="courseForm" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if messages %}
+              <div class="mb-3">
+                {% for message in messages %}
+                  <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <!-- TITRE -->
+            <div class="mb-3">
+              <label for="id_title" class="form-label">Titre du cours</label>
+              <input type="text" name="title" class="form-control" id="id_title"
+                     value="{{ form.title.value|default:'' }}" required>
+              {% if form.title.errors %}
+                <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- DESCRIPTION -->
+            <div class="mb-3">
+              <label for="id_description" class="form-label">Description</label>
+              <textarea name="description" class="form-control" id="id_description"
+                        rows="4">{{ form.description.value|default:'' }}</textarea>
+              {% if form.description.errors %}
+                <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- CATEGORIE -->
+            <div class="mb-3">
+              <label for="id_category" class="form-label">Catégorie</label>
+              <select name="category" class="form-select" id="id_category" required>
+                <option value="" disabled {% if not form.category.value %}selected{% endif %}>
+                  Sélectionnez une catégorie
+                </option>
+                {% for category in categories %}
+                  <option value="{{ category.id }}"
+                    {% if form.category.value|stringformat:'s' == category.id|stringformat:'s' %}selected{% endif %}>
+                    {{ category.name }}
+                  </option>
+                {% endfor %}
+              </select>
+
+              <div class="form-text">
+                <a href="#" id="addCategoryBtn" class="text-primary">
+                  <i class="bi bi-plus-circle"></i> Ajouter une nouvelle catégorie
+                </a>
+              </div>
+
+              {% if form.category.errors %}
+                <div class="text-danger small mt-1">{{ form.category.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- LANGUE -->
+            <div class="mb-4">
+              <label for="id_language" class="form-label">Langue</label>
+              <select name="language" class="form-select" id="id_language" required>
+                <option value="fr" {% if form.language.value == 'fr' %}selected{% endif %}>Français</option>
+                <option value="en" {% if form.language.value == 'en' %}selected{% endif %}>English</option>
+              </select>
+              {% if form.language.errors %}
+                <div class="text-danger small mt-1">{{ form.language.errors }}</div>
+              {% endif %}
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="d-flex justify-content-between align-items-center">
+              <a href="{% url 'courses:manage' %}" class="btn btn-light">
+                <i class="bi bi-arrow-left me-1"></i> Retour
+              </a>
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-save me-1"></i> Créer le cours
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

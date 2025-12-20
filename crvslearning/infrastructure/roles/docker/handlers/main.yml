@@ -1,0 +1,4 @@
+---
+- name: redemarrer la session
+  debug:
+    msg: "Veuillez vous déconnecter et vous reconnecter pour que les changements de groupe prennent effet"

@@ -1,0 +1,182 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Roboto', Arial, sans-serif;
+      background-image: url("{% static 'img/google.png' %}");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: cover;
+      background-attachment: fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 360px;
+      padding: 40px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    h1 {
+      font-weight: 400;
+      font-size: 1.5rem;
+      margin-bottom: 30px;
+      color: #202124;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #3c4043;
+      text-align: left;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 12px;
+      border: 1.5px solid #dadce0;
+      border-radius: 6px;
+      margin-bottom: 22px;
+      font-size: 1rem;
+      color: #202124;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    input:focus {
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #1a73e8, #1669c1);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(26, 115, 232, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(26, 115, 232, 0.45);
+    }
+
+    .logout-btn {
+      margin-top: 14px;
+      background: #fff;
+      color: #d93025;
+      border: 1.5px solid #dadce0;
+      box-shadow: none;
+    }
+
+    .logout-btn:hover {
+      background: #fce8e6;
+      border-color: #d93025;
+      color: #d93025;
+      transform: none;
+    }
+
+    .error {
+      background: #fce8e6;
+      color: #d93025;
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      margin-bottom: 8px;
+    }
+
+    .footer-text {
+      margin-top: 20px;
+      font-size: 0.875rem;
+      color: #3c4043;
+    }
+
+    .footer-text a {
+      color: #1a73e8;
+      text-decoration: none;
+    }
+
+    .small-text {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: #5f6368;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-box">
+
+    <h1>Se connecter</h1>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="error">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% if not user.is_authenticated %}
+      <!-- FORMULAIRE DE CONNEXION -->
+      <form method="post" action="{% url 'users:login' %}">
+        {% csrf_token %}
+
+        {% if next %}
+          <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <label for="id_username">Adresse e-mail ou nom d'utilisateur</label>
+        <input type="text" name="username" id="id_username" required>
+
+        <label for="id_password">Mot de passe</label>
+        <input type="password" name="password" id="id_password" required>
+
+        <button type="submit">Suivant</button>
+      </form>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+      <!-- BOUTON DE DÉCONNEXION -->
+      <form method="post" action="{% url 'users:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">
+          Se déconnecter
+        </button>
+      </form>
+    {% endif %}
+
+    <p class="footer-text">
+      Pas encore de compte ?
+      <a href="{% url 'users:register' %}">Créer un compte</a>
+    </p>
+
+    <p class="small-text">
+      Utilisez votre compte E-learning pour vous connecter
+    </p>
+
+  </div>
+
+</body>
+</html>

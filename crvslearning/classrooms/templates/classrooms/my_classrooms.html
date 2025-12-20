@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}Mes classes{% endblock %}
+
+{% block content %}
+
+<style>
+/* ===== HEADER ===== */
+.page-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:28px;
+}
+.page-title{
+  font-weight:900;
+  font-size:1.8rem;
+}
+
+/* ===== ACTIONS ===== */
+.page-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+/* ===== GRID ===== */
+.class-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:20px;
+}
+
+/* ===== CARD ===== */
+.class-card{
+  background:#fff;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
+  transition:transform .25s ease, box-shadow .25s ease;
+  position:relative;
+}
+.class-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 18px 40px rgba(0,0,0,.12);
+}
+.class-badge{
+  position:absolute;
+  top:14px;
+  right:14px;
+  font-size:.75rem;
+}
+.class-title{
+  font-weight:800;
+  font-size:1.15rem;
+  margin-bottom:6px;
+}
+.class-meta{
+  font-size:.85rem;
+  color:#6b7280;
+  margin-bottom:10px;
+}
+.class-desc{
+  font-size:.9rem;
+  color:#374151;
+  margin-bottom:14px;
+}
+.class-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+/* ===== EMPTY ===== */
+.empty-box{
+  background:#f9fafb;
+  border:2px dashed #e5e7eb;
+  border-radius:16px;
+  padding:40px;
+  text-align:center;
+  color:#6b7280;
+}
+
+/* ===== MODAL ===== */
+.modal-content{
+  border-radius:18px;
+  box-shadow:0 30px 60px rgba(0,0,0,.25);
+}
+.modal-header{
+  border-bottom:0;
+}
+.modal-title{
+  font-weight:800;
+}
+</style>
+
+<div class="container py-4">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <h2 class="page-title mb-0">Mes classes</h2>
+
+    <div class="page-actions">
+      <a href="{% url 'classrooms:join' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-sign-in-alt me-1"></i> Rejoindre par code
+      </a>
+
+      {% if user.is_authenticated and user.role == 'trainer' or user.role == 'admin' or user.is_superuser %}
+      <button class="btn btn-primary"
+              data-bs-toggle="modal"
+              data-bs-target="#createClassModal">
+        <i class="fas fa-plus me-1"></i> Créer une classe
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- GRID -->
+  {% if memberships %}
+  <div class="class-grid">
+    {% for m in memberships %}
+    <div class="class-card">
+
+      <span class="badge bg-primary class-badge">
+        {{ m.get_role_display }}
+      </span>
+
+      <div class="class-title">
+        {{ m.classroom.name }}
+      </div>
+
+      <div class="class-meta">
+        {{ m.classroom.subject|default:"—" }}
+        · {{ m.classroom.category.name|default:"Sans catégorie" }}
+      </div>
+
+      {% if m.classroom.description %}
+      <div class="class-desc">
+        {{ m.classroom.description|truncatechars:90 }}
+      </div>
+      {% endif %}
+
+      <div class="class-footer">
+        <small class="text-muted">
+          {{ m.classroom.members.count }} membre(s)
+        </small>
+        <a href="{% url 'classrooms:detail' m.classroom.id %}"
+           class="btn btn-sm btn-outline-primary">
+          Ouvrir
+        </a>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="empty-box mt-4">
+      <h5 class="fw-bold mb-2">Aucune classe</h5>
+      <p class="mb-0">
+        Vous n’êtes encore inscrit(e) dans aucune classe.
+      </p>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- ===== MODAL CREATION ===== -->
+{% if user.is_authenticated and user.role == 'trainer' or user.role == 'admin' or user.is_superuser %}
+<div class="modal fade" id="createClassModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-chalkboard-teacher me-2"></i>
+          Créer une classe
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form method="post" action="{% url 'classrooms:create' %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Nom</label>
+              <input class="form-control" name="name" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Matière</label>
+              <input class="form-control" name="subject">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Programme / Planning</label>
+              <textarea class="form-control" name="schedule" rows="3"></textarea>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Catégorie</label>
+              <select name="category_id" class="form-select" required>
+                <option value="">— Choisir —</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Description</label>
+              <textarea class="form-control" name="description" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary"
+                  data-bs-dismiss="modal">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary px-4">
+            Créer la classe
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

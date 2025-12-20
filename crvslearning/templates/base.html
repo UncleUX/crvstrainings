@@ -1,0 +1,325 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+{% load static %}
+{% load custom_filters %}
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Crvs-learning{% endblock %}</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/css/v1/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/css/v1/all.min.css' %}">
+  
+  <!-- jQuery -->
+   <script src="{% static 'vendor/gsap/gsap.js' %}" defer></script>
+  <script src="{% static 'vendor/js/v1/jquery.min.js' %}"></script>
+
+  <style>
+    @font-face {
+      font-family: 'Font Awesome 6 Free';
+      font-style: normal;
+      font-weight: 900;
+      font-display: block;
+      src: url("/static/vendor/webfonts/fa-solid-900.woff2") format("woff2");
+    }
+
+    /* Reset et typographie */
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      transition: background-color 0.5s ease, color 0.5s ease;
+      overflow-x: hidden;
+    }
+
+    /* Variables thème clair / sombre */
+    :root {
+      --bg: #ffffff;
+      --text: #222222;
+      --primary: #3f51b5;
+      --secondary: #f50057;
+      --nav-bg: #f9f9f9;
+      --btn-bg: var(--primary);
+      --btn-text: #fff;
+    }
+    [data-theme="dark"] {
+      --bg: #121212;
+      --text: #eee;
+      --primary: #90caf9;
+      --secondary: #f48fb1;
+      --nav-bg: #1f1f1f;
+      --btn-bg: var(--primary);
+      --btn-text: #121212;
+    }
+
+    /* Header */
+    header {
+      background: var(--nav-bg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .logo a {
+      font-weight: 900;
+      font-size: 1.3rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    /* Search bar style YouTube */
+    .search-bar {
+      flex: 1;
+      max-width: 600px;
+      display: flex;
+      align-items: center;
+      margin: 0 16px;
+      position: relative;
+    }
+    .search-bar input[type="text"] {
+      flex: 1;
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-radius: 24px 0 0 24px;
+      outline: none;
+      background-color: #fff;
+      color: #000;
+    }
+    .search-bar button {
+      padding: 6px 16px;
+      border: 1px solid #ccc;
+      border-left: none;
+      border-radius: 0 24px 24px 0;
+      background-color: #f8f8f8;
+      cursor: pointer;
+    }
+    .search-bar button:hover { background-color: #e0e0e0; }
+
+    /* Suggestions panel */
+    #search-suggest {
+      position: absolute;
+      top: 40px;
+      left: 0; right: 0;
+      background: var(--nav-bg);
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      display: none;
+      z-index: 1000;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .suggest-item { padding: 6px 12px; display: flex; gap: 6px; text-decoration: none; color: var(--text); }
+    .suggest-item:hover, .suggest-item.active { background: #ddd; }
+
+    /* Header actions */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-actions a, .header-actions button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: var(--text);
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+
+    /* Toggle switch theme */
+    .theme-switch input { display:none; }
+    .theme-switch span { 
+      display:inline-block; width:40px; height:20px; background:#ccc; border-radius:12px; position:relative; transition:.3s; 
+    }
+    .theme-switch span::before {
+      content:''; position:absolute; width:16px; height:16px; border-radius:50%; background:#fff; top:2px; left:2px; transition:.3s;
+    }
+    .theme-switch input:checked + span::before { transform: translateX(20px); }
+    .theme-switch input:checked + span { background:#3b82f6; }
+
+    main { margin-top:60px; padding:20px; min-height:80vh; }
+    footer { margin-top:20px; background:#000; color:#d1d5db; padding:20px 30px; }
+  </style>
+</head>
+<body style="background-image: url('{% static 'img/google.png' %}');">
+
+<header style="background-color: #0d642eec;">
+  <div class="logo">
+    <a href="{% if user.is_authenticated %}{% if user.is_formateur or user.is_superuser %}{% url 'users:instructor_dashboard' %}{% else %}{% url 'users:dashboard' %}{% endif %}{% else %}/{% endif %}">CrvsTrainings</a>
+  </div>
+
+  <form class="search-bar" action="{% url 'courses:search' %}" method="get">
+    <input id="global-search" type="text" name="q" placeholder="Rechercher cours, leçons, vidéos, formateurs..." value="{{ q|default:'' }}" autocomplete="off">
+    <button type="submit" aria-label="Rechercher">🔍</button>
+    <div id="search-suggest"></div>
+  </form>
+
+  <div class="header-actions">
+    {% if user.is_authenticated %}
+      {% if user.role == 'trainer' or user.is_superuser %}
+        <a href="{% url 'tracking:learner_tracking' %}" title="Suivi des apprenants"><i class="bi bi-graph-up"></i></a>
+        <a href="{% url 'tracking:course_progress' %}" title="Progression des cours"><i class="bi bi-journal-check"></i></a>
+      {% endif %}
+      <a href="{% url 'classrooms:my_classrooms' %}" title="Mes classes"><i class="bi bi-collection-play"></i></a>
+      <a href="{% url 'interactions:chat_global' %}" title="Chat global">
+        <i class="bi bi-chat-dots"></i>
+        {% with unread_count=user.get_unread_messages_count %}
+          {% if unread_count > 0 %}
+            <span class="badge bg-danger" style="font-size:0.6rem;">{{ unread_count }}</span>
+          {% endif %}
+        {% endwith %}
+      </a>
+      <a href="{% url 'users:profile' %}" title="Profil"><i class="bi bi-person"></i></a>
+      <a href="{% url 'users:logout' %}" title="Déconnexion"><i class="bi bi-box-arrow-right"></i></a>
+
+      <!-- Theme toggle -->
+      <label class="theme-switch" for="theme-checkbox">
+        <input type="checkbox" id="theme-checkbox">
+        <span></span>
+      </label>
+    {% else %}
+      <a href="{% url 'users:login' %}" class="btn btn-primary">Connexion</a>
+    {% endif %}
+  </div>
+</header>
+
+<main>
+  {% if messages %}
+    <div class="container mb-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer>
+  <div class="container">
+    <p>&copy; {{ now|date:"Y" }} CRVS Learning — Tous droits réservés.</p>
+  </div>
+</footer>
+
+<script>
+  // Search suggestions
+  const input = document.getElementById('global-search');
+  const panel = document.getElementById('search-suggest');
+  let items = [];
+  let activeIndex = -1;
+  function render(items){
+    if(!items.length){ panel.style.display='none'; panel.innerHTML=''; return; }
+    panel.innerHTML = items.map((it,i)=>`<a class="suggest-item${i===activeIndex?' active':''}" href="${it.url}"><span class="suggest-type">${it.type}</span><span>${it.label}</span></a>`).join('');
+    panel.style.display='block';
+  }
+  let abortCtrl;
+  input?.addEventListener('input', async ()=>{
+    const q = input.value.trim();
+    activeIndex=-1;
+    if(!q){ render([]); return; }
+    try{
+      if(abortCtrl) abortCtrl.abort();
+      abortCtrl = new AbortController();
+      const res = await fetch(`{% url 'courses:search_suggest' %}?q=`+encodeURIComponent(q), {signal: abortCtrl.signal});
+      const data = await res.json();
+      items = data.items || [];
+      render(items);
+    }catch(err){}
+  });
+  input?.addEventListener('keydown', e=>{
+    if(panel.style.display!=='block') return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); activeIndex=Math.min(activeIndex+1,items.length-1); render(items); }
+    if(e.key==='ArrowUp'){ e.preventDefault(); activeIndex=Math.max(activeIndex-1,0); render(items); }
+    if(e.key==='Enter' && activeIndex>=0){ e.preventDefault(); window.location = panel.querySelectorAll('a')[activeIndex].href; }
+    if(e.key==='Escape'){ panel.style.display='none'; }
+  });
+  document.addEventListener('click', e=>{
+    if(!panel.contains(e.target) && e.target!==input){ panel.style.display='none'; }
+  });
+
+  // Theme toggle
+  const themeCheckbox = document.getElementById('theme-checkbox');
+  function setTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    themeCheckbox.checked = (theme==='dark');
+  }
+  setTheme(localStorage.getItem('theme') || 'light');
+  themeCheckbox?.addEventListener('change', function(){
+    setTheme(this.checked?'dark':'light');
+  });
+</script>
+
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
+<script>
+
+    TweenMax.to(".overlay h1", 2, {
+      opacity: 0,
+      y: -60,
+      ease: Expo.easeInOut
+    })
+
+    TweenMax.to(".overlay span", 2, {
+      delay: .3,
+      opacity: 0,
+      y: -60,
+      ease: Expo.easeInOut
+    })
+
+    TweenMax.to(".overlay", 2, {
+      delay: 1,
+      top: "-100%",
+      ease: Expo.easeInOut
+    })
+     TweenMax.from(".hero-title", 1, {
+      delay: 2.4,
+      opacity: 0,
+      ease: Expo.easeInOut
+    })
+     TweenMax.from(".hero img", 1, {
+      delay: 2.8,
+      opacity: 0,
+      ease: Expo.easeInOut
+    })
+    TweenMax.from(".menu a", 1, {
+      delay: 3,
+      opacity: 0,
+      y: -100,
+      ease: Expo.easeInOut
+    })
+      TweenMax.from("Header", 1, {
+      delay: 3.4,
+      opacity: 0,
+      y: -100,
+      ease: Expo.easeInOut
+    })
+     TweenMax.staggerFrom(".fw-semibold", 1, {
+      delay: 3.2,
+      opacity: 0,
+      x: -100,
+      ease: Expo.easeInOut
+    }, 0.08)
+
+    TweenMax.from(".each", 1, {
+      delay: 3.4,
+      opacity: 0,
+      x: 200,
+      ease: Expo.easeInOut
+    })
+
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

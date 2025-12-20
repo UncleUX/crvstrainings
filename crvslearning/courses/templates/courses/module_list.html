@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="ml-hero">
+  <div class="ml-backdrop"></div>
+  <div class="ml-inner">
+    <h1>Modules · {{ course.title }}</h1>
+    <p>Parcourez les modules et progressez pas à pas.</p>
+  </div>
+  <div class="ml-gradient"></div>
+</section>
+
+<div class="ml-grid">
+  {% for module in modules %}
+    <a class="ml-card" href="{% url 'courses:module_detail' course.id module.id %}">
+      <div class="ml-card-inner">
+        <h3>{{ module.title }}</h3>
+        <p class="muted">{{ module.lessons.count }} leçon{{ module.lessons.count|pluralize }}</p>
+      </div>
+    </a>
+  {% empty %}
+    <p class="muted">Aucun module disponible.</p>
+  {% endfor %}
+</div>
+
+<p style="margin-top:14px"><a href="{% url 'courses:course_detail' course.id %}">← Retour au cours</a></p>
+
+<style>
+  .ml-hero{position:relative;height:30vh;border-radius:16px;overflow:hidden;display:grid;place-items:center;margin:0 0 18px 0}
+  .ml-backdrop{position:absolute;inset:0;background:linear-gradient(135deg,#0f172a,#111827,#1f2937)}
+  .ml-gradient{position:absolute;inset:0;background:radial-gradient(1200px 400px at 10% 120%, rgba(59,130,246,.28),transparent),radial-gradient(1200px 400px at 90% -20%, rgba(236,72,153,.22),transparent);mix-blend-mode:screen}
+  .ml-inner{position:relative;z-index:1;text-align:center;color:#fff;padding:0 22px}
+  .ml-inner h1{margin:0 0 6px 0;font-size:clamp(24px,5vw,40px);font-weight:800}
+  .ml-inner p{margin:0;opacity:.9}
+
+  .ml-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .ml-card{display:block;text-decoration:none;color:inherit;background:#fff;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.06);transition:transform .25s ease, box-shadow .25s ease}
+  .ml-card:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(0,0,0,.12)}
+  .ml-card-inner{padding:16px}
+  .ml-card h3{margin:0 0 6px 0}
+  .muted{color:#6b7280}
+</style>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title|default:'Ajouter une leçon' }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row align-items-start g-5">
+
+    <!-- SECTION GAUCHE : TEXTE -->
+    <div class="col-md-6">
+      <h2 class="fw-bold mb-3">
+        {{ title|default:'Ajouter une leçon' }}
+      </h2>
+
+      <p class="text-muted fs-5 mb-4">
+        Cette leçon sera ajoutée au module
+        <strong>{{ module.title }}</strong>
+        du cours <strong>{{ course.title }}</strong>.
+      </p>
+
+      <ul class="list-unstyled text-muted mb-4">
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Titre clair et structuré
+        </li>
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Contenu texte, fichier ou vidéo
+        </li>
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Ordre précis dans le module
+        </li>
+      </ul>
+
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb bg-light px-3 py-2 rounded">
+          <li class="breadcrumb-item">
+            <a href="{% url 'courses:all_courses' %}">Cours</a>
+          </li>
+          <li class="breadcrumb-item">
+            <a href="{% url 'courses:course_detail' course.id %}">
+              {{ course.title|truncatechars:20 }}
+            </a>
+          </li>
+          <li class="breadcrumb-item">
+            <a href="{% url 'courses:module_detail' course.id module.id %}">
+              {{ module.title|truncatechars:20 }}
+            </a>
+          </li>
+          <li class="breadcrumb-item active">Nouvelle leçon</li>
+        </ol>
+      </nav>
+    </div>
+
+    <!-- SECTION DROITE : FORMULAIRE -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-lg rounded-4">
+        <div class="card-body p-4">
+
+          <h5 class="fw-semibold mb-4">Informations de la leçon</h5>
+
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+
+            <!-- TITRE -->
+            <div class="mb-3">
+              <label for="{{ form.title.id_for_label }}" class="form-label">
+                {{ form.title.label }}
+                {% if form.title.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              {{ form.title }}
+              {% if form.title.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.title.errors|join:", " }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- DESCRIPTION -->
+            <div class="mb-3">
+              <label for="{{ form.description.id_for_label }}" class="form-label">
+                {{ form.description.label }}
+              </label>
+              {{ form.description }}
+              {% if form.description.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.description.errors|join:", " }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- ORDRE -->
+            <div class="mb-3">
+              <label for="{{ form.order.id_for_label }}" class="form-label">
+                {{ form.order.label }}
+                {% if form.order.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              {{ form.order }}
+              {% if form.order.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.order.errors|join:", " }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- FICHIER -->
+            <div class="mb-3">
+              <label for="{{ form.content_file.id_for_label }}" class="form-label">
+                {{ form.content_file.label }}
+              </label>
+              {{ form.content_file }}
+              {% if form.content_file.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.content_file.errors|join:", " }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- VIDEO -->
+            <div class="mb-4">
+              <label for="{{ form.video_file.id_for_label }}" class="form-label">
+                {{ form.video_file.label }}
+              </label>
+              {{ form.video_file }}
+              {% if form.video_file.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.video_file.errors|join:", " }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="d-flex justify-content-between align-items-center">
+              <a href="{% url 'courses:module_detail' course.id module.id %}" class="btn btn-light">
+                <i class="bi bi-arrow-left me-1"></i> Annuler
+              </a>
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-save me-1"></i> Enregistrer la leçon
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict'
+  var forms = document.querySelectorAll('.needs-validation')
+  Array.prototype.slice.call(forms).forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+      if (!form.checkValidity()) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      form.classList.add('was-validated')
+    }, false)
+  })
+})()
+</script>
+{% endblock %}

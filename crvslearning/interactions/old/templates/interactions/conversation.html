@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container-fluid p-0 h-100">
+    <div class="row g-0 h-100">
+        <!-- Liste des conversations -->
+        <div class="col-md-4 col-lg-3 border-end bg-light">
+            <div class="p-3 border-bottom">
+                <h5 class="mb-0">{% trans "Messages" %}</h5>
+            </div>
+            <div class="conversation-list" style="height: calc(100vh - 60px); overflow-y: auto;">
+                {% for conv in conversations %}
+                    <a href="{% url 'interactions:conversation' conv.other_user.id %}" 
+                       class="d-block p-3 border-bottom text-decoration-none text-dark {% if other_user and other_user.id == conv.other_user.id %}bg-light{% endif %}">
+                        <div class="d-flex align-items-center">
+                            <div class="position-relative me-3">
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" 
+                                     style="width: 50px; height: 50px; overflow: hidden;">
+                                    <i class="fas fa-user text-white fa-2x"></i>
+                                </div>
+                                {% if conv.unread_count > 0 %}
+                                    <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger">
+                                        {{ conv.unread_count }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1" style="min-width: 0;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">{{ conv.other_user.get_full_name|default:conv.other_user.username }}</h6>
+                                    <small class="text-muted">{{ conv.last_message.sent_at|timesince }}</small>
+                                </div>
+                                <p class="mb-0 text-muted text-truncate">
+                                    {% if conv.last_message.sender == request.user %}
+                                        <span class="text-primary">{% trans "Vous" %}: </span>
+                                    {% endif %}
+                                    {{ conv.last_message.body|truncatechars:40 }}
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                {% empty %}
+                    <div class="text-center p-5">
+                        <i class="far fa-comment-dots fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">{% trans "Aucune conversation" %}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Zone de conversation -->
+        <div class="col-md-8 col-lg-9 d-flex flex-column" style="height: 100vh;">
+            {% if other_user %}
+                <!-- En-tête de la conversation -->
+                <div class="d-flex align-items-center p-3 border-bottom bg-white">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                             style="width: 40px; height: 40px; overflow: hidden;">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <h6 class="mb-0">{{ other_user.get_full_name|default:other_user.username }}</h6>
+                    </div>
+                </div>
+
+                <!-- Corps de la conversation -->
+                <div class="flex-grow-1 p-3 overflow-auto" id="chat-messages" style="background-color: #f8f9fa;">
+                    {% if messages %}
+                        <div class="d-flex flex-column">
+                            {% for message in messages %}
+                                <div class="mb-3 {% if message.sender == request.user %}align-self-end{% else %}align-self-start{% endif %}" 
+                                     style="max-width: 80%;">
+                                    <div class="{% if message.sender == request.user %}bg-primary text-white{% else %}bg-white{% endif %} rounded-3 p-3 shadow-sm">
+                                        {{ message.body|linebreaksbr }}
+                                        <div class="text-end mt-1">
+                                            <small class="{% if message.sender == request.user %}text-white-50{% else %}text-muted{% endif %}" style="font-size: 0.7rem;">
+                                                {{ message.sent_at|time:"H:i" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="d-flex flex-column justify-content-center align-items-center h-100">
+                            <p class="text-muted">{% trans "Aucun message dans cette conversation." %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Zone de saisie du message -->
+                <div class="p-3 border-top bg-white">
+                    <form id="message-form" method="post" action="{% url 'interactions:send_message' other_user.id %}" class="d-flex">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'interactions:conversation' other_user.id %}">
+                        <div class="flex-grow-1 me-2">
+                            <input type="text" name="body" id="message-input" class="form-control rounded-pill" 
+                                   placeholder="{% trans 'Tapez un message...' %}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary rounded-circle" style="width: 45px; height: 45px;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="d-flex flex-column justify-content-center align-items-center h-100 bg-light">
+                    <div class="text-center p-5">
+                        <i class="fas fa-comment-alt fa-4x text-muted mb-3"></i>
+                        <h5>{% trans "Sélectionnez une conversation" %}</h5>
+                        <p class="text-muted">
+                            {% trans "Choisissez une conversation ou créez-en une nouvelle" %}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const chatMessages = document.getElementById('chat-messages');
+
+    if (messageForm) {
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const url = this.action;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear the input
+                    messageInput.value = '';
+                    
+                    // Add the new message to the chat
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'mb-3 align-self-end';
+                    messageDiv.style.maxWidth = '80%';
+                    messageDiv.innerHTML = `
+                        <div class="bg-primary text-white rounded-3 p-3 shadow-sm">
+                            ${data.body.replace(/\n/g, '<br>')}
+                            <div class="text-end mt-1">
+                                <small class="text-white-50" style="font-size: 0.7rem;">
+                                    ${data.sent_at}
+                                </small>
+                            </div>
+                        </div>
+                    `;
+                    
+                    chatMessages.querySelector('.d-flex.flex-column').appendChild(messageDiv);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                } else {
+                    console.error('Error sending message:', data.error || 'Unknown error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    }
+});
+</script>
+
+<script>
+    // Faire défiler vers le bas de la conversation au chargement
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    });
+</script>
+
+<style>
+    .conversation-list a {
+        transition: background-color 0.2s;
+    }
+    .conversation-list a:hover, .conversation-list a:focus {
+        background-color: #f8f9fa !important;
+        text-decoration: none;
+    }
+    #chat-messages {
+        scroll-behavior: smooth;
+    }
+    .unread {
+        background-color: #f8f9fa;
+    }
+</style>
+
+<script>
+    // Faire défiler vers le bas de la conversation au chargement
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chat-messages');
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    });
+</script>
+{% endblock %}

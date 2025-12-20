@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Ajouter un module{% endblock %}
+
+{% block content %}
+<div class="container py-2">
+  <div class="row align-items-center g-5">
+
+    <!-- SECTION GAUCHE : TEXTE -->
+    <div class="col-md-6">
+      <h2 class="fw-bold mb-3">
+        Ajouter un module
+      </h2>
+
+      <p class="text-muted fs-5 mb-4">
+        Vous êtes sur le point d’ajouter un nouveau module au cours
+        <strong>{{ course.title }}</strong>.
+      </p>
+
+      <ul class="list-unstyled text-muted">
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Organisez votre contenu par module
+        </li>
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Structure claire pour les apprenants
+        </li>
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Gestion facile des leçons
+        </li>
+      </ul>
+    </div>
+
+    <!-- SECTION DROITE : FORMULAIRE -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-lg rounded-4">
+        <div class="card-body p-4">
+
+          <h5 class="fw-semibold mb-4">Informations du module</h5>
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-light">
+                Annuler
+              </a>
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-save me-1"></i> Enregistrer
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

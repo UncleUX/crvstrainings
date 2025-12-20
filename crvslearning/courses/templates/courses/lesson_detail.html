@@ -1,0 +1,1573 @@
+{% extends "base.html" %}
+{% load static %}
+{% load course_extras %}
+
+{% block content %}
+<!-- <section class="ld-hero">
+  <div class="ld-backdrop"></div>
+  <div class="ld-inner">
+    <div>
+      <a class="ld-breadcrumb" href="{% url 'courses:course_detail' course.id %}">← {{ course.title }}</a>
+      <div class="ld-eyebrow">Module: {{ module.title }}</div>
+      <h1 id="lesson-title" class="ld-title">{{ lesson.title }}</h1>
+      <div class="meta">
+        <span class="badge">Formateur · {{ course.created_by.get_full_name|default:course.created_by.username }}</span>
+      </div>
+    </div>
+    <div id="lesson-status" class="ld-status">
+      {% if progress.is_completed %}<span class="pill done">✅ Leçon terminée</span>{% endif %}
+    </div>
+  </div>
+  <div class="ld-gradient"></div>
+</section> -->
+
+<div class="ld-layout" data-current-lesson-id="{{ lesson.id }}">
+<div class="ld-main">
+  {% if active_video_url %}
+      <div class="ld-player">
+        <video controls id="lesson-video">
+          <source src="{{ active_video_url }}" type="video/mp4">
+          Votre navigateur ne supporte pas la lecture vidéo.
+        </video>
+      </div>
+  {% else %}
+      <div class="alert alert-info">
+        Aucune vidéo n'est disponible pour cette leçon pour le moment.
+      </div>
+  {% endif %}
+  <div class="ld-actions">
+      {% if lesson.content_file %}
+        <a class="btn ghost" href="{{ lesson.content_file.url }}" target="_blank">
+          <i class="bi bi-download me-2"></i>Télécharger le document
+        </a>
+      {% endif %}
+      <span class="spacer"></span>
+      {% if user.is_authenticated %}
+        <button class="btn ghost" id="btn-open-rating" type="button">
+          <i class="bi bi-star me-2"></i>Noter ce cours
+        </button>
+      {% endif %}
+      <button class="btn ghost" id="btn-open-comment" type="button">
+        <i class="bi bi-chat-left-text me-2"></i>Commenter
+      </button>
+      {% if user.is_authenticated and is_enrolled %}
+        <form class="mark-lesson-completed-form" action="{% url 'courses:mark_lesson_completed' lesson.id %}" method="post" data-lesson-id="{{ lesson.id }}">
+          {% csrf_token %}
+          <button class="btn {% if lesson_completed %}btn-success{% else %}btn-outline-secondary{% endif %} mark-lesson-btn" 
+                  id="mark-lesson-done" 
+                  type="submit" 
+                  data-lesson-id="{{ lesson.id }}"
+                  data-completed="{{ lesson_completed|yesno:'true,false' }}">
+            <i class="bi {% if lesson_completed %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-2"></i>
+            <span>{% if lesson_completed %}Leçon terminée{% else %}Marquer comme terminée{% endif %}</span>
+          </button>
+        </form>
+      {% endif %}
+      {% if request.user.is_authenticated and request.user.is_superuser or request.user.is_authenticated and request.user.role == 'trainer' or request.user.is_authenticated and request.user.role == 'admin' %}
+        <a class="btn ghost" href="{% url 'courses:lesson_video_create' lesson.id %}">Ajouter une vidéo</a>
+      {% endif %}
+  </div>
+
+  <div class="ld-actions">
+      {% if is_enrolled and level_evaluation and level_completed %}
+        <a class="btn solid" href="{% url 'evaluations:start_level_evaluation' course.id level_key %}">Démarrer l’évaluation ({{ lesson.module.get_level_display }})</a>
+      {% endif %}
+      <div class="ld-navigation">
+        {% if previous_lesson %}
+          <a class="btn ghost" href="{% url 'courses:lesson_detail' previous_lesson.id %}">← Leçon précédente</a>
+        {% endif %}
+        {% if next_lesson %}
+          <a class="btn solid" href="{% url 'courses:lesson_detail' next_lesson.id %}">Leçon suivante →</a>
+        {% endif %}
+      </div>
+  </div>
+
+  <!-- {% if lesson_videos %}
+    <div class="lv-wrap">
+      <h4 class="lv-title">Vidéos de la leçon</h4>
+      <ul class="lv-list">
+        {% for v in lesson_videos %}
+          {% if v.video_file %}
+          <li>
+            <a href="#" class="lv-item{% if forloop.first %} active{% endif %}{% if progress.is_completed %} watched{% endif %}"
+               data-video-url="{{ v.video_file.url }}"
+               data-lesson-id="{{ lesson.id }}"
+               data-title="{{ v.title|default:lesson.title }}">
+              <span class="lv-idx">{{ forloop.counter }}</span>
+              <span class="lv-name">{{ v.title|default:lesson.title }}</span>
+              {% if v.duration %}<span class="lv-dur">{{ v.duration }}</span>{% endif %}
+            </a>
+          </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %} -->
+
+<div class="comments">
+        <h5>Commentaires ({{ comments|length }})</h5>
+
+        {% if comments %}
+        <ul class="comment-list">
+          {% for c in comments %}
+          <li>
+            <div class="c-author">
+              <div class="c-author-avatar">
+                {{ c.user.get_full_name|default:c.user.username|slice:":1"|upper }}
+              </div>
+              <div>
+                <div>{{ c.user.get_full_name|default:c.user.username }}</div>
+                <div class="c-meta">
+                  <span class="c-date">
+                    <i class="bi bi-clock"></i> {{ c.created_at|timesince }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="c-body">{{ c.content }}</div>
+          </li>
+          {% endfor %}
+        </ul>
+
+        {% else %}
+        <div class="no-comments">Aucun commentaire pour le moment. Soyez le premier à commenter !</div>
+        {% endif %}
+
+        {% if user.is_authenticated and is_enrolled %}
+        <div class="comment-form">
+          <form method="post" action="{% url 'courses:add_comment' lesson.id %}" id="comment-form">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="content">Ajouter un commentaire</label>
+              <textarea id="content" name="content" class="form-control" rows="3" required placeholder="Partagez vos pensées..." style="width:100%; margin:10px 0;"></textarea>
+            </div>
+            <div class="cf-actions">
+              <button type="reset" class="btn cancel">Annuler</button>
+              <button type="submit" class="btn submit"><i class="bi bi-send-fill me-1"></i> Publier</button>
+            </div>
+          </form>
+        </div>
+
+        {% elif user.is_authenticated %}
+        <p class="muted">Inscrivez-vous au cours pour commenter.</p>
+
+        {% else %}
+        <p class="muted">Connectez-vous pour commenter.</p>
+        {% endif %}
+
+      </div>
+
+
+    <!-- Section des exercices -->
+    <!-- <div class="mt-5 bg-primary">
+        <h3>Exercices</h3>
+        
+        {% for exercise in lesson.exercises.all %}
+        <div class="card mb-4 exercise-card" data-exercise-id="{{ exercise.id }}">
+            <div class="card-body">
+                <h5 class="card-title">Exercice {{ exercise.order }}</h5>
+                <p class="card-text">{{ exercise.question }}</p>
+                
+                <form class="exercise-form">
+                    {% csrf_token %}
+                    <div class="choices-container mb-3">
+                        {% for choice in exercise.choices.all %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" 
+                                   name="exercise_{{ exercise.id }}" 
+                                   id="choice_{{ choice.id }}" 
+                                   value="{{ choice.id }}"
+                                   {% with attempt=user_exercise_attempts|get_item:exercise.id|default:None %}
+                                   {% if attempt and attempt.choice_id == choice.id %}checked{% endif %}
+                                   {% endwith %}>
+                            <label class="form-check-label" for="choice_{{ choice.id }}">
+                                {{ choice.text }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary">Valider</button>
+                    <div class="feedback mt-2" style="display: none;"></div>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info">
+            Aucun exercice disponible pour cette leçon.
+        </div>
+        {% endfor %}
+        
+        {% if user.is_authenticated and user == lesson.course.instructor %}
+        <div class="mt-3">
+            <a href="{% url 'exercises:exercise_create' lesson_id=lesson.id %}" 
+               class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus"></i> Ajouter un exercice
+            </a>
+        </div>
+        {% endif %}
+    </div> -->
+
+    <input type="hidden" id="next-url" value="{% if next_lesson %}{% url 'courses:lesson_detail' next_lesson.id %}{% endif %}">
+</div>
+  <aside class="ld-aside" style="height: 300px;">
+    <h4 class="aside-title">À suivre</h4>
+    <div class="yt-list" id="yt-list"></div>
+     <!-- Section des exercices -->
+    <div class="mt-5 bg-primary" style="border-radius: 10px;">
+        <h3>Exercices</h3>
+        
+        {% for exercise in lesson.exercises.all %}
+        <div class="card mb-4 exercise-card" data-exercise-id="{{ exercise.id }}">
+            <div class="card-body">
+                <h5 class="card-title">Exercice {{ exercise.order }}</h5>
+                <p class="card-text">{{ exercise.question }}</p>
+                
+                <form class="exercise-form">
+                    {% csrf_token %}
+                    <div class="choices-container mb-3">
+                        {% for choice in exercise.choices.all %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" 
+                                   name="exercise_{{ exercise.id }}" 
+                                   id="choice_{{ choice.id }}" 
+                                   value="{{ choice.id }}"
+                                   {% with attempt=user_exercise_attempts|get_item:exercise.id|default:None %}
+                                   {% if attempt and attempt.choice_id == choice.id %}checked{% endif %}
+                                   {% endwith %}>
+                            <label class="form-check-label" for="choice_{{ choice.id }}">
+                                {{ choice.text }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary">Valider</button>
+                    <div class="feedback mt-2" style="display: none;"></div>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info">
+            Aucun exercice disponible pour cette leçon.
+        </div>
+        {% endfor %}
+        
+        {% if user.is_authenticated and user == lesson.course.instructor %}
+        <div class="mt-3">
+            <a href="{% url 'exercises:exercise_create' lesson_id=lesson.id %}" 
+               class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus"></i> Ajouter un exercice
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+  </aside>
+</div>
+
+
+<style>
+  /* Style pour le bouton de marquage de leçon */
+  .mark-lesson-btn {
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #dee2e6;
+  }
+
+  .mark-lesson-btn:hover {
+    background-color: rgba(25, 135, 84, 0.1);
+  }
+
+  .mark-lesson-btn.completed {
+    color: #198754;
+    border-color: #198754;
+    background-color: rgba(25, 135, 84, 0.05);
+  }
+
+  .mark-lesson-btn.completed:hover {
+    background-color: rgba(25, 135, 84, 0.15);
+  }
+
+  .mark-lesson-btn i {
+    transition: all 0.3s ease;
+  }
+
+  .mark-lesson-btn:active i {
+    transform: scale(1.2);
+  }
+
+  .ld-hero{position:relative;min-height:28vh;border-radius:16px;overflow:hidden;margin-bottom:18px;background:#0f172a}
+  .ld-backdrop{position:absolute;inset:0;background:linear-gradient(135deg,#0f172a,#111827,#1f2937)}
+  .ld-gradient{position:absolute;inset:0;background:radial-gradient(1200px 400px at 10% 120%, rgba(59,130,246,.28),transparent),radial-gradient(1200px 400px at 90% -20%, rgba(236,72,153,.22),transparent);mix-blend-mode:screen}
+  .ld-inner{position:relative;z-index:1;color:#fff;display:flex;justify-content:space-between;align-items:end;padding:20px 24px}
+  .ld-breadcrumb{color:#c7d2fe;text-decoration:none;font-weight:700}
+  .ld-eyebrow{opacity:.9;margin-top:6px}
+  .ld-title{margin:6px 0 0 0;font-size:clamp(22px,5vw,38px);font-weight:800}
+  .ld-status .pill{display:inline-block;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800}
+  .pill.done{background:rgba(34,197,94,.15);color:#bbf7d0;border:1px solid rgba(34,197,94,.35)}
+
+  .ld-layout{display:grid;grid-template-columns:3fr 1fr;gap:18px}
+  .ld-main{min-width:0}
+  .ld-player{background:#000;border-radius:14px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.28)}
+  .ld-player video{width:100%;height:auto;display:block}
+  /* Actions sous la vidéo */
+  .ld-actions {
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: #fff;
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+  }
+  
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    cursor: pointer;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  
+  .btn.ghost {
+    background: #f8fafc;
+    color: #334155;
+    border-color: #e2e8f0;
+  }
+  
+  .btn.ghost:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .btn.solid {
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+  }
+  
+  .btn.solid:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+  
+  .btn i {
+    font-size: 16px;
+  }
+  
+  .spacer {
+    flex: 1;
+  }
+  
+  /* Style pour le bouton de marquage comme terminé */
+  #mark-lesson-done {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  #mark-lesson-done::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+  
+  #mark-lesson-done:hover::after {
+    transform: translateX(100%);
+  }
+
+  /* Lesson videos sub-playlist */
+  .lv-wrap{margin-top:12px;background:#fff;border-radius:12px;box-shadow:0 8px 18px rgba(0,0,0,.06);padding:10px}
+  .lv-title{margin:0 0 6px 0}
+  .lv-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+  .lv-item{display:flex;align-items:center;gap:10px;text-decoration:none;color:#111;border:1px solid #e5e7eb;border-radius:8px;padding:8px}
+  .lv-item:hover{background:#f9fafb}
+  .lv-item.active{outline:2px solid #2563eb}
+  .lv-item.watched{filter:grayscale(1); opacity:.6}
+  .lv-idx{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:999px;background:#eef2ff;color:#3730a3;font-weight:800;font-size:12px}
+  .lv-name{flex:1}
+  .lv-dur{font-size:12px;color:#6b7280}
+
+  /* Tabs (Bootstrap-like) */
+  .ld-tabs{margin-top:14px;background:#fff;border-radius:12px;box-shadow:0 8px 18px rgba(0,0,0,.06)}
+  .ld-tabs .nav-tabs{display:flex;gap:8px;padding:8px;border-bottom:1px solid #e5e7eb}
+  .ld-tabs .nav-link{border:1px solid #e5e7eb;border-radius:999px;color:#111;background:#f3f4f6;font-weight:700;padding:8px 12px}
+  .ld-tabs .nav-link.active{background:#111827;color:#fff;border-color:#111827}
+  .ld-tabs .tab-content{padding:12px 14px}
+  .tab-pane{display:none}
+  .tab-pane.show{display:block}
+  .res-list{list-style:disc;margin:0;padding-left:18px}
+
+  /* Curriculum list */
+  .curr-module{border:1px solid #e5e7eb;border-radius:10px;margin-bottom:10px}
+  .curr-module-head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f9fafb;border-bottom:1px solid #e5e7eb}
+  .curr-lessons{list-style:none;margin:0;padding:8px 10px;display:grid;gap:6px}
+  .curr-lesson a{display:flex;justify-content:space-between;align-items:center;text-decoration:none;color:#111;padding:6px 8px;border-radius:8px}
+  .curr-lesson a:hover{background:#f3f4f6}
+  .curr-lesson.is-current a{outline:2px solid #2563eb}
+  .curr-lesson .dot{width:8px;height:8px;border-radius:999px;background:#9ca3af;margin-right:8px;display:inline-block}
+  .curr-lesson .t{flex:1;margin-left:6px}
+  .curr-lesson .d{font-size:12px;color:#6b7280}
+  .curr-lesson.locked a{color:#9ca3af; cursor:not-allowed}
+  .rating-block{margin-top:12px; padding-top:10px; border-top:1px solid #e5e7eb}
+  .rating-form{margin-top:6px; display:flex; gap:10px; align-items:center}
+  /* Style amélioré pour les commentaires */
+  .comment-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0;
+    display: grid;
+    gap: 16px;
+  }
+  
+  .comment-list li {
+  background: linear-gradient(180deg, #ffffff, #fafafa);
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.06);
+  transition: 
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Accent latéral animé */
+.comment-list li::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
+  opacity: 0;
+  transform: scaleY(0.6);
+  transition: 
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+
+/* Effet hover */
+.comment-list li:hover {
+  transform: translateY(-4px);
+  border-color: #bfdbfe;
+  box-shadow: 
+    0 12px 32px rgba(37, 99, 235, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Accent visible au hover */
+.comment-list li:hover::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+/* Petit glow subtil */
+.comment-list li::after {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle at top left, rgba(59,130,246,0.12), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.comment-list li:hover::after {
+  opacity: 1;
+}
+
+  
+  .c-author {
+    font-weight: 600;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+  }
+  
+  .c-author-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    color: #0369a1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  
+  .c-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  
+  .c-date {
+    font-size: 12px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .c-date i {
+    font-size: 14px;
+  }
+  
+  .c-body {
+    margin-top: 12px;
+    color: #334155;
+    line-height: 1.6;
+    font-size: 14.5px;
+    padding-left: 6px;
+    border-left: 2px solid #e2e8f0;
+    padding-left: 12px;
+    margin-left: 10px;
+  }
+  
+  .comment-form {
+    margin-top: 24px;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px dashed #cbd5e1;
+    transition: all 0.3s ease;
+  }
+  
+  .comment-form:focus-within {
+    border-color: #2563eb;
+    background: #f0f7ff;
+  }
+  
+  .comment-form label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .comment-form label i {
+    color: #2563eb;
+  }
+  
+  .comment-form textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: inherit;
+    font-size: 14.5px;
+    line-height: 1.6;
+    resize: vertical;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 16px;
+    background: #fff;
+  }
+  
+  .comment-form textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  
+  .cf-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .cf-actions .btn {
+    padding: 8px 18px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+  
+  .cf-actions .btn.cancel {
+    background: #f1f5f9;
+    color: #475569;
+  }
+  
+  .cf-actions .btn.submit {
+    background: #2563eb;
+    color: white;
+    font-weight: 500;
+  }
+  
+  .cf-actions .btn.submit:hover {
+    background: #1d4ed8;
+  }
+
+  .ld-aside{max-height:calc(100%);background:#fff;border-radius:12px;box-shadow:0 8px 18px rgba(0,0,0,.06);padding:12px}
+  .aside-title{margin:0 0 8px 0}
+  .yt-list{display:grid;gap:10px}
+  .yt-item{display:grid;grid-template-columns:140px 1fr;gap:10px;text-decoration:none;color:#111;border-radius:10px;overflow:hidden}
+  .yt-item:hover{background:#f9fafb}
+  .yt-item.active{outline:2px solid #2563eb}
+  .yt-item.watched{filter:grayscale(1); opacity:.6}
+  .yt-item .thumb{position:relative;height:80px;background:#0b1220;border-radius:8px;overflow:hidden}
+  .yt-item .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .yt-item .thumb .placeholder{position:absolute;inset:0;background:linear-gradient(135deg,#111827,#1f2937)}
+  .yt-item .thumb .dur{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.75);color:#fff;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:800}
+  .yt-item .meta{display:flex;flex-direction:column;gap:4px}
+  .yt-item .t1{font-weight:800;line-height:1.2;display:flex;align-items:center;gap:6px}
+  .yt-item .t1 .idx{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:4px;padding:1px 5px;font-size:11px}
+  .yt-item .t2{font-size:12px;color:#6b7280}
+  .muted{color:#6b7280}
+  .yt-item.locked{opacity:.6; pointer-events:auto}
+  .yt-item.locked .t2{color:#9ca3af}
+
+  .ld-navigation {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: space-between;
+  }
+  
+  @media(max-width:900px){.ld-layout{grid-template-columns:1fr}.ld-aside{order:2}.ld-main{order:1}}
+</style>
+
+<style>
+  /* Styles pour la navigation dans la vidéo */
+  .seek-feedback {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 24px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -40%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+  }
+
+  .seek-feedback {
+    animation: fadeIn 0.2s ease-out;
+  }
+</style>
+
+{% endblock content %}
+
+{% block extra_js %}
+{{ combined_playlist|json_script:"combined-data" }}
+{{ completed_lesson_ids|json_script:"completed-ids" }}
+
+<script>
+// Fonction pour basculer l'état de complétion de la leçon
+function toggleLessonCompletion(button) {
+    const lessonId = button.dataset.lessonId;
+    const isCompleted = button.classList.contains('completed');
+    const newState = !isCompleted;
+    const icon = button.querySelector('i');
+    const text = button.querySelector('span');
+    
+    // Mise à jour immédiate de l'interface utilisateur
+    button.disabled = true;
+    
+    // Mettre à jour l'icône et le texte immédiatement
+    if (newState) {
+        button.classList.add('completed');
+        icon.className = 'bi bi-check-circle-fill text-success me-2';
+        text.textContent = 'Leçon terminée';
+    } else {
+        button.classList.remove('completed');
+        icon.className = 'bi bi-circle me-2';
+        text.textContent = 'Marquer comme terminée';
+    }
+    
+    // Envoyer la requête au serveur
+    fetch(`/courses/lessons/${lessonId}/complete/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erreur réseau');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status !== 'success') {
+            throw new Error(data.message || 'Erreur lors de la mise à jour');
+        }
+        // Mise à jour de l'interface utilisateur basée sur la réponse du serveur
+        if (data.completed) {
+            button.classList.add('completed');
+            icon.className = 'bi bi-check-circle-fill text-success me-2';
+            text.textContent = 'Leçon terminée';
+        } else {
+            button.classList.remove('completed');
+            icon.className = 'bi bi-circle me-2';
+            text.textContent = 'Marquer comme terminée';
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        // En cas d'erreur, on remet l'état précédent
+        if (isCompleted) {
+            button.classList.add('completed');
+            icon.className = 'bi bi-check-circle-fill text-success me-2';
+            text.textContent = 'Leçon terminée';
+        } else {
+            button.classList.remove('completed');
+            icon.className = 'bi bi-circle me-2';
+            text.textContent = 'Marquer comme terminée';
+        }
+        alert('Une erreur est survenue. Veuillez vérifier votre connexion et réessayer.');
+    })
+    .finally(() => {
+        button.disabled = false;
+    });
+}
+
+// Ajouter l'écouteur d'événement pour le bouton de marquage de leçon
+document.addEventListener('DOMContentLoaded', function() {
+    const markLessonBtn = document.getElementById('mark-lesson-done');
+    if (markLessonBtn) {
+        markLessonBtn.addEventListener('click', function() {
+            toggleLessonCompletion(this);
+        });
+    }
+});
+
+// Ajouter l'écouteur d'événement au chargement du DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialisation des onglets Bootstrap
+    var tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabEls.forEach(function(tabEl) {
+        tabEl.addEventListener('click', function (e) {
+            e.preventDefault();
+            var tab = new bootstrap.Tab(tabEl);
+            tab.show();
+        });
+    });
+
+    // Gestion du formulaire de commentaires
+    const commentForm = document.querySelector('#comment-form');
+    if (commentForm) {
+        commentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn ? submitBtn.innerHTML : '';
+            
+            try {
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Envoi en cours...';
+                }
+                
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    }
+                });
+                
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // Recharger la page pour afficher le nouveau commentaire
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Une erreur est survenue');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue lors de l\'envoi du commentaire');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            }
+        });
+    }
+
+    // Gestion du formulaire de notation
+    const ratingForm = document.querySelector('#rating-form');
+    if (ratingForm) {
+        ratingForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            try {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        // Mettre à jour l'affichage de la note
+                        const ratingBlock = document.querySelector('.rating-block');
+                        if (ratingBlock) {
+                            const ratingText = ratingBlock.querySelector('.rb-head');
+                            if (ratingText) {
+                                ratingText.textContent = `Note du cours: ${data.average_rating}/5 · ❤ ${data.like_count}`;
+                            }
+                        }
+                        // Afficher un message de succès
+                        alert('Votre note a été enregistrée avec succès !');
+                    } else {
+                        alert('Erreur: ' + (data.message || 'Une erreur est survenue'));
+                    }
+                } else {
+                    throw new Error('Erreur réseau');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue lors de l\'envoi de votre note');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    }
+    // Gestion de la soumission des exercices
+    document.querySelectorAll('.exercise-form').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const exerciseId = form.closest('.exercise-card')?.dataset.exerciseId;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const feedbackDiv = form.querySelector('.feedback');
+            
+            if (!exerciseId || !submitBtn || !feedbackDiv) {
+                console.error('Éléments du formulaire introuvables');
+                return;
+            }
+            
+            const selectedChoice = form.querySelector('input[type="radio"]:checked');
+            if (!selectedChoice) {
+                alert('Veuillez sélectionner une réponse');
+                return;
+            }
+
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Envoi...';
+
+            try {
+                const response = await fetch(`/exercises/exercise/${exerciseId}/submit/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `choice_id=${encodeURIComponent(selectedChoice.value)}` 
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                feedbackDiv.style.display = 'block';
+                if (result.correct) {
+                    feedbackDiv.className = 'feedback alert alert-success mt-2';
+                    feedbackDiv.innerHTML = '<i class="fas fa-check-circle"></i> Bonne réponse !';
+                } else {
+                    feedbackDiv.className = 'feedback alert alert-danger mt-2';
+                    feedbackDiv.innerHTML = '<i class="fas fa-times-circle"></i> Mauvaise réponse. Essayez encore !';
+                }
+                
+                if (result.explanation) {
+                    feedbackDiv.innerHTML += `<div class="mt-2"><strong>Explication :</strong> ${result.explanation}</div>`;
+                }
+            } catch (error) {
+                console.error('Erreur lors de la soumission de l\'exercice:', error);
+                alert('Une erreur est survenue lors de la soumission de votre réponse.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    });
+
+    // Initialisation des variables globales
+    const video = document.getElementById('lesson-video');
+    const lessonTitle = document.getElementById('lesson-title');
+    const lessonStatus = document.getElementById('lesson-status');
+    const nextUrlInput = document.getElementById('next-url');
+    const layoutEl = document.querySelector('.ld-layout');
+    let currentLessonId = parseInt(layoutEl ? layoutEl.getAttribute('data-current-lesson-id') : '0', 10);
+    
+    // Activer la lecture automatique si possible
+    if (video) {
+        video.autoplay = true;
+        video.muted = true; // Nécessaire pour la lecture automatique sur certains navigateurs
+        
+        // Essayer de démarrer la lecture automatiquement
+        const playPromise = video.play();
+        
+        // Gérer le cas où la lecture automatique est bloquée
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.log('Lecture automatique empêchée, activation du son et nouvelle tentative...');
+                video.muted = false;
+                video.play().catch(e => console.log('Échec de la lecture automatique:', e));
+            });
+        }
+        
+        // Passer à la vidéo suivante à la fin de la lecture
+        video.addEventListener('ended', playNextVideo);
+    }
+
+    // Helper pour récupérer le token CSRF depuis les cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.indexOf(name + '=') === 0) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Récupère la playlist hiérarchique sérialisée en JSON par Django
+    const combinedRaw = JSON.parse(document.getElementById('combined-data') ? document.getElementById('combined-data').textContent || '[]' : '[]');
+    const completedIdsRaw = JSON.parse(document.getElementById('completed-ids') ? document.getElementById('completed-ids').textContent || '[]' : '[]');
+    const completedSet = new Set(Array.isArray(completedIdsRaw) ? completedIdsRaw : []);
+    const combinedClean = Array.isArray(combinedRaw) ? combinedRaw.filter(function(x) { 
+        return x && x.media_url && x.href; 
+    }) : [];
+    const firstLessonId = {% if first_lesson %}{{ first_lesson.id|stringformat:'r' }}{% else %}null{% endif %};
+    const isEnrolled = {% if is_enrolled %}true{% else %}false{% endif %};
+
+    function findCurrentIndex() {
+      if (!video) return -1;
+      const src = (video.querySelector('source') || {}).src || '';
+      // Priorité: même lesson_id et même URL média si possible
+      let idx = combinedClean.findIndex(e => e.lesson_id === currentLessonId && e.media_url === src);
+      if (idx >= 0) return idx;
+      // Sinon, première entrée de la même leçon
+      idx = combinedClean.findIndex(e => e.lesson_id === currentLessonId);
+      return idx;
+    }
+
+    // Fonction pour jouer la vidéo suivante
+    function playNextVideo() {
+        if (!video) return;
+        
+        // Trouver l'index de la vidéo actuelle
+        const currentIndex = findCurrentIndex();
+        if (currentIndex === -1 || currentIndex >= combinedClean.length - 1) {
+            // Dernière vidéo de la playlist
+            console.log('Fin de la playlist');
+            return;
+        }
+        
+        // Récupérer la prochaine vidéo
+        const nextVideo = combinedClean[currentIndex + 1];
+        if (!nextVideo) return;
+        
+        // Mettre à jour l'interface
+        if (lessonTitle) lessonTitle.textContent = nextVideo.title || 'Vidéo suivante';
+        if (lessonStatus) lessonStatus.innerHTML = '';
+        
+        // Charger et lancer la prochaine vidéo
+        const source = video.querySelector('source');
+        if (source) {
+            source.src = nextVideo.media_url;
+        } else {
+            const s = document.createElement('source');
+            s.src = nextVideo.media_url;
+            s.type = 'video/mp4';
+            video.appendChild(s);
+        }
+        
+        // Mettre à jour l'ID de la leçon courante
+        currentLessonId = nextVideo.lesson_id;
+        
+        // Recharger et lancer la vidéo
+        video.load();
+        video.play().catch(e => {
+            console.log('Erreur lors de la lecture automatique:', e);
+            // Essayer avec le son coupé
+            video.muted = true;
+            video.play().catch(e => console.log('Échec de la lecture automatique:', e));
+        });
+        
+        // Mettre à jour l'interface
+        renderSidebar();
+        
+        // Mettre à jour l'élément actif dans la liste des vidéos
+        updateActiveVideoInList();
+    }
+    
+    // Mettre à jour l'élément actif dans la liste des vidéos
+    function updateActiveVideoInList() {
+        // Mettre à jour la liste principale
+        document.querySelectorAll('.yt-item').forEach(el => {
+            const itemId = parseInt(el.getAttribute('data-lesson-id'), 10);
+            if (itemId === currentLessonId) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+        });
+        
+        // Mettre à jour la liste des vidéos de la leçon
+        document.querySelectorAll('.lv-list .lv-item').forEach(el => {
+            const itemId = parseInt(el.getAttribute('data-lesson-id'), 10);
+            if (itemId === currentLessonId) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+        });
+    }
+    
+    function bindPlaylistClicks(container) {
+      container.querySelectorAll('.yt-item').forEach(a => {
+        a.addEventListener('click', function (e) {
+          const newId = this.getAttribute('data-lesson-id');
+          const entry = combinedClean.find(e => String(e.lesson_id) === String(newId));
+          const newUrl = this.getAttribute('data-video-url') || (entry ? entry.media_url : null);
+          const newTitle = this.getAttribute('data-title') || (entry ? entry.title : '');
+          if (this.classList.contains('locked')) return; // laisser navigation serveur
+          if (video && newUrl) {
+            e.preventDefault();
+            const source = video.querySelector('source');
+            try { video.pause(); } catch {}
+            if (source) source.src = newUrl; else { const s = document.createElement('source'); s.src = newUrl; s.type = 'video/mp4'; video.appendChild(s); }
+            video.load(); 
+            video.play().catch(e => {
+                console.log('Erreur lors de la lecture:', e);
+                video.muted = true;
+                video.play().catch(e => console.log('Échec de la lecture:', e));
+            });
+            if (lessonTitle && newTitle) lessonTitle.textContent = newTitle;
+            if (lessonStatus) lessonStatus.innerHTML = '';
+            currentLessonId = parseInt(newId, 10);
+            // Re-rendre la sidebar et mettre à jour l'interface
+            renderSidebar();
+            updateActiveVideoInList();
+          }
+        });
+
+    // Click handler for lesson sub-playlist
+    document.querySelectorAll('.lv-list .lv-item').forEach(a => {
+      a.addEventListener('click', function (e) {
+        const newUrl = this.getAttribute('data-video-url');
+        const newTitle = this.getAttribute('data-title');
+        const newId = this.getAttribute('data-lesson-id');
+        if (video && newUrl) {
+          e.preventDefault();
+          const source = video.querySelector('source');
+          try { video.pause(); } catch {}
+          if (source) source.src = newUrl; else { const s = document.createElement('source'); s.src = newUrl; s.type = 'video/mp4'; video.appendChild(s); }
+          video.load(); video.play();
+          if (lessonTitle && newTitle) lessonTitle.textContent = newTitle;
+          if (lessonStatus) lessonStatus.innerHTML = '';
+          currentLessonId = parseInt(newId, 10);
+          // Active state
+          document.querySelectorAll('.lv-list .lv-item').forEach(el => el.classList.remove('active'));
+          this.classList.add('active');
+          // Réaligner la sidebar
+          renderSidebar();
+        }
+      });
+    });
+      });
+    }
+
+    function renderSidebar() {
+      const listEl = document.getElementById('yt-list');
+      if (!listEl) return;
+      listEl.innerHTML = '';
+      if (!combinedClean.length) {
+        listEl.innerHTML = '<div class="muted" style="padding:8px 0;">Aucune leçon suivante.</div>';
+        return;
+      }
+      let idx = findCurrentIndex();
+      if (idx < 0) idx = 0;
+      // Affiche les 8 prochaines entrées avec wrap
+      const toShow = Math.min(8, combinedClean.length);
+      for (let i = 1; i <= toShow; i++) {
+        const ent = combinedClean[(idx + i) % combinedClean.length];
+        console.log('Entrée de la playlist:', ent); // Debug
+        const locked = (!isEnrolled && firstLessonId !== null && ent.lesson_id !== firstLessonId);
+        const watched = completedSet.has(ent.lesson_id);
+        const a = document.createElement('a');
+        a.className = 'yt-item' + (locked ? ' locked' : '') + (watched ? ' watched' : '');
+        a.href = ent.href;
+        a.setAttribute('data-lesson-id', String(ent.lesson_id));
+        if (!locked) a.setAttribute('data-video-url', ent.media_url);
+        a.setAttribute('data-title', ent.title);
+        // Utiliser la miniature de la leçon si disponible, sinon utiliser une image par défaut
+        const placeholderUrl = '{% static "img/video-placeholder.jpg" %}';
+        const thumbnailUrl = ent.thumbnail_url || placeholderUrl;
+        
+        // Créer la structure HTML pour l'élément de la playlist
+        let html = `
+          <div class="thumb" style="position: relative; width: 100%; height: 0; padding-bottom: 56.25%; overflow: hidden; border-radius: 4px;">
+            <img src="${thumbnailUrl}" 
+                 alt="Miniature de ${ent.title.replace(/"/g, '&quot;')}" 
+                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">`;
+        
+        if (watched) {
+          html += '<div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 3px; font-size: 10px;">✅</div>';
+        }
+        
+        if (locked) {
+          html += '<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">🔒</div>';
+        }
+        
+        html += `
+          </div>
+          <div class="meta" style="padding: 8px 0;">
+            <div class="t1" style="font-weight: 500; font-size: 14px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; min-height: 40px;">
+              <span class="idx" style="display: inline-block; width: 20px; color: #666; font-size: 12px;">${i}.</span> ${ent.title}
+            </div>
+            <div class="t2" style="font-size: 12px; color: #666; margin-top: 4px;">
+              ${locked ? '🔒 Réservé aux inscrits' : (watched ? '✅ Déjà vu' : '')}
+            </div>
+          </div>`;
+          
+        a.innerHTML = html;
+        listEl.appendChild(a);
+      }
+      bindPlaylistClicks(listEl);
+    }
+
+    // Première construction de la sidebar à l'ouverture
+    renderSidebar();
+
+    // Marquer la leçon comme complétée à la fin de la vidéo puis démarrer la suivante
+    if (video) {
+      video.addEventListener('ended', function () {
+        const completeUrl = `/courses/lessons/${currentLessonId}/complete/`;
+        fetch(completeUrl, {
+          method: "POST",
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({})
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('HTTP ' + response.status);
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.status === 'ok') {
+              if (lessonStatus) {
+                lessonStatus.innerHTML = '<span style="color: green;">✅ Leçon terminée</span>';
+              }
+              // Avancer dans combined playlist avec wrap-around
+              let idx = findCurrentIndex();
+              if (idx < 0 && combinedClean.length) idx = 0;
+              if (idx >= 0 && combinedClean.length) {
+                const nextIdx = (idx + 1) % combinedClean.length;
+                const next = combinedClean[nextIdx];
+                if (next.lesson_id === currentLessonId) {
+                  // même leçon: swap sans changer de page
+                  const source = video.querySelector('source');
+                  if (source) source.src = next.media_url; else {
+                    const s = document.createElement('source');
+                    s.src = next.media_url; s.type = 'video/mp4'; video.appendChild(s);
+                  }
+                  video.load();
+                  video.play();
+                  if (lessonTitle && next.title) lessonTitle.textContent = next.title;
+                  if (lessonStatus) lessonStatus.innerHTML = '';
+                  // Re-rendre la sidebar après avancée dans la même leçon
+                  renderSidebar();
+                } else {
+                  // autre leçon: navigation
+                  window.location.href = next.href;
+                }
+              }
+            }
+          })
+          .catch(err => {
+            console.error('Erreur progression leçon:', err);
+          });
+      });
+    }
+
+    // YouTube-like: cliquer dans la playlist met à jour la vidéo sans recharger et swap l'item cliqué avec la vidéo précédente
+    // YouTube-like: cliquer dans la playlist met à jour la vidéo sans recharger et swap l'item cliqué avec la vidéo précédente
+    document.querySelectorAll('.yt-list .yt-item').forEach(a => {
+      a.addEventListener('click', function (e) {
+        const newId = this.getAttribute('data-lesson-id');
+        // Priorité: si la leçon cliquée a des vidéos, prendre la première entrée de combined pour cette leçon
+        let entry = combinedClean.find(e => String(e.lesson_id) === String(newId));
+        let newUrl = entry ? entry.media_url : this.getAttribute('data-video-url');
+        const newTitle = entry ? entry.title : this.getAttribute('data-title');
+        
+        if (video && newUrl) {
+          e.preventDefault();
+
+          // 1) Capturer l'état de la vidéo principale AVANT mise à jour
+          const source = video.querySelector('source');
+          const prevUrl = source ? source.src : '';
+          const prevTitle = lessonTitle ? lessonTitle.textContent : '';
+          const prevId = currentLessonId;
+
+          // 2) Mettre à jour le player avec la nouvelle vidéo
+          try { video.pause(); } catch {}
+          if (source) {
+            source.src = newUrl;
+          } else {
+            const s = document.createElement('source');
+            s.src = newUrl; s.type = 'video/mp4';
+            video.appendChild(s);
+          }
+          video.load();
+          video.play();
+          if (lessonTitle && newTitle) lessonTitle.textContent = newTitle;
+          if (lessonStatus) lessonStatus.innerHTML = '';
+          currentLessonId = parseInt(newId, 10);
+
+          // 3) Swap: l'item cliqué devient l'ancienne vidéo (id/titre/url)
+          if (prevId && prevUrl) {
+            this.setAttribute('data-lesson-id', String(prevId));
+            this.setAttribute('data-title', prevTitle);
+            this.setAttribute('data-video-url', prevUrl);
+            // Ajuste le href vers l'ancien id
+            const hrefNow = this.getAttribute('href');
+            if (hrefNow) this.setAttribute('href', hrefNow.replace(/\/(\d+)\/$/, `/${prevId}/`));
+            // Met à jour le texte visible
+            const t1 = this.querySelector('.t1, .t');
+            if (t1) {
+              const idxEl = t1.querySelector('.idx');
+              t1.textContent = prevTitle;
+              if (idxEl) t1.prepend(idxEl);
+            }
+          }
+
+          // 4) Activer l'élément
+          document.querySelectorAll('.yt-list .yt-item').forEach(el => el.classList.remove('active'));
+          this.classList.add('active');
+
+          // 5) Mettre à jour next-url caché
+          // Met à jour next-url si on change de leçon (sinon, il sera géré à la fin de vidéo)
+          if (nextUrlInput && entry && entry.href) nextUrlInput.value = entry.href;
+        }
+        // sinon, navigation normale vers la page de la leçon
+      });
+    });
+
+    // Tabs (Bootstrap-like) switching sans Bootstrap JS + deep-link support
+    const tabLinks = document.querySelectorAll('.ld-tabs .nav-link');
+    const tabPanes = document.querySelectorAll('.ld-tabs .tab-pane');
+    function activateTab(targetSel){
+      tabLinks.forEach(l => { l.classList.remove('active'); l.setAttribute('aria-selected','false'); });
+      tabPanes.forEach(p => p.classList.remove('show','active'));
+      const link = document.querySelector(`.ld-tabs .nav-link[href="${targetSel}"]`);
+      const pane = document.querySelector(targetSel);
+      if(link){ link.classList.add('active'); link.setAttribute('aria-selected','true'); }
+      if(pane){ pane.classList.add('show','active'); }
+      if (history.pushState) { history.pushState(null, '', targetSel); } else { location.hash = targetSel; }
+    }
+    tabLinks.forEach(link => {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetSel = this.getAttribute('href');
+        if (!targetSel) return;
+        activateTab(targetSel);
+      });
+    });
+
+    // Activate tab from hash on load
+    const hash = location.hash;
+    if (hash === '#tab-desc' || hash === '#tab-res' || hash === '#tab-com') {
+      const link = document.querySelector(`.ld-tabs .nav-link[href="${hash}"]`);
+      if (link) link.click();
+    }
+
+    // CTA buttons to open rating/comment
+    const btnOpenRating = document.getElementById('btn-open-rating');
+    const btnOpenComment = document.getElementById('btn-open-comment');
+    btnOpenRating?.addEventListener('click', ()=>{
+      activateTab('#tab-res');
+      const firstStar = document.getElementById('star5') || document.querySelector('#rating-form input[name="rating"]');
+      try{ firstStar?.focus(); }catch(_){ }
+      document.getElementById('rating-form')?.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+    btnOpenComment?.addEventListener('click', ()=>{
+      activateTab('#tab-com');
+      // Attendre que l'onglet soit visible
+      setTimeout(() => {
+        // Essayer de trouver la zone de texte du commentaire
+        const commentTextarea = document.querySelector('#tab-com textarea[name="comment"]');
+        if (commentTextarea) {
+          try { 
+            commentTextarea.focus();
+            commentTextarea.scrollIntoView({behavior: 'smooth', block: 'center'});
+          } catch(e) { 
+            console.error('Erreur lors du focus sur la zone de commentaire:', e);
+          }
+        } else {
+          console.error('Zone de commentaire introuvable');
+        }
+      }, 100);
+    });
+  });
+
+  // Fonction pour avancer/reculer la vidéo
+  function seekVideo(seconds) {
+    const video = document.querySelector('video');
+    if (!video) return;
+    
+    video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+    
+    // Afficher un retour visuel
+    showSeekFeedback(seconds > 0 ? 'forward' : 'backward', Math.abs(seconds) + 's');
+  }
+
+  // Fonction pour afficher un retour visuel
+  function showSeekFeedback(direction, time) {
+    // Supprimer l'élément de feedback s'il existe déjà
+    const existingFeedback = document.querySelector('.seek-feedback');
+    if (existingFeedback) {
+      existingFeedback.remove();
+    }
+    
+    // Créer l'élément de feedback
+    const feedback = document.createElement('div');
+    feedback.className = `seek-feedback seek-${direction}`;
+    feedback.innerHTML = `${direction === 'forward' ? '⏩' : '⏪'} ${time}`;
+    
+    // Ajouter au DOM
+    const videoContainer = document.querySelector('.ld-player') || document.body;
+    videoContainer.appendChild(feedback);
+    
+    // Supprimer après l'animation
+    setTimeout(() => {
+      feedback.style.opacity = '0';
+      setTimeout(() => feedback.remove(), 500);
+    }, 1000);
+  }
+
+  // Écouter les touches du clavier
+  document.addEventListener('keydown', (e) => {
+    // Ne pas déclencher si on est dans un champ de formulaire
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+      return;
+    }
+    
+    const video = document.querySelector('video');
+    if (!video) return;
+    
+    switch(e.key) {
+      case 'ArrowLeft':
+        e.preventDefault();
+        seekVideo(-10); // Reculer de 10 secondes
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        seekVideo(10); // Avancer de 10 secondes
+        break;
+      case ' ':
+      case 'Spacebar':
+        // Gérer la barre d'espace pour mettre en pause/reprendre
+        if (document.activeElement === video) {
+          e.preventDefault();
+          if (video.paused) video.play();
+          else video.pause();
+        }
+        break;
+    }
+  });
+
+  // Gestion du formulaire de marquage de la leçon comme terminée
+  document.querySelectorAll('.mark-lesson-completed-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const button = this.querySelector('button[type="submit"]');
+      const icon = button.querySelector('i');
+      const text = button.querySelector('span');
+      const isCurrentlyCompleted = button.dataset.completed === 'true';
+      const formData = new FormData(this);
+      
+      // Désactiver le bouton pendant la requête
+      button.disabled = true;
+      
+      // Mise à jour immédiate de l'interface utilisateur
+      button.classList.toggle('btn-success', !isCurrentlyCompleted);
+      button.classList.toggle('btn-outline-secondary', isCurrentlyCompleted);
+      icon.className = !isCurrentlyCompleted ? 'bi bi-check-circle-fill me-2' : 'bi bi-circle me-2';
+      text.textContent = !isCurrentlyCompleted ? 'Leçon terminée' : 'Marquer comme terminée';
+      
+      // Envoyer la requête au serveur
+      fetch(this.action, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        },
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur réseau');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.status === 'success') {
+          // Mettre à jour l'interface utilisateur avec la réponse du serveur
+          button.dataset.completed = data.completed.toString();
+          button.classList.toggle('btn-success', data.completed);
+          button.classList.toggle('btn-outline-secondary', !data.completed);
+          icon.className = data.completed ? 'bi bi-check-circle-fill me-2' : 'bi bi-circle me-2';
+          text.textContent = data.completed ? 'Leçon terminée' : 'Marquer comme terminée';
+          
+          // Mettre à jour le badge de statut de la leçon
+          const lessonStatus = document.getElementById('lesson-status');
+          if (lessonStatus) {
+            lessonStatus.innerHTML = data.completed ? 
+              '<span class="pill done">✅ Leçon terminée</span>' : 
+              '';
+          }
+          
+          // Mettre à jour la barre de progression si elle existe
+          if (data.progress) {
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.querySelector('.progress-percent');
+            if (progressBar && progressText) {
+              progressBar.style.width = `${data.progress.percent}%`;
+              progressBar.setAttribute('aria-valuenow', data.progress.percent);
+              progressText.textContent = `${data.progress.percent}%`;
+            }
+          }
+          
+          // Afficher un message de succès
+          showToast('Succès', data.message, 'success');
+        } else {
+          // En cas d'erreur, revenir à l'état précédent
+          throw new Error(data.message || 'Erreur inconnue');
+        }
+      })
+      .catch(error => {
+        console.error('Erreur:', error);
+        
+        // Revenir à l'état précédent
+        button.dataset.completed = isCurrentlyCompleted.toString();
+        button.classList.toggle('btn-success', isCurrentlyCompleted);
+        button.classList.toggle('btn-outline-secondary', !isCurrentlyCompleted);
+        icon.className = isCurrentlyCompleted ? 'bi bi-check-circle-fill me-2' : 'bi bi-circle me-2';
+        text.textContent = isCurrentlyCompleted ? 'Leçon terminée' : 'Marquer comme terminée';
+        
+        // Afficher un message d'erreur
+        showToast('Erreur', error.message || 'Une erreur est survenue lors de la mise à jour', 'error');
+      })
+      .finally(() => {
+        button.disabled = false;
+      });
+    });
+  });
+  
+  // Fonction utilitaire pour afficher des notifications
+  function showToast(title, message, type = 'info') {
+    // Utiliser SweetAlert2 si disponible
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: title,
+        text: message,
+        icon: type,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    } 
+    // Sinon, utiliser Toastify si disponible
+    else if (typeof Toastify !== 'undefined') {
+      Toastify({
+        text: `${title}: ${message}`,
+        duration: 3000,
+        gravity: "top",
+        position: 'right',
+        backgroundColor: type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#17a2b8',
+        stopOnFocus: true
+      }).showToast();
+    } 
+    // Sinon, utiliser une alerte native
+    else {
+      alert(`${title}: ${message}`);
+    }
+  }
+</script>
+{% endblock %}

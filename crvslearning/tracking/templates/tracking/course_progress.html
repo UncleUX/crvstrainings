@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load tracking_filters %}
+
+{% block title %}Progression des Cours{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Progression des Cours</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Statistiques des Cours</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Tous les cours
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                            <li><a class="dropdown-item active" href="#">Tous les cours</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% for course in courses %}
+                            <li><a class="dropdown-item" href="#">{{ course.title }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="courseProgressChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Meilleurs Cours</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for course in top_courses|slice:":5" %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ course.title }}</h6>
+                            <small>{{ course.course_completion_rate }}%</small>
+                        </div>
+                        <div class="progress mb-1" style="height: 5px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ course.course_completion_rate }}%" 
+                                 title="Taux de complétion du cours">
+                            </div>
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            <div class="progress-bar bg-info" role="progressbar" 
+                                 style="width: {{ course.lesson_completion_rate }}%" 
+                                 title="Taux de complétion des leçons">
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            {{ course.completed_courses }}/{{ course.enrollments }} apprenants ont terminé
+                        </small>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center text-muted">
+                        Aucune donnée disponible
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Détails des Cours</h5>
+                <div class="input-group" style="max-width: 300px;">
+                    <input type="text" id="searchCourseInput" class="form-control" placeholder="Rechercher un cours...">
+                    <button class="btn btn-outline-secondary" type="button" id="searchCourseButton">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Cours</th>
+                            <th>Formateur</th>
+                            <th>Inscriptions</th>
+                            <th>Terminés</th>
+                            <th>Progrès</th>
+                            <th>Note moyenne</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in courses %}
+                        <tr class="course-row">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if course.image %}
+                                    <img src="{{ course.image.url }}" alt="{{ course.title }}" class="rounded me-3" width="50" height="40" style="object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 40px;">
+                                        <i class="bi bi-journal-text text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0">{{ course.title }}</h6>
+                                        <small class="text-muted">{{ course.category.name|default:"Sans catégorie" }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ course.instructor.get_full_name|default:course.instructor.username }}</td>
+                            <td>{{ course.enrollments }}</td>
+                            <td>
+                                <span class="badge bg-success">
+                                    {{ course.completed_courses }} / {{ course.enrollments }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             style="width: {{ course.course_completion_rate }}%" 
+                                             title="Taux de complétion du cours">
+                                        </div>
+                                        <div class="progress-bar bg-info" role="progressbar" 
+                                             style="width: {{ course.lesson_only_completion }}%" 
+                                             title="Taux de complétion des leçons (hors cours terminés)">
+                                        </div>
+                                    </div>
+                                    <span class="text-nowrap" title="Cours: {{ course.course_completion_rate|floatformat:1 }}%, Leçons: {{ course.lesson_completion_rate|floatformat:1 }}%">
+                                        {{ course.course_completion_rate|floatformat:0 }}%
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="text-warning">
+                                        {% for i in "12345"|make_list %}
+                                            {% if forloop.counter <= course.average_rating|default:0|floatformat:0|add:0 %}
+                                                <i class="bi bi-star-fill"></i>
+                                            {% else %}
+                                                <i class="bi bi-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <small class="ms-1">({{ course.average_rating|default:0|floatformat:1 }})</small>
+                                </div>
+                            </td>
+                            <td>
+                                {% if course.is_published %}
+                                <span class="badge bg-success">Publié</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Brouillon</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-outline-primary" title="Voir les détails">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'courses:manage' %}" class="btn btn-outline-secondary" title="Gérer les cours">
+                                        <i class="bi bi-gear"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-outline-info" title="Exporter les données">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="bi bi-journal-x display-4 d-block mb-2"></i>
+                                    Aucun cours trouvé
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if is_paginated %}
+        <div class="card-footer bg-white">
+            <nav aria-label="Navigation des cours">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="Première">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Précédent">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Suivant">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Dernière">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fonction de recherche en temps réel
+        const searchInput = document.getElementById('searchCourseInput');
+        const searchButton = document.getElementById('searchCourseButton');
+        const courseRows = document.querySelectorAll('.course-row');
+        
+        function filterCourses() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            courseRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        searchInput.addEventListener('input', filterCourses);
+        searchButton.addEventListener('click', filterCourses);
+
+        // Graphique de progression des cours
+        var ctx = document.getElementById('courseProgressChart').getContext('2d');
+        
+        // Récupérer les données depuis le contexte Django
+        var courseTitles = JSON.parse('{{ course_titles|escapejs }}');
+        var completionRates = {{ completion_rates|safe }};
+        var courseCompletionRates = {{ course_completion_rates|safe }};
+        var enrollmentCounts = {{ enrollment_counts|safe }};
+        
+        // Créer le graphique
+        var chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: courseTitles,
+                datasets: [
+                    {
+                        label: 'Taux de complétion des cours (%)',
+                        data: courseCompletionRates,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1,
+                        stack: 'completion',
+                        order: 1
+                    },
+                    {
+                        label: 'Taux de complétion des leçons (%)',
+                        data: completionRates,
+                        backgroundColor: 'rgba(23, 162, 184, 0.7)',
+                        borderColor: 'rgba(23, 162, 184, 1)',
+                        borderWidth: 1,
+                        stack: 'completion',
+                        order: 2
+                    },
+                    {
+                        label: 'Nombre d\'inscriptions',
+                        data: enrollmentCounts,
+                        type: 'line',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(220, 53, 69, 1)',
+                        pointRadius: 4,
+                        yAxisID: 'y1',
+                        order: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Taux de complétion (%)'
+                        },
+                        stacked: true
+                    },
+                    y1: {
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Inscriptions'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + (context.datasetIndex !== 2 ? '%' : '');
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

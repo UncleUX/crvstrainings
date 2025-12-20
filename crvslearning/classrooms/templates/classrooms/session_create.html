@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Planifier une session live{% endblock %}
+
+{% block content %}
+<style>
+/* ===== LAYOUT ===== */
+.live-wrapper{
+  min-height:70vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ===== CARD ===== */
+.live-card{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 20px 45px rgba(0,0,0,.12);
+  overflow:hidden;
+  max-width:960px;
+  width:100%;
+}
+
+/* ===== LEFT ===== */
+.live-left{
+  background:linear-gradient(135deg,#0f172a,#1f2937);
+  color:#fff;
+  padding:44px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.live-left h2{
+  font-weight:900;
+  font-size:2rem;
+  margin-bottom:14px;
+}
+.live-left p{
+  opacity:.9;
+  line-height:1.6;
+  font-size:.95rem;
+}
+
+/* ===== RIGHT ===== */
+.live-right{
+  padding:44px;
+}
+.live-right h4{
+  font-weight:800;
+  margin-bottom:22px;
+}
+
+/* ===== FORM ===== */
+.form-control,
+.form-select{
+  border-radius:10px;
+  padding:12px 14px;
+}
+textarea.form-control{
+  resize:none;
+}
+.btn{
+  padding:12px 18px;
+  border-radius:10px;
+  font-weight:700;
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .live-card{
+    grid-template-columns:1fr;
+  }
+  .live-left{
+    text-align:center;
+  }
+}
+</style>
+
+<div class="container live-wrapper">
+
+  <div class="live-card">
+
+    <!-- LEFT INFO -->
+    <div class="live-left">
+      <h2>Session live</h2>
+      <p>
+        Planifiez une session en direct avec vos apprenants.
+        Définissez la classe, la date et l’heure, puis démarrez
+        un échange interactif en temps réel.
+      </p>
+    </div>
+
+    <!-- RIGHT FORM -->
+    <div class="live-right">
+      <h4>Informations de la session</h4>
+
+      <form method="post" action="{% url 'classrooms:session_create' %}">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Titre</label>
+          <input class="form-control" name="title" placeholder="Ex: Révision chapitre 3" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Classe</label>
+          <select class="form-select" name="classroom_id" required>
+            {% for cl in classrooms %}
+              <option value="{{ cl.id }}">{{ cl.name }}</option>
+            {% empty %}
+              <option disabled>Aucune classe disponible</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Date & heure de début</label>
+          <input type="datetime-local" class="form-control" name="start_at" required>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-bold">Description (optionnel)</label>
+          <textarea class="form-control" name="description" rows="3"
+            placeholder="Objectifs de la session, contenu abordé…"></textarea>
+        </div>
+
+        <div class="d-flex gap-2">
+          <a href="{% url 'classrooms:my_classrooms' %}"
+             class="btn btn-outline-secondary w-50">
+            Annuler
+          </a>
+          <button type="submit" class="btn btn-primary w-50">
+            <i class="fas fa-calendar-check me-1"></i>
+            Planifier
+          </button>
+        </div>
+      </form>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

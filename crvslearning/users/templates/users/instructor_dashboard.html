@@ -1,0 +1,603 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Formateur{% endblock %}
+
+{% block content %}
+<style>
+  body, html {
+    margin: 0; padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #222;
+  }
+
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    background: #121212;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: 0.08em;
+    z-index: 1000;
+  }
+  header .brand {
+    user-select: none;
+  }
+  header a.logout-btn {
+    background: #e50914;
+    color: white;
+    padding: 8px 18px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  header a.logout-btn:hover {
+    background: #b0060e;
+  }
+
+  .dashboard-container {
+    max-width: 1100px;
+    margin: 100px auto 60px;
+    padding: 0 20px;
+  }
+
+  h2 {
+    font-size: 2.2rem;
+    margin-bottom: 25px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #121212;
+    text-align: center;
+  }
+
+  .welcome-msg {
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 50px;
+    color: #444;
+  }
+
+  nav.dashboard-nav {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 60px;
+    flex-wrap: wrap;
+  }
+  nav.dashboard-nav a {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 240px;
+    height: 140px;
+    background: linear-gradient(145deg, #ffffff, #e0e5ec);
+    box-shadow:
+      8px 8px 15px #a3b1c6,
+      -8px -8px 15px #ffffff;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #121212;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    user-select: none;
+    cursor: pointer;
+  }
+  nav.dashboard-nav a:hover {
+    box-shadow:
+      inset 4px 4px 10px #a3b1c6,
+      inset -4px -4px 10px #ffffff;
+    transform: scale(1.05);
+    color: #e50914;
+  }
+
+  @media (max-width: 800px) {
+    nav.dashboard-nav {
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
+    }
+    nav.dashboard-nav a {
+      width: 90vw;
+      height: 110px;
+      font-size: 1.2rem;
+    }
+  }
+
+  .card-message {
+    max-width: 600px; 
+    margin: 0 auto; 
+    text-align: center; 
+    color: #e50914; 
+    font-weight: 600;
+  }
+</style>
+
+<div class="dashboard-container">
+  <h2>Dashboard Formateur</h2>
+  <p class="welcome-msg">Bonjour <strong>{{ user.username }}</strong>, bienvenue sur votre espace formateur.</p>
+
+  <div class="mb-4" style="text-align:center;">
+    <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createCourseModal">Créer un cours</button>
+    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createClassroomModal">Créer une salle de classe</button>
+    <button class="btn btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#planSessionModal">Planifier une session</button>
+  </div>
+
+  <nav class="dashboard-nav" role="navigation" aria-label="Navigation utilisateur">
+    <a href="{% url 'courses:course_list' %}" title="Gérer mes cours">Gérer mes cours</a>
+    <a href="{% url 'exercises:exercise_create' %}" title="Ajouter un exercice">Ajouter un exercice</a>
+    <a href="{% url 'courses:course_create' %}" title="Ajouter un cours">Ajouter un cours</a>
+    <a href="{% url 'classrooms:my_classrooms' %}" title="Voir les apprenants">Voir les apprenants</a>
+  </nav>
+
+  {% if message %}
+  <div class="card-message">{{ message }}</div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block modals %}
+  <!-- Modal: Créer un cours -->
+  <div class="modal fade" id="createCourseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Créer un nouveau cours</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'courses:course_create' %}" id="createCourseForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="modal-body">
+            {% if messages %}
+            <div class="mb-3">
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="row">
+              <div class="col-md-8">
+                <div class="mb-3">
+                  <label for="id_title" class="form-label fw-bold">Titre du cours <span class="text-danger">*</span></label>
+                  <input type="text" name="title" class="form-control form-control-lg" id="id_title" required>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="id_description" class="form-label fw-bold">Description</label>
+                  <textarea name="description" class="form-control" id="id_description" rows="5" 
+                            placeholder="Décrivez votre cours en détail..."></textarea>
+                </div>
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_language" class="form-label fw-bold">Langue <span class="text-danger">*</span></label>
+                      <select name="language" class="form-select" id="id_language" required>
+                        <option value="fr" selected>Français</option>
+                        <option value="en">English</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_category" class="form-label fw-bold">Catégorie <span class="text-danger">*</span></label>
+                      <div class="input-group">
+                        <select name="category" class="form-select" id="courseCategorySelect" required>
+                          <option value="" disabled selected>Sélectionnez une catégorie</option>
+                          {% for category in categories %}
+                          <option value="{{ category.id }}">{{ category.name }}</option>
+                          {% endfor %}
+                        </select>
+                        <button type="button" id="addCategoryBtn" class="btn btn-outline-secondary">
+                          <i class="fas fa-plus"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  <label for="id_thumbnail" class="form-label fw-bold">Image de couverture</label>
+                  <input type="file" name="thumbnail" class="form-control" id="id_thumbnail" accept="image/*">
+                  <div class="form-text">Format recommandé : 1280x720px. Taille maximale : 2MB.</div>
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <div class="card border-0 bg-light">
+                  <div class="card-body">
+                    <h6 class="card-title fw-bold mb-3"><i class="fas fa-info-circle me-2"></i>Conseils</h6>
+                    <ul class="small text-muted">
+                      <li class="mb-2">Choisissez un titre accrocheur et descriptif</li>
+                      <li class="mb-2">Décrivez en détail le contenu de votre cours</li>
+                      <li class="mb-2">Sélectionnez la catégorie la plus appropriée</li>
+                      <li>Ajoutez une image de couverture attrayante</li>
+                    </ul>
+                    
+                    <div class="alert alert-info mt-4 small">
+                      <i class="fas fa-lock me-2"></i>
+                      Votre cours ne sera pas publié immédiatement. Vous pourrez le configurer davantage après sa création.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times me-1"></i> Annuler
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save me-1"></i> Créer le cours
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Créer une salle de classe -->
+  <div class="modal fade" id="createClassroomModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Créer une salle de classe</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'classrooms:create' %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Nom</label>
+                <input class="form-control" name="name" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Matière</label>
+                <input class="form-control" name="subject">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Programme / Planning</label>
+                <textarea class="form-control" name="schedule"></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Cours lié (optionnel)</label>
+                <select name="course_id" class="form-select">
+                  <option value="">-- aucun --</option>
+                  {% for c in teacher_courses %}
+                    <option value="{{ c.id }}">{{ c.title }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-primary">Créer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Planifier une session live -->
+  <div class="modal fade" id="planSessionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Planifier une session live</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'classrooms:session_create' %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Titre</label>
+              <input class="form-control" name="title" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Classe</label>
+              <select class="form-select" name="classroom_id" required>
+                {% for cl in teacher_classrooms %}
+                  <option value="{{ cl.id }}">{{ cl.name }}</option>
+                {% empty %}
+                  <option disabled>Aucune classe</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Début</label>
+              <input type="datetime-local" class="form-control" name="start_at" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description (optionnel)</label>
+              <textarea class="form-control" name="description" rows="2"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-primary">Planifier</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Créer une catégorie -->
+  <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title"><i class="fas fa-tag me-2"></i>Nouvelle catégorie</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="createCategoryForm" method="post" action="{% url 'courses:create_category' %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="alert alert-info small mb-4">
+              <i class="fas fa-info-circle me-2"></i>
+              Créez une nouvelle catégorie pour organiser vos cours. Assurez-vous qu'elle n'existe pas déjà.
+            </div>
+            
+            <div class="mb-3">
+              <label for="categoryName" class="form-label fw-bold">Nom de la catégorie <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="categoryName" name="name" required 
+                     placeholder="Ex: Développement Web, Marketing Digital, etc.">
+            </div>
+            
+            <div class="mb-3">
+              <label for="categoryDescription" class="form-label fw-bold">Description (optionnelle)</label>
+              <textarea class="form-control" id="categoryDescription" name="description" 
+                        rows="2" placeholder="Décrivez brièvement cette catégorie"></textarea>
+            </div>
+            
+            <div id="categoryError" class="alert alert-danger d-none" role="alert">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <span id="categoryErrorText"></span>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times me-1"></i> Annuler
+            </button>
+            <button type="submit" class="btn btn-primary" id="submitCategoryBtn">
+              <i class="fas fa-check me-1"></i> Créer la catégorie
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Éléments du DOM
+      const createCategoryForm = document.getElementById('createCategoryForm');
+      const createCourseForm = document.getElementById('createCourseForm');
+      const courseCategorySelect = document.getElementById('courseCategorySelect');
+      const addCategoryBtn = document.getElementById('addCategoryBtn');
+      const categoryError = document.getElementById('categoryError');
+      const categoryErrorText = document.getElementById('categoryErrorText');
+      const submitCategoryBtn = document.getElementById('submitCategoryBtn');
+      
+      // Gestion du clic sur le bouton d'ajout de catégorie
+      if (addCategoryBtn) {
+        addCategoryBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const currentCategory = courseCategorySelect.value;
+          
+          // Réinitialiser le formulaire de catégorie
+          if (createCategoryForm) {
+            createCategoryForm.reset();
+            categoryError.classList.add('d-none');
+          }
+          
+          // Afficher la modale de création de catégorie
+          const categoryModal = new bootstrap.Modal(document.getElementById('createCategoryModal'));
+          categoryModal.show();
+          
+          // Mettre le focus sur le champ de nom de catégorie
+          document.getElementById('categoryName')?.focus();
+          
+          // Gérer la fermeture de la modale
+          document.getElementById('createCategoryModal').addEventListener('hidden.bs.modal', function() {
+            if (courseCategorySelect.value === '' && currentCategory) {
+              courseCategorySelect.value = currentCategory;
+            }
+          }, { once: true });
+        });
+      }
+      
+      // Gestion de la soumission du formulaire de création de catégorie
+      if (createCategoryForm) {
+        createCategoryForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const form = this;
+          const formData = new FormData(form);
+          const originalBtnText = submitCategoryBtn.innerHTML;
+          
+          // Désactiver le bouton et afficher un indicateur de chargement
+          submitCategoryBtn.disabled = true;
+          submitCategoryBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+          
+          // Cacher les erreurs précédentes
+          categoryError.classList.add('d-none');
+          
+          fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // Créer et ajouter la nouvelle option de catégorie
+              const option = new Option(data.category_name, data.category_id);
+              option.selected = true;
+              
+              // Supprimer l'option par défaut si nécessaire
+              if (courseCategorySelect.options[0] && courseCategorySelect.options[0].value === '') {
+                courseCategorySelect.remove(0);
+              }
+              
+              // Ajouter la nouvelle catégorie et la sélectionner
+              courseCategorySelect.add(option);
+              
+              // Fermer la modale
+              const categoryModal = bootstrap.Modal.getInstance(document.getElementById('createCategoryModal'));
+              categoryModal.hide();
+              
+              // Afficher un message de succès
+              showAlert('Catégorie créée avec succès !', 'success');
+            } else {
+              // Afficher l'erreur
+              categoryErrorText.textContent = data.error || 'Une erreur est survenue lors de la création de la catégorie.';
+              categoryError.classList.remove('d-none');
+            }
+          })
+          .catch(error => {
+            console.error('Erreur:', error);
+            categoryErrorText.textContent = 'Une erreur est survenue lors de la communication avec le serveur.';
+            categoryError.classList.remove('d-none');
+          })
+          .finally(() => {
+            // Réactiver le bouton
+            submitCategoryBtn.disabled = false;
+            submitCategoryBtn.innerHTML = originalBtnText;
+          });
+        });
+      }
+      
+      // Gestion de la soumission du formulaire de création de cours
+      if (createCourseForm) {
+        createCourseForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const form = this;
+          const formData = new FormData(form);
+          const submitBtn = form.querySelector('button[type="submit"]');
+          const originalBtnText = submitBtn.innerHTML;
+          
+          // Désactiver le bouton et afficher un indicateur de chargement
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Création en cours...';
+          
+          // Supprimer les messages d'erreur existants
+          const existingAlerts = form.querySelectorAll('.alert');
+          existingAlerts.forEach(alert => alert.remove());
+          
+          fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+          })
+          .then(response => {
+            if (response.redirected) {
+              window.location.href = response.url;
+              return;
+            }
+            return response.json().then(data => {
+              if (!data) return;
+              
+              if (data.success && data.redirect_url) {
+                window.location.href = data.redirect_url || '{% url "courses:manage" %}';
+              } else if (data.form_errors) {
+                // Afficher les erreurs de formulaire
+                showFormErrors(form, data.form_errors);
+                showAlert('Veuillez corriger les erreurs ci-dessous.', 'danger');
+              } else {
+                throw new Error(data.error || 'Erreur lors de la création du cours');
+              }
+            });
+          })
+          .catch(error => {
+            console.error('Erreur:', error);
+            showAlert(error.message || 'Une erreur est survenue lors de la création du cours.', 'danger');
+          })
+          .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+          });
+        });
+      }
+      
+      // Fonction pour afficher les erreurs de formulaire
+      function showFormErrors(form, errors) {
+        Object.entries(errors).forEach(([field, messages]) => {
+          const input = form.querySelector(`[name="${field}"]`);
+          if (input) {
+            // Créer un élément d'alerte pour l'erreur
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'invalid-feedback d-block';
+            errorDiv.textContent = Array.isArray(messages) ? messages.join(' ') : messages;
+            
+            // Ajouter la classe is-invalid au champ
+            input.classList.add('is-invalid');
+            
+            // Insérer le message d'erreur après le champ
+            input.parentNode.insertBefore(errorDiv, input.nextSibling);
+            
+            // Supprimer la classe is-invalid lorsque l'utilisateur commence à taper
+            input.addEventListener('input', function onInput() {
+              input.classList.remove('is-invalid');
+              if (errorDiv.parentNode) {
+                errorDiv.parentNode.removeChild(errorDiv);
+              }
+              input.removeEventListener('input', onInput);
+            });
+          }
+        });
+      }
+      
+      // Fonction utilitaire pour afficher des messages d'alerte
+      function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mb-3`;
+        alertDiv.role = 'alert';
+        alertDiv.innerHTML = `
+          <i class="${type === 'danger' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle'} me-2"></i>
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        `;
+        
+        // Ajouter l'alerte en haut du formulaire
+        const form = document.querySelector('form');
+        if (form) {
+          form.insertBefore(alertDiv, form.firstChild);
+          
+          // Faire défiler jusqu'à l'alerte
+          alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // Supprimer automatiquement l'alerte après 5 secondes
+          setTimeout(() => {
+            const alert = bootstrap.Alert.getOrCreateInstance(alertDiv);
+            if (alert) alert.close();
+          }, 5000);
+        }
+      }
+    });
+  </script>
+{% endblock %}

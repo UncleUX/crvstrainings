@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes abonnés{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Mes abonnés</h1>
+            
+            {% if subscribers %}
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Utilisateur</th>
+                                        <th>Date d'abonnement</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for subscriber in subscribers %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="{{ subscriber.subscriber.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                                                         class="rounded-circle me-3" 
+                                                         alt="{{ subscriber.subscriber.get_full_name }}"
+                                                         width="40" height="40">
+                                                    <div>
+                                                        <div class="fw-bold">
+                                                            {{ subscriber.subscriber.get_full_name|default:subscriber.subscriber.username }}
+                                                        </div>
+                                                        <small class="text-muted">
+                                                            {{ subscriber.subscriber.email }}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="align-middle">
+                                                {{ subscriber.created_at|date:"d/m/Y à H:i" }}
+                                            </td>
+                                            <td class="align-middle">
+                                                <a href="{% url 'users:learner_dashboard_handle' subscriber.subscriber.username %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye me-1"></i> Voir
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Vous n'avez aucun abonné pour le moment.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

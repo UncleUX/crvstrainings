@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Vérification de certificat</h2>
+{% if cert.is_valid %}
+  <p><strong>Valide</strong></p>
+  <p>Apprenant: {{ cert.user.get_full_name|default:cert.user.username }}</p>
+  <p>Cours: {{ cert.course.title }}</p>
+  <p>Niveau: {{ cert.level }}</p>
+  <p>Code: {{ cert.code }}</p>
+  {% if cert.pdf %}
+    <p><a href="{{ cert.pdf.url }}" target="_blank" class="btn btn-secondary">Télécharger le certificat (PDF)</a></p>
+  {% endif %}
+{% else %}
+  <p><strong>Invalide</strong></p>
+{% endif %}
+{% endblock %}

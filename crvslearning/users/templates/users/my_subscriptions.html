@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes abonnements{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Mes abonnements</h1>
+            
+            {% if subscriptions %}
+                <div class="row">
+                    {% for subscription in subscriptions %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    {% with avatar_display=subscription.trainer.get_avatar_display %}
+                                      {% if avatar_display.type == 'image' %}
+                                        <img src="{{ avatar_display.url }}" 
+                                             class="rounded-circle mb-3" 
+                                             alt="{{ avatar_display.alt }}"
+                                             width="100" height="100">
+                                      {% else %}
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
+                                             style="width:100px; height:100px; background:{{ avatar_display.bg_color }}; color:{{ avatar_display.color }}; font-size: 2.5rem; font-weight: bold;">
+                                          {{ avatar_display.initial }}
+                                        </div>
+                                      {% endif %}
+                                    {% endwith %}
+                                    
+                                    <h5 class="card-title">
+                                        <a href="{% url 'users:instructor_public' subscription.trainer.username %}">
+                                            {{ subscription.trainer.get_full_name|default:subscription.trainer.username }}
+                                        </a>
+                                    </h5>
+                                    
+                                    <p class="text-muted">
+                                        <i class="fas fa-users me-1"></i> 
+                                        {{ subscription.trainer.subscribers.count }} abonnés
+                                    </p>
+                                    
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a href="{% url 'users:instructor_public' subscription.trainer.username %}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            Voir le profil
+                                        </a>
+                                        <button class="btn btn-outline-danger btn-sm toggle-subscription" 
+                                                data-username="{{ subscription.trainer.username }}">
+                                            <i class="fas fa-user-minus me-1"></i> Se désabonner
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent text-center">
+                                    <small class="text-muted">
+                                        Abonné depuis le {{ subscription.created_at|date:"d/m/Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Vous n'êtes abonné à aucun formateur pour le moment.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion du désabonnement
+    document.querySelectorAll('.toggle-subscription').forEach(button => {
+        button.addEventListener('click', function() {
+            const username = this.dataset.username;
+            toggleSubscription(username, this);
+        });
+    });
+
+    function toggleSubscription(username, button) {
+        fetch(`/users/subscribe/${username}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'unsubscribed') {
+                // Supprimer la carte d'abonnement de l'interface
+                button.closest('.col-md-6').remove();
+                
+                // Mettre à jour le compteur d'abonnements
+                const subscriptionCount = document.querySelectorAll('.col-md-6').length;
+                if (subscriptionCount === 0) {
+                    location.reload(); // Recharger pour afficher le message "Aucun abonnement"
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

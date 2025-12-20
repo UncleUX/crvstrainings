@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Formateur{% endblock %}
+
+{% block content %}
+<style>
+  body, html {
+    margin: 0; padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #222;
+  }
+
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    background: #121212;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: 0.08em;
+    z-index: 1000;
+  }
+  header .brand {
+    user-select: none;
+  }
+  header a.logout-btn {
+    background: #e50914;
+    color: white;
+    padding: 8px 18px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+  }
+  header a.logout-btn:hover {
+    background: #b0060e;
+  }
+
+  .dashboard-container {
+    max-width: 1100px;
+    margin: 100px auto 60px;
+    padding: 0 20px;
+  }
+
+  h2 {
+    font-size: 2.2rem;
+    margin-bottom: 25px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #121212;
+    text-align: center;
+  }
+
+  .welcome-msg {
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 50px;
+    color: #444;
+  }
+
+  nav.dashboard-nav {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 60px;
+    flex-wrap: wrap;
+  }
+  nav.dashboard-nav a {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 240px;
+    height: 140px;
+    background: linear-gradient(145deg, #ffffff, #e0e5ec);
+    box-shadow:
+      8px 8px 15px #a3b1c6,
+      -8px -8px 15px #ffffff;
+    border-radius: 22px;
+    text-decoration: none;
+    color: #121212;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    user-select: none;
+    cursor: pointer;
+  }
+  nav.dashboard-nav a:hover {
+    box-shadow:
+      inset 4px 4px 10px #a3b1c6,
+      inset -4px -4px 10px #ffffff;
+    transform: scale(1.05);
+    color: #e50914;
+  }
+
+  @media (max-width: 800px) {
+    nav.dashboard-nav {
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
+    }
+    nav.dashboard-nav a {
+      width: 90vw;
+      height: 110px;
+      font-size: 1.2rem;
+    }
+  }
+
+  .card-message {
+    max-width: 600px; 
+    margin: 0 auto; 
+    text-align: center; 
+    color: #e50914; 
+    font-weight: 600;
+  }
+</style>
+
+<div class="dashboard-container">
+  <h2>Dashboard Formateur</h2>
+  <p class="welcome-msg">Bonjour <strong>{{ user.username }}</strong>, bienvenue sur votre espace formateur.</p>
+
+  <div class="mb-4" style="text-align:center;">
+    <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createCourseModal">Créer un cours</button>
+    <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createClassroomModal">Créer une salle de classe</button>
+    <button class="btn btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#planSessionModal">Planifier une session</button>
+  </div>
+
+  <nav class="dashboard-nav" role="navigation" aria-label="Navigation utilisateur">
+    <a href="{% url 'courses:manage' %}" title="Gérer mes cours">Gérer mes cours</a>
+    <a href="{% url 'courses:course_create' %}" title="Ajouter un cours">Ajouter un cours</a>
+    <a href="{% url 'classrooms:my_classrooms' %}" title="Voir les apprenants">Voir les apprenants</a>
+  </nav>
+
+  {% if message %}
+  <div class="card-message">{{ message }}</div>
+  {% endif %}
+
+  <!-- Modal: Créer un cours -->
+  <div class="modal fade" id="createCourseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Créer un cours</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'courses:course_create' %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Titre</label>
+              <input class="form-control" name="title" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" name="description" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Langue</label>
+              <select class="form-select" name="language">
+                <option value="fr" selected>Français</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Catégorie (optionnel)</label>
+              <input class="form-control" name="category">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-primary">Créer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Créer une salle de classe -->
+  <div class="modal fade" id="createClassroomModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Créer une salle de classe</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'classrooms:create' %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Nom</label>
+                <input class="form-control" name="name" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Matière</label>
+                <input class="form-control" name="subject">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Programme / Planning</label>
+                <textarea class="form-control" name="schedule"></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Cours lié (optionnel)</label>
+                <select name="course_id" class="form-select">
+                  <option value="">-- aucun --</option>
+                  {% for c in teacher_courses %}
+                    <option value="{{ c.id }}">{{ c.title }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-primary">Créer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Planifier une session live -->
+  <div class="modal fade" id="planSessionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Planifier une session live</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'classrooms:session_create' %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Titre</label>
+              <input class="form-control" name="title" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Classe</label>
+              <select class="form-select" name="classroom_id" required>
+                {% for cl in teacher_classrooms %}
+                  <option value="{{ cl.id }}">{{ cl.name }}</option>
+                {% empty %}
+                  <option disabled>Aucune classe</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Début</label>
+              <input type="datetime-local" class="form-control" name="start_at" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description (optionnel)</label>
+              <textarea class="form-control" name="description" rows="2"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-primary">Planifier</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">{{ message.subject }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-4">
+                        <div>
+                            <strong>De :</strong> {{ message.sender.get_full_name|default:message.sender.username }}<br>
+                            <strong>À :</strong> {{ message.recipient.get_full_name|default:message.recipient.username }}<br>
+                            <small class="text-muted">Envoyé le {{ message.sent_at|date:"d/m/Y à H:i" }}</small>
+                        </div>
+                    </div>
+                    <div class="message-content">
+                        {{ message.body|linebreaks }}
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'interactions:send_message' message.sender.id %}" class="btn btn-primary">
+                            <i class="fas fa-reply"></i> Répondre
+                        </a>
+                        <a href="{% url 'interactions:notifications' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour aux notifications
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

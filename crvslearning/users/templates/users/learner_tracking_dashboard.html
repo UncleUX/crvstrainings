@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Suivi d'Apprentissage{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- En-tête avec statistiques -->
+    <div class="row mb-5">
+        <div class="col-12 text-center mb-4">
+            <h1 class="display-4">Mon Parcours d'Apprentissage</h1>
+            <p class="lead text-muted">Suivez votre progression et vos réalisations</p>
+        </div>
+        
+        <!-- Cartes de statistiques -->
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-4 text-primary">{{ stats.total_courses }}</h2>
+                    <p class="text-muted mb-0">Cours suivis</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-4 text-success">{{ stats.completed_courses }}</h2>
+                    <p class="text-muted mb-0">Cours terminés</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-4 text-info">{{ stats.in_progress_courses }}</h2>
+                    <p class="text-muted mb-0">En cours</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-4 text-warning">{{ stats.total_lessons_completed }}</h2>
+                    <p class="text-muted mb-0">Leçons terminées</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progression des cours -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Progression des Cours</h5>
+                </div>
+                <div class="card-body">
+                    {% if courses_progress %}
+                        {% for course in courses_progress %}
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <h6 class="mb-0">{{ course.course.title }}</h6>
+                                <span class="text-muted">{{ course.completed_lessons }}/{{ course.total_lessons }} leçons</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-primary" role="progressbar" 
+                                     style="width: {{ course.progress }}%" 
+                                     aria-valuenow="{{ course.progress }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            <div class="text-end mt-1">
+                                <small class="text-muted">{{ course.progress|floatformat:1 }}% complété</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">Aucun cours en cours de suivi pour le moment.</p>
+                            <a href="{% url 'courses:course_list' %}" class="btn btn-primary">Parcourir les cours</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dernières activités -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Dernières Activités</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_activities %}
+                        <div class="list-group list-group-flush">
+                            {% for activity in recent_activities %}
+                            <div class="list-group-item border-0 px-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-3">
+                                        <div class="bg-light rounded-circle p-2">
+                                            <i class="fas fa-check-circle text-success"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0">Leçon terminée: {{ activity.lesson.title }}</h6>
+                                        <p class="mb-0 text-muted small">
+                                            {{ activity.lesson.module.course.title }} • 
+                                            <span class="text-muted">
+                                                <i class="far fa-clock"></i> 
+                                                {{ activity.completed_at|timesince }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">Aucune activité récente à afficher.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Script pour mettre à jour le temps passé sur la page
+$(document).ready(function() {
+    // Mettre à jour le temps toutes les minutes
+    setInterval(function() {
+        $.ajax({
+            url: '{% url "update_learning_time" %}',
+            method: 'POST',
+            headers: {
+                'X-CSRFTTOKEN': '{{ csrf_token }}'
+            },
+            data: {
+                'time_spent': 60 // en secondes
+            }
+        });
+    }, 60000);
+});
+</script>
+{% endblock %}

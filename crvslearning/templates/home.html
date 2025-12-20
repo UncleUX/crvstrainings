@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Accueil{% endblock %}
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- Hero like NBA: full-bleed banner -->
+  <section style="position:relative;height:380px;background:#0b0d17;color:#fff;">
+    <img src="https://images.unsplash.com/photo-1471295253337-3ceaaedca402?q=80&w=1600&auto=format&fit=crop" alt="Hero" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;">
+    <div class="container" style="position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:center;">
+      <h1 class="display-5 fw-bold">Apprends en direct. Collabore. Progresse.</h1>
+      <p class="lead mb-3">Cours, classes virtuelles, chat en temps réel, évaluations et certifications.</p>
+      <div class="d-flex gap-2">
+        <a class="btn btn-primary btn-lg" href="{% url 'users:register' %}">Commencer</a>
+        <a class="btn btn-outline-light btn-lg" href="{% url 'courses:all_courses' %}">Voir les cours</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Carrousel simple (statique) -->
+  <section class="container py-4">
+    <h3 class="mb-3">En vedette</h3>
+    <div class="row g-3">
+      {% for i in "1236" %}
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card h-100">
+          <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop" class="card-img-top" alt="featured">
+          <div class="card-body">
+            <h5 class="card-title">Python Débutant</h5>
+            <p class="card-text">Les bases du langage, exercices et quiz.</p>
+            <a href="{% url 'courses:all_courses' %}" class="btn btn-sm btn-primary">Découvrir</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Grille actu (style cartes NBA) -->
+  <section class="container pb-5">
+    <h3 class="mb-3">Dernières sessions à venir</h3>
+    <div class="row g-3">
+      {% if LiveSession %}
+        {% for s in LiveSession.objects.all|slice:':4' %}
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100">
+              <div class="card-body">
+                <span class="badge bg-dark mb-2">Live</span>
+                <h5 class="card-title">{{ s.title }}</h5>
+                <p class="card-text text-muted">{{ s.start_at|date:"d/m H:i" }} · {{ s.classroom.name }}</p>
+                <a href="{% url 'classrooms:detail' s.classroom.id %}" class="btn btn-sm btn-outline-primary">Voir la classe</a>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="col-12"><div class="alert alert-secondary">Aucune session programmée.</div></div>
+        {% endfor %}
+      {% else %}
+        <div class="col-12"><div class="alert alert-secondary">Les sessions seront affichées ici.</div></div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

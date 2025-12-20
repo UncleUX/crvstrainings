@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'tracking:course_progress' %}">Progression des cours</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ course.title|truncatechars:30 }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex align-items-center mb-3">
+                {% if course.image %}
+                <img src="{{ course.image.url }}" alt="{{ course.title }}" class="rounded me-3" width="80" height="60" style="object-fit: cover;">
+                {% else %}
+                <div class="bg-light rounded d-flex align-items-center justify-content-center me-3" style="width: 80px; height: 60px;">
+                    <i class="bi bi-journal-text text-muted fs-3"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <h1 class="h3 mb-0">{{ course.title }}</h1>
+                    <p class="text-muted mb-0">
+                        Par {{ course.instructor.get_full_name|default:course.instructor.username }}
+                        <span class="mx-2">•</span>
+                        {{ course.created_at|date:"d/m/Y" }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="display-6 text-primary">{{ total_learners }}</div>
+                            <div class="text-muted small">Apprenants inscrits</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="display-6 text-success">{{ completed_learners }}</div>
+                            <div class="text-muted small">Apprenants terminés</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="display-6 text-info">{{ completion_rate|floatformat:0 }}%</div>
+                            <div class="text-muted small">Taux de complétion</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <div class="display-6 text-warning">
+                                {% if course.average_rating %}{{ course.average_rating|floatformat:1 }}/5.0{% else %}N/A{% endif %}
+                            </div>
+                            <div class="text-muted small">Note moyenne</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Actions rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'courses:course_edit' course.id %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil me-2"></i>Modifier le cours
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary">
+                            <i class="bi bi-people me-2"></i>Gérer les apprenants
+                        </a>
+                        <a href="#" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#exportModal">
+                            <i class="bi bi-download me-2"></i>Exporter les données
+                        </a>
+                        <a href="#" class="btn btn-outline-info">
+                            <i class="bi bi-graph-up me-2"></i>Voir les statistiques avancées
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="progress-tab" data-bs-toggle="tab" data-bs-target="#progress" type="button" role="tab" aria-controls="progress" aria-selected="true">
+                                Progression
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="learners-tab" data-bs-toggle="tab" data-bs-target="#learners" type="button" role="tab" aria-controls="learners" aria-selected="false">
+                                Apprenants ({{ total_learners }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="modules-tab" data-bs-toggle="tab" data-bs-target="#modules" type="button" role="tab" aria-controls="modules" aria-selected="false">
+                                Modules et leçons
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- Onglet Progression -->
+                        <div class="tab-pane fade show active" id="progress" role="tabpanel" aria-labelledby="progress-tab">
+                            <div class="mb-4">
+                                <h5 class="mb-3">Taux de complétion global</h5>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ completion_rate }}%" 
+                                         aria-valuenow="{{ completion_rate }}" aria-valuemin="0" aria-valuemax="100">
+                                        {{ completion_rate|floatformat:1 }}%
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small class="text-muted">0%</small>
+                                    <small class="text-muted">100%</small>
+                                </div>
+                            </div>
+                            
+                            <h5 class="mb-3">Progression par module</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Module</th>
+                                            <th>Leçons</th>
+                                            <th>Complétion</th>
+                                            <th>Moyenne des apprenants</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for module in modules %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ module.title }}</strong>
+                                                <div class="text-muted small">
+                                                    {{ module.description|truncatewords:10 }}
+                                                </div>
+                                            </td>
+                                            <td>{{ module.lessons.count }} leçons</td>
+                                            <td>
+                                                {% with completion=module.completion %}
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-{{ completion|get_completion_color }}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ completion }}%"
+                                                         aria-valuenow="{{ completion }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">{{ completion|floatformat:0 }}%</small>
+                                                {% endwith %}
+                                            </td>
+                                            <td>
+                                                {% with avg_score=module.avg_score %}
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-info" 
+                                                         role="progressbar" 
+                                                         style="width: {{ avg_score }}%"
+                                                         aria-valuenow="{{ avg_score }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">{{ avg_score|default:"N/A" }}%</small>
+                                                {% endwith %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Onglet Apprenants -->
+                        <div class="tab-pane fade" id="learners" role="tabpanel" aria-labelledby="learners-tab">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" placeholder="Rechercher un apprenant..." id="learnerSearch">
+                                <button class="btn btn-outline-secondary" type="button">Filtrer</button>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Apprenant</th>
+                                            <th>Inscrit le</th>
+                                            <th>Dernière activité</th>
+                                            <th>Progression</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="learnerTableBody">
+                                        {% for enrollment in enrollments %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2">
+                                                        {% with avatar=enrollment.user.get_avatar_display %}
+                                                            {% if avatar.type == 'image' %}
+                                                                <img src="{{ avatar.url }}" alt="{{ avatar.alt }}" class="rounded-circle" width="32" height="32">
+                                                            {% else %}
+                                                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: {{ avatar.bg_color }}; color: white; font-size: 0.8rem; font-weight: bold;">
+                                                                    {{ avatar.text }}
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium">{{ enrollment.user.get_full_name|default:enrollment.user.username }}</div>
+                                                        <small class="text-muted">{{ enrollment.user.email }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ enrollment.enrolled_at|date:"d/m/Y" }}</td>
+                                            <td>{% if enrollment.last_accessed %}{{ enrollment.last_accessed|timesince }}{% else %}Jamais{% endif %}</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-{{ enrollment.progress|get_completion_color }}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ enrollment.progress }}%"
+                                                         aria-valuenow="{{ enrollment.progress }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">{{ enrollment.progress|floatformat:0 }}%</small>
+                                            </td>
+                                            <td>
+                                                {% if enrollment.completed %}
+                                                    <span class="badge bg-success">Terminé</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">En cours</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4">
+                                                <div class="text-muted">
+                                                    <i class="bi bi-people display-4 d-block mb-2"></i>
+                                                    Aucun apprenant inscrit à ce cours
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <nav aria-label="Navigation des apprenants">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Précédent</a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">Suivant</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                        
+                        <!-- Onglet Modules et leçons -->
+                        <div class="tab-pane fade" id="modules" role="tabpanel" aria-labelledby="modules-tab">
+                            <div class="accordion" id="modulesAccordion">
+                                {% for module in modules %}
+                                <div class="accordion-item mb-2 border">
+                                    <h2 class="accordion-header" id="moduleHeading{{ forloop.counter }}">
+                                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" 
+                                                type="button" 
+                                                data-bs-toggle="collapse" 
+                                                data-bs-target="#moduleCollapse{{ forloop.counter }}" 
+                                                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                                                aria-controls="moduleCollapse{{ forloop.counter }}">
+                                            <div class="d-flex justify-content-between w-100 me-3">
+                                                <span class="fw-medium">{{ module.title }}</span>
+                                                <span class="badge bg-light text-dark ms-2">{{ module.lessons.count }} leçons</span>
+                                            </div>
+                                        </button>
+                                    </h2>
+                                    <div id="moduleCollapse{{ forloop.counter }}" 
+                                         class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
+                                         aria-labelledby="moduleHeading{{ forloop.counter }}" 
+                                         data-bs-parent="#modulesAccordion">
+                                        <div class="accordion-body p-0">
+                                            <ul class="list-group list-group-flush">
+                                                {% for lesson in module.lessons.all %}
+                                                <li class="list-group-item">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <i class="bi bi-play-circle me-2 text-primary"></i>
+                                                            {{ lesson.title }}
+                                                            {% if lesson.is_preview %}
+                                                                <span class="badge bg-info ms-2">Aperçu</span>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div>
+                                                            <span class="badge bg-light text-dark">{{ lesson.duration }} min</span>
+                                                            <a href="{% url 'courses:lesson_edit' lesson.id %}" class="btn btn-sm btn-outline-secondary ms-2">
+                                                                <i class="bi bi-pencil"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                {% empty %}
+                                                <li class="list-group-item text-muted fst-italic">
+                                                    Aucune leçon dans ce module pour le moment.
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Aucun module n'a été créé pour ce cours.
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="{% url 'courses:module_create' course.id %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-plus-lg me-2"></i>Ajouter un module
+                                </a>
+                                <a href="{% url 'courses:course_structure' course.id %}

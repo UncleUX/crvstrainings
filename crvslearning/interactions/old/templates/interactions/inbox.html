@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container-fluid p-0 h-100">
+    <div class="row g-0 h-100">
+        <!-- Liste des conversations -->
+        <div class="col-md-4 col-lg-3 border-end bg-light">
+            <!-- En-tête avec recherche et nouveau message -->
+            <div class="p-3 border-bottom">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="mb-0">{% trans "Messages" %}</h5>
+                    <a href="{% url 'interactions:compose' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                </div>
+                <div class="input-group input-group-sm mb-2">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" placeholder="{% trans 'Rechercher une conversation' %}">
+                </div>
+            </div>
+
+            <!-- Liste des conversations -->
+            <div class="conversation-list" style="height: calc(100vh - 140px); overflow-y: auto;">
+                {% if messages %}
+                    {% regroup messages by other_user as conversation_list %}
+                    {% for conversation in conversation_list %}
+                        {% with last_message=conversation.list.0 %}
+                        <a href="{% url 'interactions:conversation' conversation.grouper.id %}" 
+                           class="d-block p-3 border-bottom text-decoration-none text-dark {% if not last_message.is_read and current_tab != 'sent' %}bg-white{% else %}bg-light{% endif %}">
+                            <div class="d-flex">
+                                <div class="position-relative me-3">
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" 
+                                         style="width: 50px; height: 50px; overflow: hidden;">
+                                        <i class="fas fa-user text-white fa-2x"></i>
+                                    </div>
+                                    {% if current_tab != 'sent' and last_message.unread_count > 0 %}
+                                        <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger">
+                                            {{ last_message.unread_count }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h6 class="mb-0 text-truncate">
+                                            {{ conversation.grouper.get_full_name|default:conversation.grouper.username }}
+                                        </h6>
+                                        <small class="text-muted ms-2">
+                                            {{ last_message.sent_at|timesince }}
+                                        </small>
+                                    </div>
+                                    <p class="mb-0 text-muted text-truncate">
+                                        {% if current_tab == 'sent' %}
+                                            <span class="text-primary">{% trans 'Vous' %}: </span>
+                                        {% endif %}
+                                        {{ last_message.body|truncatechars:40 }}
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                        {% endwith %}
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center p-5">
+                        <i class="far fa-comment-dots fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">
+                            {% if current_tab == 'inbox' %}
+                                {% trans "Aucune conversation récente" %}
+                            {% elif current_tab == 'sent' %}
+                                {% trans "Aucun message envoyé" %}
+                            {% else %}
+                                {% trans "Aucun message non lu" %}
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'interactions:compose' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i> {% trans "Nouvelle conversation" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Zone de conversation (vide par défaut) -->
+        <div class="col-md-8 col-lg-9 d-flex flex-column" style="height: 100vh;">
+            <div class="d-flex flex-column justify-content-center align-items-center h-100 bg-light">
+                <div class="text-center p-5">
+                    <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 80px; height: 80px;">
+                        <i class="fas fa-comments fa-2x text-muted"></i>
+                    </div>
+                    <h4 class="mb-3">{% trans "Bienvenue dans la messagerie" %}</h4>
+                    <p class="text-muted mb-4">
+                        {% trans "Sélectionnez une conversation ou démarrez-en une nouvelle" %}
+                    </p>
+                    <a href="{% url 'interactions:compose' %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i> {% trans "Nouveau message" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .conversation-list a {
+        transition: background-color 0.2s;
+    }
+    .conversation-list a:hover {
+        background-color: #f0f2f5 !important;
+    }
+    .conversation-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    .conversation-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    .conversation-list::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Progression - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- En-tête avec progression globale -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'users:learner_tracking' %}">Mon Parcours</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ course.title|truncatechars:30 }}</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">{{ course.title }}</h1>
+                <div class="badge bg-primary rounded-pill px-3 py-2">
+                    {{ course_progress|floatformat:0 }}% complété
+                </div>
+            </div>
+            
+            <div class="progress mb-4" style="height: 10px;">
+                <div class="progress-bar bg-primary" role="progressbar" 
+                     style="width: {{ course_progress }}%" 
+                     aria-valuenow="{{ course_progress }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mb-4">
+                <div>
+                    <span class="text-muted">
+                        <i class="fas fa-check-circle text-success"></i> 
+                        {{ completed_lessons }} sur {{ total_lessons }} leçons terminées
+                    </span>
+                </div>
+                <div>
+                    <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> Continuer le cours
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modules et leçons -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Modules et Leçons</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for module in modules %}
+                        <div class="list-group-item border-0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-folder-open text-warning me-2"></i>
+                                    {{ module.module.title }}
+                                </h6>
+                                <span class="badge bg-light text-dark">
+                                    {{ module.progress|floatformat:0 }}% complété
+                                </span>
+                            </div>
+                            
+                            <div class="progress mb-3" style="height: 5px;">
+                                <div class="progress-bar bg-warning" 
+                                     role="progressbar" 
+                                     style="width: {{ module.progress }}%" 
+                                     aria-valuenow="{{ module.progress }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            
+                            <div class="ms-4">
+                                {% for lesson in module.lessons %}
+                                <div class="d-flex align-items-center mb-2 py-2 border-bottom">
+                                    <div class="flex-shrink-0 me-3">
+                                        {% if lesson.is_completed %}
+                                            <i class="fas fa-check-circle text-success"></i>
+                                        {% else %}
+                                            <i class="far fa-circle text-muted"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <a href="{% url 'courses:lesson_detail' course.id lesson.lesson.id %}" 
+                                           class="text-decoration-none {% if lesson.is_completed %}text-muted{% else %}text-dark{% endif %}">
+                                            {{ lesson.lesson.title }}
+                                        </a>
+                                        {% if lesson.is_completed %}
+                                            <small class="text-muted d-block">
+                                                Terminé le {{ lesson.completed_at|date:"d/m/Y" }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <span class="badge bg-light text-dark">
+                                            {{ lesson.lesson.duration|default:"5 min" }}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Certificat -->
+    {% if course_progress == 100 %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-success">
+                <div class="card-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-trophy fa-3x text-warning"></i>
+                    </div>
+                    <h4 class="text-success mb-3">Félicitations !</h4>
+                    <p class="mb-4">Vous avez terminé ce cours avec succès. Téléchargez votre certificat pour le partager.</p>
+                    <a href="#" class="btn btn-success">
+                        <i class="fas fa-download me-2"></i>Télécharger le certificat
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

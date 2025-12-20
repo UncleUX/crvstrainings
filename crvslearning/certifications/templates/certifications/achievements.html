@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes Réalisations{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Mes Réalisations</h1>
+            <p class="lead">Félicitations pour vos certifications ! Voici vos badges de réussite.</p>
+        </div>
+    </div>
+
+    {% if certifications %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+             <!-- <div class="col-md-2" style="border-right: 1px solid gray;">
+                
+             </div> -->
+            {% for cert in certifications %}
+            <div class="col-md-12">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-primary text-white text-center py-3">
+                        <h5 class="card-title mb-0">{{ cert.course.title }}</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <div class="badge bg-{% if cert.level == 'beginner' %}info{% elif cert.level == 'intermediate' %}warning{% else %}danger{% endif %} mb-2">
+                                Niveau : {{ cert.get_level_display }}
+                            </div>
+                            <h6 class="text-muted">Délivré le {{ cert.issued_at|date:"d/m/Y" }}</h6>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <i class="fas fa-award fa-4x text-{% if cert.level == 'beginner' %}info{% elif cert.level == 'intermediate' %}warning{% else %}danger{% endif %}"></i>
+                        </div>
+                        
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-user-graduate me-1"></i> 
+                                Enseignant : {{ cert.course.created_by.get_full_name|default:cert.course.created_by.username }}
+                            </small>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-white border-top-0">
+                        <div class="d-grid gap-2">
+                            <a href="{{ cert.pdf.url }}" class="btn btn-outline-primary" target="_blank">
+                                <i class="fas fa-download me-2"></i>Télécharger le certificat
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 fa-2x"></i>
+                <div>
+                    <h5 class="alert-heading">Aucune certification pour le moment</h5>
+                    <p class="mb-0">Vous n'avez pas encore obtenu de certification. Continuez à apprendre pour débloquer vos premiers badges !</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        transition: transform 0.2s ease-in-out;
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    .badge {
+        font-size: 0.8rem;
+        padding: 0.5em 0.8em;
+    }
+</style>
+{% endblock %}

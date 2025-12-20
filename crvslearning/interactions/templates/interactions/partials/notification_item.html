@@ -1,0 +1,43 @@
+<!-- notification_item.html -->
+<div class="notification-item {% if not notification.read %}unread{% endif %}" 
+     data-notification-id="{{ notification.id }}"
+     {% if notification.url %}data-url="{{ notification.url }}"{% endif %}>
+    <div class="notification-avatar">
+        {% if notification.sender and notification.sender.profile.avatar %}
+            <img src="{{ notification.sender.profile.avatar.url }}" 
+                 alt="{{ notification.sender.get_full_name }}">
+        {% else %}
+            <div class="notification-icon">
+                {% if notification.notification_type == 'MESSAGE' %}
+                    <i class="fas fa-envelope"></i>
+                {% elif notification.notification_type == 'MENTION' %}
+                    <i class="fas fa-at"></i>
+                {% else %}
+                    <i class="fas fa-bell"></i>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="notification-content">
+        <div class="notification-message">
+            {{ notification.message }}
+            {% if notification.notification_type == 'MESSAGE' and notification.message_obj %}
+                <div class="notification-preview">
+                    {{ notification.message_obj.message|truncatechars:100 }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="notification-time">
+            {{ notification.created_at|timesince }}
+        </div>
+    </div>
+    
+    {% if not notification.read %}
+        <span class="notification-badge"></span>
+    {% endif %}
+    
+    <button class="btn btn-link notification-close" data-notification-id="{{ notification.id }}">
+        <i class="fas fa-times"></i>
+    </button>
+</div>

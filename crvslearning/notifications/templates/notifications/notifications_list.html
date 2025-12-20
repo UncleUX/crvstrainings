@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Mes notifications</h4>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for notification in notifications %}
+                    <a href="{% url 'notifications:mark_read' notification.id %}" 
+                       class="list-group-item list-group-item-action {% if not notification.is_read %}list-group-item-primary{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ notification.message }}</h6>
+                            <small>{{ notification.created_at|timesince }}</small>
+                        </div>
+                        {% if notification.url %}<small>Cliquez pour voir</small>{% endif %}
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item">Aucune notification pour le moment.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

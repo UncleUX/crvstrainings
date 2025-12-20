@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block extra_css %}
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Round|Material+Icons+Sharp|Material+Icons+Two+Tone" rel="stylesheet">
+<!-- Custom CSS -->
+<link rel="stylesheet" href="{% static 'css/interactions/chat.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    {% block chat_content %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/interactions/chat.js' %}"></script>
+<script>
+// Fonctions utilitaires
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) {
+        return 'Hier';
+    } else if (diffDays < 7) {
+        return date.toLocaleDateString([], { weekday: 'long' });
+    } else {
+        return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+    }
+}
+
+// Initialisation du chat
+document.addEventListener('DOMContentLoaded', function() {
+    // Ajouter des écouteurs d'événements
+    const conversationItems = document.querySelectorAll('.conversation-item');
+    conversationItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Retirer la classe active de tous les éléments
+            conversationItems.forEach(i => i.classList.remove('active'));
+            // Ajouter la classe active à l'élément cliqué
+            this.classList.add('active');
+            // Marquer comme lu
+            this.classList.remove('unread');
+            const unreadBadge = this.querySelector('.unread-badge');
+            if (unreadBadge) {
+                unreadBadge.remove();
+            }
+        });
+    });
+
+    // Gestion du défilement automatique vers le bas des messages
+    const messagesContainer = document.querySelector('.chat-messages');
+    if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Gestion de l'envoi de message
+    const messageForm = document.getElementById('message-form');
+    if (messageForm) {
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const messageInput = this.querySelector('input[type="text"]');
+            const message = messageInput.value.trim();
+            
+            if (message) {
+                // Ici, vous pouvez ajouter le code pour envoyer le message
+                console.log('Message envoyé:', message);
+                
+                // Effacer le champ de saisie
+                messageInput.value = '';
+                
+                // Mettre à jour l'interface utilisateur (à adapter selon votre logique)
+                // updateChatUI(message);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

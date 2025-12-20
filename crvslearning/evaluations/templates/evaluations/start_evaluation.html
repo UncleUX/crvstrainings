@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* ===== WRAPPER ===== */
+.eval-wrapper{
+  min-height:70vh;
+  display:flex;
+  justify-content:center;
+}
+
+/* ===== HEADER ===== */
+.eval-header{
+  background:linear-gradient(135deg,#0f172a,#1f2937);
+  color:#fff;
+  border-radius:18px;
+  padding:36px;
+  margin-bottom:24px;
+}
+.eval-header h2{
+  font-weight:900;
+  margin-bottom:6px;
+}
+.eval-header small{
+  font-weight:600;
+  opacity:.8;
+}
+.eval-header .meta{
+  font-size:.9rem;
+  opacity:.85;
+}
+
+/* ===== CARD ===== */
+.q-card{
+  border-radius:16px;
+  box-shadow:0 18px 40px rgba(0,0,0,.12);
+  border:none;
+}
+.q-card .card-body{
+  padding:28px;
+}
+
+/* ===== QUESTION ===== */
+.q-title{
+  font-weight:800;
+  margin-bottom:10px;
+}
+.q-text{
+  font-size:1rem;
+  color:#374151;
+}
+
+/* ===== CHOICES ===== */
+.form-check{
+  background:#f9fafb;
+  border-radius:10px;
+  padding:12px 14px;
+  border:1px solid #e5e7eb;
+  transition:.2s ease;
+}
+.form-check:hover{
+  background:#eef2ff;
+  border-color:#c7d2fe;
+}
+.form-check-input{
+  cursor:pointer;
+}
+.form-check-label{
+  cursor:pointer;
+  font-weight:600;
+}
+
+/* ===== ACTIONS ===== */
+.eval-actions{
+  margin-top:28px;
+}
+.btn{
+  padding:12px 18px;
+  border-radius:10px;
+  font-weight:700;
+}
+
+/* ===== ALERT ===== */
+.eval-alert{
+  border-radius:14px;
+  padding:20px;
+  font-weight:600;
+}
+</style>
+
+<section class="container eval-wrapper py-4">
+
+  <div class="col-lg-9 col-xl-8">
+
+    <!-- HEADER -->
+    <div class="eval-header">
+      <h2>
+        Évaluation — {{ course.title }}
+        <small>({{ evaluation.get_level_display|default:level }})</small>
+      </h2>
+      <div class="meta">
+        Seuil de réussite :
+        <strong>{{ threshold }}%</strong>
+      </div>
+    </div>
+
+    {% if questions %}
+    <form method="post"
+          action="{% url 'evaluations:start_level_evaluation' course.id level %}">
+
+      {% csrf_token %}
+
+      <div class="vstack gap-4">
+
+        {% for q in questions %}
+        <div class="card q-card">
+          <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="q-title">
+                Question {{ forloop.counter }}
+              </div>
+              {% if q.points > 1 %}
+                <span class="badge bg-dark">
+                  {{ q.points }} pts
+                </span>
+              {% endif %}
+            </div>
+
+            <p class="q-text mb-3">{{ q.text }}</p>
+
+            <div class="vstack gap-2">
+              {% for c in q.choices.all %}
+              <label class="form-check">
+                <input class="form-check-input"
+                       type="radio"
+                       name="q_{{ q.id }}"
+                       value="{{ c.id }}"
+                       {% if forloop.first %}required{% endif %}>
+                <span class="form-check-label">
+                  {{ c.text }}
+                </span>
+              </label>
+              {% endfor %}
+            </div>
+
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="eval-actions d-flex gap-2">
+        <a href="{% url 'courses:course_detail' course.id %}"
+           class="btn btn-outline-secondary w-50">
+          Annuler
+        </a>
+        <button type="submit"
+                class="btn btn-primary w-50">
+          Soumettre l’évaluation
+        </button>
+      </div>
+
+    </form>
+
+    {% else %}
+      <div class="alert alert-warning eval-alert">
+        Aucune question n’est encore configurée pour cette évaluation.
+      </div>
+    {% endif %}
+
+  </div>
+
+</section>
+{% endblock %}

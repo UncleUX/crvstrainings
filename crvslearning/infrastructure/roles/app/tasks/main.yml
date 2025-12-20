@@ -1,0 +1,40 @@
+---
+- name: Créer le répertoire de l'application
+  file:
+    path: /opt/crvslearning
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Copier les fichiers du projet
+  copy:
+    src: "{{ playbook_dir }}/../../"
+    dest: /opt/crvslearning/
+    remote_src: no
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    exclude: '*.pyc, __pycache__/'
+
+- name: Configurer le fichier .env
+  template:
+    src: env.j2
+    dest: /opt/crvslearning/.env
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Démarrer les conteneurs Docker
+  command: docker-compose -f docker-compose.base.yml -f docker-compose.prod.yml up -d
+  args:
+    chdir: /opt/crvslearning
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Vérifier que l'application est en cours d'exécution
+  uri:
+    url: http://localhost
+    status_code: 200
+    timeout: 30
+  register: result
+  until: result.status == 200
+  retries: 10
+  delay: 10

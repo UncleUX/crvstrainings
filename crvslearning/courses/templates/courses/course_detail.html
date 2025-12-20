@@ -1,0 +1,707 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    body{
+      background:#f3f5ff;
+      font-family:'Inter',system-ui,-apple-system,sans-serif;
+      color:#0f172a;
+    }
+
+    .app{
+      max-width:1400px;
+      margin:24px auto;
+      display:grid;
+      grid-template-columns:80px 1fr 360px;
+      gap:24px;
+    }
+
+    /* Sidebar */
+    .sidebar{
+      background:#fff;
+      border-radius:25px;
+      height: 500px;
+      padding:18px 0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:15px;
+      box-shadow:0 12px 30px rgba(0,0,0,.08);
+    }
+
+    .sidebar .icon{
+      width:42px;height:42px;border-radius:12px;
+      display:grid;place-items:center;justify-content: center;
+      color:#64748b;cursor:pointer;
+    }
+
+    .sidebar .icon.active{
+      background:#6366f1;color:#fff;
+    }
+
+    /* Header */
+    .header{
+      display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:18px;
+    }
+
+    .avatars img{
+      width:34px;height:34px;border-radius:50%;border:2px solid #fff;margin-left:-8px;
+    }
+
+    /* Main */
+    .video-card{
+      background:#000;border-radius:22px;overflow:hidden;position:relative;
+    }
+
+    .video-card img{
+      width:100%;height:360px;object-fit:cover;
+    }
+
+    .video-controls{
+      position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+      background:rgba(255,255,255,.9);
+      border-radius:30px;padding:8px 14px;display:flex;gap:14px;
+    }
+
+    .video-controls i{font-size:18px;cursor:pointer;}
+
+    /* Lists */
+    .list-card{
+      background:#fff;border-radius:18px;padding:18px;margin-top:18px;
+      box-shadow:0 10px 24px rgba(0,0,0,.08);
+    }
+
+    .list-item{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:10px 0;border-bottom:1px solid #f1f5f9;
+    }
+
+    .list-item:last-child{border-bottom:none;}
+
+    .badge-circle{
+      width:26px;height:26px;border-radius:50%;background:#6366f1;color:#fff;
+      display:grid;place-items:center;font-size:12px;font-weight:700;
+    }
+
+    /* Right panel */
+    .panel{
+      display:flex;flex-direction:column;gap:12px;
+    }
+
+    .meeting-card{
+      border-radius:20px;padding:18px;color:#fff;
+      background:linear-gradient(135deg,#6366f1,#4f46e5);
+      box-shadow:0 16px 34px rgba(99,102,241,.35);
+    }
+
+    .meeting-card.purple{
+      background:linear-gradient(135deg,#a855f7,#7c3aed);
+    }
+
+    .meeting-card.gray{
+      background:#e5e7eb;color:#111827;
+    }
+
+    .meeting-time{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(255,255,255,.25);
+      padding:6px 10px;border-radius:999px;font-size:13px;
+    }
+
+    @media(max-width:1200px){
+      .app{grid-template-columns:80px 1fr;}
+      .panel{grid-column:span 2;}
+    }
+
+    @media(max-width:768px){
+      .app{grid-template-columns:1fr;}
+      .sidebar{flex-direction:row;justify-content:center;}
+    }
+  </style>
+  <style>
+    /* =========================
+   TABS DESIGN (LD-TABS)
+========================= */
+.ld-tabs {
+  margin-top: 2rem;
+}
+
+/* Nav tabs container */
+.ld-tabs .nav-tabs {
+  border: none;
+  gap: 12px;
+  background: #f4f6fb;
+  padding: 10px;
+  border-radius: 18px;
+  width: fit-content;
+}
+
+/* Tab button */
+.ld-tabs .nav-tabs .nav-link {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #475569;
+  background: transparent;
+  transition: all 0.25s ease;
+}
+
+/* Hover */
+.ld-tabs .nav-tabs .nav-link:hover {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4338ca;
+}
+
+/* Active tab */
+.ld-tabs .nav-tabs .nav-link.active {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(99,102,241,0.35);
+}
+
+/* Tab content */
+.ld-tabs .tab-content {
+  margin-top: 24px;
+}
+
+/* =========================
+   ACCORDION STYLE
+========================= */
+.ld-tabs .accordion-item {
+  border: none;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+/* Accordion header */
+.ld-tabs .accordion-button {
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px 18px;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* Remove default arrow bg */
+.ld-tabs .accordion-button::after {
+  background-size: 14px;
+}
+
+/* Open state */
+.ld-tabs .accordion-button:not(.collapsed) {
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  color: #3730a3;
+}
+
+/* Accordion body */
+.ld-tabs .accordion-body {
+  background: #ffffff;
+  padding: 16px 20px;
+}
+
+/* Lesson items */
+.video-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.video-item {
+  padding: 8px 0;
+  font-size: 0.92rem;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.video-item:last-child {
+  border-bottom: none;
+}
+
+/* Duration */
+.v-dur {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* Locked content */
+.locked {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Completed pill */
+.pill {
+  background: #22c55e;
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+/* Muted text */
+.muted {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+/* Buttons */
+.btn.ghost {
+  border: 1px solid #6366f1;
+  color: #6366f1;
+  background: transparent;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 600;
+}
+
+.btn.ghost:hover {
+  background: #6366f1;
+  color: #fff;
+}
+
+.btn.solid {
+  background: #ef4444;
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 600;
+}
+
+  .course-hero{position:relative;border-radius:16px;background:#0f172a;color:#fff;padding:18px;margin-bottom:14px;min-height:140px;overflow:hidden}
+  .hero-media{position:absolute;inset:0;background-position:center;background-size:cover;filter:brightness(0.65) saturate(1.1);pointer-events:none}
+  .hero-overlay{position:absolute;inset:0;background:radial-gradient(1200px 400px at 10% 120%, rgba(59,130,246,0.25), transparent),radial-gradient(1200px 400px at 90% -20%, rgba(236,72,153,0.2), transparent);mix-blend-mode:screen;pointer-events:none}
+  .title{margin:0 0 6px 0}
+  .desc{opacity:.9;margin:0 0 8px 0}
+  .badge{display:inline-block;background:#111827;color:#fff;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;margin-right:6px}
+  .hero-media.no-thumb{background-color:#0f172a}
+  .hero-overlay{position:absolute;inset:0;background:radial-gradient(1200px 400px at 10% 120%, rgba(59,130,246,0.25), transparent),radial-gradient(1200px 400px at 90% -20%, rgba(236,72,153,0.2), transparent)}
+  .hero-inner{position:relative;z-index:1;color:#fff;padding:38px;max-width:980px}
+  .title{font-size:clamp(28px,6vw,48px);margin:0 0 8px 0;font-weight:800}
+  .desc{margin:0 0 14px 0;opacity:.9}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .badge{display:inline-block;background:#111827;color:#fff;padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px}
+  .badge.alt{background:rgba(255,255,255,.12)}
+  .cta .btn{cursor:pointer;border:none;border-radius:10px;padding:10px 16px;font-weight:800}
+  .btn.solid{background:#2563eb;color:#fff;box-shadow:0 10px 20px rgba(37,99,235,.28)}
+
+  .progress-wrap{border-radius:14px;padding:16px 18px;margin:14px 0;}
+  .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .progress-header h3{margin:0;font-size:1.1rem}
+  .small{color:#6b7280}
+  .bar{height:14px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+  .bar .fill{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a)}
+  .percent{font-weight:800;margin-top:6px;color:#111827}
+
+  .levels h3{margin:16px 0 10px 0}
+  .level-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .level-card{background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
+  .level-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .chip{background:#111827;color:#fff;border-radius:999px;padding:4px 10px;font-weight:700;font-size:12px}
+  .mini{color:#6b7280;font-size:12px}
+  .level-bar{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-bottom:8px}
+  .level-bar .fill{height:100%;background:linear-gradient(90deg,#6366f1,#8b5cf6)}
+  .btn.tiny{padding:6px 10px;border-radius:8px;font-size:12px;font-weight:800;text-decoration:none}
+  .btn.ghost{background:#f3f4f6;color:#111;border:1px solid #e5e7eb}
+
+  .modules h3{margin:18px 0 10px 0}
+  .module-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+  .module-card{background:#fff;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.06);padding:14px}
+  .module-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .badge.subtle{background:#f3f4f6;color:#111;border:1px solid #e5e7eb}
+  .lesson-list{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+  .lesson-list li a{text-decoration:none;color:#111;font-weight:700}
+  .lesson-list li a:hover{text-decoration:underline}
+  .pill{display:inline-block;background:#e0f2fe;color:#0369a1;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800}
+  .locked{color:#9ca3af}
+  .muted{color:#6b7280}
+
+  /* Ensure modal sits above any page overlays */
+  .modal-backdrop { z-index: 1990 !important; }
+  .modal { z-index: 2000 !important; }
+
+  @media(max-width:768px){.hero-inner{padding:22px}}
+</style>
+<div class="app">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="icon active"><i class="bi bi-paperclip"></i></div>
+    <div class="icon"><i class="bi bi-grid"></i></div>
+    <div class="icon"><i class="bi bi-person"></i></div>
+    <div class="icon"><i class="bi bi-calendar"></i></div>
+    <div class="icon"><i class="bi bi-gear"></i></div>
+  </div>
+
+  <!-- Main -->
+  <div>
+    <div class="header">
+      <div>
+        <h4 class="fw-bold">
+            Welcome Back, {{ request.user.username }}
+        </h4>
+
+        <small class="text-muted">Accueil / {{ course.title }}</small>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-search"></i>
+        <div class="avatars">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg">
+          <img src="https://randomuser.me/api/portraits/men/32.jpg">
+          <img src="https://randomuser.me/api/portraits/women/68.jpg">
+        </div>
+        <button class="btn btn-dark btn-sm rounded-pill">+ Add Member</button>
+      </div>
+    </div>
+
+    <div class="video-card">
+      <section class="course-hero">
+        <div class="hero-media{% if not course.thumbnail %} no-thumb{% endif %}"{% if course.thumbnail %} style="background-image: url('{{ course.thumbnail.url }}');"{% endif %}></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-inner">
+            <h1 class="title">{{ course.title }}</h1>
+            <p class="desc">{{ course.description|truncatechars:180 }}</p>
+            <div class="meta">
+            <span class="badge">{{ nombre_inscrits }} inscrits</span>
+            {% if course.category %}<span class="badge alt">{{ course.category.name }}</span>{% endif %}
+            <span class="badge alt">{{ modules|length }} modules</span>
+            </div>
+            <div class="cta d-flex flex-column gap-2">
+            {% if is_enrolled %}
+                <button class="btn solid" disabled>✅ Vous êtes inscrit(e)</button>
+                <form method="post" action="{% url 'courses:mark_course_completed' course.id %}" id="mark-course-completed-form">
+                    {% csrf_token %}
+                    <button type="button" 
+                            class="btn {% if is_course_completed %}btn-success{% else %}btn-outline-secondary{% endif %} w-100"
+                            id="mark-course-completed-btn"
+                            data-completed="{% if is_course_completed %}true{% else %}false{% endif %}">
+                        <i class="bi {% if is_course_completed %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-2"></i>
+                        <span>{% if is_course_completed %}Cours terminé{% else %}Marquer le cours comme terminé{% endif %}</span>
+                    </button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'courses:enroll_course' course.id %}">
+                    {% csrf_token %}
+                    <button class="btn solid w-100">S'inscrire au cours</button>
+                </form>
+            {% endif %}
+            <!-- <button type="button" class="btn btn-outline-light ms-2" data-bs-toggle="modal" data-bs-target="#testModal">Ouvrir le modal test</button> -->
+            </div>
+        </div>
+    </section>
+      
+      <div class="video-controls">
+        <i class="bi bi-mic"></i>
+        <i class="bi bi-camera-video"></i>
+        <i class="bi bi-share"></i>
+        <i class="bi bi-record-circle"></i>
+        <i class="bi bi-telephone-x"></i>
+      </div>
+    </div>
+
+    <div class="row">
+<section class="ld-tabs">
+    <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item" role="presentation"><a class="nav-link active" data-bs-toggle="tab" href="#tab-curr">Curriculum</a></li>
+    <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#tab-desc">Description</a></li>
+    <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#tab-res">Ressources</a></li>
+  </ul>
+  <div class="tab-content">
+    <div id="tab-curr" class="tab-pane fade show active">
+      <div class="accordion" id="modulesAcc">
+        {% for module in modules %}
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="mod-h-{{ module.id }}">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#mod-c-{{ module.id }}" aria-expanded="true" aria-controls="mod-c-{{ module.id }}">
+              {{ module.title }} <span class="acc-count ms-2">({{ module.lessons.count }} leçon{{ module.lessons.count|pluralize }})</span>
+            </button>
+          </h2>
+          <div id="mod-c-{{ module.id }}" class="accordion-collapse collapse show" aria-labelledby="mod-h-{{ module.id }}" data-bs-parent="#modulesAcc">
+            <div class="accordion-body">
+              {% if is_enrolled and module.lessons.count %}
+              <form method="post" action="{% url 'courses:mark_module_completed' course.id module.id %}" class="mb-2">
+                {% csrf_token %}
+                <button class="btn ghost btn-sm" type="submit">Marquer ce module terminé</button>
+              </form>
+              {% endif %}
+              <div class="accordion" id="lessonsAcc-{{ module.id }}">
+                {% for lesson in module.lessons.all %}
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="les-h-{{ lesson.id }}">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#les-c-{{ lesson.id }}" aria-expanded="true" aria-controls="les-c-{{ lesson.id }}">
+                      {% if is_enrolled or forloop.first and forloop.parentloop.first %}
+                        <a href="{% url 'courses:lesson_detail' lesson.id %}" class="stretched-link text-decoration-none">{% if is_enrolled %}📺{% else %}📺{% endif %} {{ lesson.title }}
+                          {% if completed_lesson_ids and lesson.id in completed_lesson_ids %}<span class="pill" style="margin-left:8px;">Lu</span>{% endif %}
+                        </a>
+                      {% else %}
+                        <span class="locked">🔒 {{ lesson.title }}</span>
+                      {% endif %}
+                    </button>
+                  </h2>
+                  <div id="les-c-{{ lesson.id }}" class="accordion-collapse collapse show" aria-labelledby="les-h-{{ lesson.id }}" data-bs-parent="#lessonsAcc-{{ module.id }}">
+                    <div class="accordion-body">
+                      {% if lesson.videos.all %}
+                        <ul class="video-list">
+                          {% for v in lesson.videos.all %}
+                            {% if v.video_file %}
+                            <li class="video-item d-flex justify-content-between">
+                              {% if is_enrolled or forloop.parentloop.parentloop.first and forloop.parentloop.parentloop.parentloop.first %}
+                                <a href="{% url 'courses:lesson_detail' lesson.id %}" class="v-title text-decoration-none">📺 {{ v.title|default:lesson.title }}</a>
+                              {% else %}
+                                <span class="locked">🔒 {{ v.title|default:lesson.title }}</span>
+                              {% endif %}
+                              {% if v.duration %}<span class="v-dur">{{ v.duration }}</span>{% endif %}
+                            </li>
+                            {% endif %}
+                          {% endfor %}
+                        </ul>
+                      {% elif lesson.video_file %}
+                        <ul class="video-list">
+                          <li class="video-item d-flex justify-content-between">
+                            {% if is_enrolled or forloop.first and forloop.parentloop.first %}
+                              <a href="{% url 'courses:lesson_detail' lesson.id %}" class="v-title text-decoration-none">📺 {{ lesson.title }}</a>
+                            {% else %}
+                              <span class="locked">🔒 {{ lesson.title }}</span>
+                            {% endif %}
+                            {% if lesson.duration %}<span class="v-dur">{{ lesson.duration }}</span>{% endif %}
+                          </li>
+                        </ul>
+                      {% else %}
+                        <div class="muted">Aucune vidéo listée.</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                {% empty %}
+                <div class="muted">Aucune leçon dans ce module.</div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <p class="muted">Aucun module disponible.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div id="tab-desc" class="tab-pane fade">
+      <p>{{ course.description }}</p>
+    </div>
+    <div id="tab-res" class="tab-pane fade">
+      <div class="rating-block">
+        <div class="rb-head">Note du cours: <strong>{% if avg_rating %}{{ avg_rating }}/5{% else %}N/A{% endif %}</strong> · <span class="like-count">❤ {{ like_count }}</span></div>
+        {% if user.is_authenticated %}
+        <div class="rb-row">
+          <form method="post" action="{% url 'courses:rate_course' course.id %}" class="rating-stars">
+            {% csrf_token %}
+            <input type="radio" name="rating" id="star5" value="5" {% if user_rating_value == 5 %}checked{% endif %}><label for="star5">★</label>
+            <input type="radio" name="rating" id="star4" value="4" {% if user_rating_value == 4 %}checked{% endif %}><label for="star4">★</label>
+            <input type="radio" name="rating" id="star3" value="3" {% if user_rating_value == 3 %}checked{% endif %}><label for="star3">★</label>
+            <input type="radio" name="rating" id="star2" value="2" {% if user_rating_value == 2 %}checked{% endif %}><label for="star2">★</label>
+            <input type="radio" name="rating" id="star1" value="1" {% if user_rating_value == 1 %}checked{% endif %}><label for="star1">★</label>
+            <button class="btn ghost" type="submit">Noter</button>
+          </form>
+          <form method="post" action="{% url 'courses:toggle_like' course.id %}" class="like-form">
+            {% csrf_token %}
+            <button class="btn {% if user_liked %}solid{% else %}ghost{% endif %}" type="submit">{% if user_liked %}❤ Je n'aime plus{% else %}❤ J'aime{% endif %}</button>
+          </form>
+        </div>
+        {% else %}
+        <p class="muted">Connectez-vous pour noter et aimer ce cours.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="panel">
+    <div class="meeting-card">
+      <h6>Votre Progression</h6>
+      
+      {% if is_enrolled %}
+      <div class="progress-wrap mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="small text-muted">
+            {{ completed_count }}/{{ total_lessons }} leçon{{ total_lessons|pluralize }}
+          </span>
+          <span class="fw-bold">{{ progress_percent }}%</span>
+        </div>
+
+        <!-- Barre de progression -->
+        <div class="progress" style="height: 10px; border-radius: 5px;">
+          <div class="progress-bar bg-success" 
+               role="progressbar" 
+               style="width: {{ progress_percent }}%;" 
+               aria-valuenow="{{ progress_percent }}" 
+               aria-valuemin="0" 
+               aria-valuemax="100">
+          </div>
+        </div>
+
+        {% if total_lessons %}
+        <div class="mt-3 text-center">
+          <form method="post" 
+                action="{% url 'courses:mark_course_completed' course.id %}" 
+                class="mark-course-completed-form"
+                style="display: inline-block;">
+            {% csrf_token %}
+            <button type="submit" 
+                    class="btn {% if is_course_completed %}btn-success{% else %}btn-outline-primary{% endif %} w-100"
+                    {% if is_course_completed %}disabled{% endif %}>
+              <i class="bi {% if is_course_completed %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-1"></i>
+              {% if is_course_completed %}Cours terminé{% else %}Marquer comme terminé{% endif %}
+            </button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="alert alert-info">
+        <small>Inscrivez-vous pour suivre votre progression et marquer les leçons comme terminées.</small>
+      </div>
+      {% endif %}
+      
+      <div class="meeting-time mt-3">
+        <i class="bi bi-clock"></i> {{ course.duration|default:"Durée non spécifiée" }}
+      </div>
+    </div>
+
+    <div class="meeting-card purple">
+      <small>Nexxus Project</small>
+      <h6 class="mt-2">Upcoming Meeting</h6>
+      <div class="meeting-time mt-3"><i class="bi bi-clock"></i> 9:00 am</div>
+    </div>
+
+    <div class="meeting-card gray">
+      <small>Lumina Leap</small>
+      <h6 class="mt-2">Upcoming Meeting</h6>
+      <div class="meeting-time mt-3"><i class="bi bi-clock"></i> 11:00 am</div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion du formulaire de marquage du cours comme terminé
+    document.querySelectorAll('.mark-course-completed-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('button[type="submit"]');
+            const icon = button.querySelector('i');
+            const formData = new FormData(this);
+            
+            // Désactiver le bouton pendant la requête
+            button.disabled = true;
+            
+            // Mise à jour immédiate de l'interface utilisateur
+            const isCurrentlyCompleted = button.classList.contains('btn-success');
+            
+            // Envoyer la requête au serveur
+            fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur réseau');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // Mettre à jour l'interface utilisateur
+                    if (data.completed) {
+                        button.classList.remove('btn-outline-primary');
+                        button.classList.add('btn-success');
+                        icon.className = 'bi bi-check-circle-fill me-1';
+                        button.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Cours terminé';
+                        button.disabled = true;
+                        
+                        // Mettre à jour la barre de progression
+                        if (data.progress) {
+                            const progressBar = document.querySelector('.progress-bar');
+                            const progressText = document.querySelector('.progress-wrap .fw-bold');
+                            const progressCount = document.querySelector('.progress-wrap .small');
+                            
+                            if (progressBar && progressText && progressCount) {
+                                progressBar.style.width = `${data.progress.percent}%`;
+                                progressBar.setAttribute('aria-valuenow', data.progress.percent);
+                                progressText.textContent = `${data.progress.percent}%`;
+                                progressCount.textContent = `${data.progress.completed}/${data.progress.total} leçon${data.progress.total > 1 ? 's' : ''}`;
+                            }
+                        }
+                        
+                        showToast('Succès', data.message, 'success');
+                    } else {
+                        button.classList.remove('btn-success');
+                        button.classList.add('btn-outline-primary');
+                        icon.className = 'bi bi-circle me-1';
+                        button.innerHTML = '<i class="bi bi-circle me-1"></i> Marquer comme terminé';
+                        showToast('Succès', data.message, 'info');
+                    }
+                } else {
+                    throw new Error(data.message || 'Erreur lors de la mise à jour');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showToast('Erreur', error.message || 'Une erreur est survenue. Veuillez réessayer.', 'error');
+            })
+            .finally(() => {
+                if (!isCurrentlyCompleted) {
+                    button.disabled = isCurrentlyCompleted;
+                }
+            });
+        });
+    });
+    
+    // Fonction utilitaire pour afficher des notifications
+    function showToast(title, message, type = 'info') {
+        // Utiliser Toastify, SweetAlert2 ou tout autre système de notification
+        // Par exemple, avec SweetAlert2 :
+        if (typeof Swal !== 'undefined') {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+            
+            Toast.fire({
+                icon: type,
+                title: title,
+                text: message
+            });
+        } else if (typeof toastr !== 'undefined') {
+            // Ou utiliser toastr
+            toastr[type](message, title);
+        } else {
+            // Fallback à une alerte native
+            alert(`${title}: ${message}`);
+        }
+    }
+});
+</script>
+{% endblock %}

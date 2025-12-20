@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}Mon profil{% endblock %}
+{% block content %}
+<style>
+  :root{ --cover-h: 220px; }
+  .chan-cover{position:relative;height:var(--cover-h);background:#0b0d17;border-radius:14px;overflow:hidden;margin-bottom:0}
+  .chan-head{display:flex;align-items:center;gap:14px;padding:12px 8px}
+  .chan-avatar{position:relative;width:90px;height:90px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.2);background:#111827;margin-top:-36px}
+  .chan-name{font-weight:900;font-size:1.3rem}
+  .chan-meta{color:#6b7280;font-size:.9rem}
+  .grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .card-link{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fff;text-decoration:none;color:inherit}
+  .card-media{position:relative;height:150px;background:#0b1220}
+  .card-fallback{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:42px}
+  .cover-edit{position:absolute;right:10px;bottom:10px;z-index:2}
+  .cover-edit .btn{backdrop-filter:saturate(140%) blur(2px)}
+  .avatar-edit{position:absolute;right:-6px;bottom:-6px;background:#0b5ed7;color:#fff;border-radius:999px;border:2px solid #fff;width:22px;height:22px;display:grid;place-items:center;font-size:12px;box-shadow:0 6px 12px rgba(0,0,0,.25)}
+</style>
+
+<div class="container px-0">
+  <section class="chan-cover">
+    {% if me.cover %}
+      <img src="{{ me.cover.url }}" alt="cover" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;">
+    {% else %}
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0f172a,#1f2937);"></div>
+    {% endif %}
+    <div class="cover-edit">
+      <form id="cover-form" method="post" action="{% url 'users:upload_cover' %}" enctype="multipart/form-data" style="display:inline-block;">
+        {% csrf_token %}
+        <input id="cover-input" type="file" name="cover" accept="image/*" style="display:none;">
+        <button id="cover-btn" type="button" class="btn btn-sm btn-light">Modifier la couverture</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="chan-head container">
+    <div class="chan-avatar">
+      {% if me.avatar %}
+        <img src="{{ me.avatar.url }}" alt="{{ me.username }}" style="width:100%;height:100%;object-fit:cover;">
+      {% else %}
+        <div class="card-fallback">{{ me.username|first|upper }}</div>
+      {% endif %}
+      <button id="avatar-edit-btn" type="button" class="avatar-edit" title="Changer l'avatar">✎</button>
+      <form id="avatar-form" method="post" action="{% url 'users:upload_avatar' %}" enctype="multipart/form-data" style="display:none;">
+        {% csrf_token %}
+        <input id="avatar-input" type="file" name="avatar" accept="image/*">
+      </form>
+    </div>
+    <div class="flex-grow-1">
+      <div class="chan-name">{{ me.get_full_name|default:me.username }}</div>
+      <div class="chan-meta">
+        <span class="badge bg-primary">{{ me.get_role_display }}</span>
+        <span class="ms-2">
+          <span id="online-dot" class="badge" data-online="{{ me.is_online|yesno:'1,0' }}" style="width:8px;height:8px;border-radius:50%;display:inline-block;"></span>
+          {{ me.is_online|yesno:"En ligne,Hors ligne" }}
+        </span>
+      </div>
+      {% if me.bio %}
+        <p class="mt-2 mb-0">{{ me.bio|linebreaks }}</p>
+      {% endif %}
+      <div class="mt-3 d-flex flex-wrap gap-2">
+        {% if request.user == me %}
+          <a href="{% url 'users:edit_profile' %}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-user-edit me-1"></i> Modifier le profil
+          </a>
+          <a href="{% url 'users:change_password' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-key me-1"></i> Mot de passe
+          </a>
+          <a href="{% url 'interactions:inbox' %}" class="btn btn-sm btn-outline-info position-relative">
+            <i class="fas fa-inbox me-1"></i> Boîte de réception
+            {% if unread_count %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ unread_count }}
+                <span class="visually-hidden">messages non lus</span>
+              </span>
+            {% endif %}
+          </a>
+        {% else %}
+          <a href="{% url 'interactions:compose' %}?to={{ me.id }}" class="btn btn-sm btn-primary">
+            <i class="fas fa-paper-plane me-1"></i> Envoyer un message
+          </a>
+          <a href="{% url 'interactions:inbox' %}" class="btn btn-sm btn-outline-info position-relative">
+            <i class="fas fa-inbox me-1"></i> Ma messagerie
+            {% if unread_count %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ unread_count }}
+                <span class="visually-hidden">messages non lus</span>
+              </span>
+            {% endif %}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="container mt-4">
+    <div class="row">
+      <div class="col-md-4">
+         <div class="card p-3 mb-3">
+          <h5 class="mb-2">Mes cours créés</h5>
+          <div class="grid-cards">
+            {% for course in created_courses %}
+              <a href="{% url 'courses:course_detail' course.id %}" class="card-link">
+                <div class="card-media">
+                  {% if course.thumbnail %}
+                    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" style="width:100%;height:100%;object-fit:cover;">
+                  {% else %}
+                    <div class="card-fallback">{{ course.title|first|upper }}</div>
+                  {% endif %}
+                </div>
+                <div class="p-3">
+                  <h6 class="mb-1">{{ course.title }}</h6>
+                  <small class="text-muted">{{ course.category.name|default:"Non catégorisé" }}</small>
+                </div>
+              </a>
+            {% empty %}
+              <p class="text-muted">Aucun cours créé.</p>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card p-3 mb-3">
+          <h5 class="mb-2">Mes likes</h5>
+          <ul class="list-unstyled mb-0">
+            {% for lk in likes %}
+              <li><a href="{% url 'courses:course_detail' lk.course.id %}">{{ lk.course.title }}</a></li>
+            {% empty %}
+              <li class="text-muted">Aucun like.</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="card p-3">
+          <h5 class="mb-2">Mes notes</h5>
+          <ul class="list-unstyled mb-0">
+            {% for rt in ratings %}
+              <li>{{ rt.course.title }} — {{ rt.rating }}/5</li>
+            {% empty %}
+              <li class="text-muted">Aucune note.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-8">
+       
+
+        <div class="card p-3 mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Mes certifications</h5>
+            <a href="{% url 'certifications:achievements' %}" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-trophy me-1"></i> Voir toutes mes réalisations
+            </a>
+          </div>
+          <div class="row g-3">
+            {% for cert in certifications|slice:":4" %}
+            <div class="col-md-5">
+              <div class="card h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-start">
+                    <div class="me-3">
+                      <div class="bg-{% if cert.level == 'beginner' %}info{% elif cert.level == 'intermediate' %}warning{% else %}danger{% endif %} text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                        <i class="fas fa-award fa-lg"></i>
+                      </div>
+                    </div>
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1">{{ cert.course.title }}</h6>
+                      <p class="mb-1">
+                        <span class="badge bg-{% if cert.level == 'beginner' %}info{% elif cert.level == 'intermediate' %}warning{% else %}danger{% endif %}">
+                          Niveau : {{ cert.get_level_display }}
+                        </span>
+                      </p>
+                      <small class="text-muted">Délivré le {{ cert.issued_at|date:"d/m/Y" }}</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer bg-white border-top-0 pt-0">
+                  <a href="{{ cert.pdf.url }}" class="btn btn-sm btn-outline-primary w-100" target="_blank">
+                    <i class="fas fa-download me-1"></i> Télécharger
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+              <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                Vous n'avez pas encore de certification. Continuez à apprendre pour obtenir vos premiers badges !
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card p-3 mb-3">
+          <h5 class="mb-2">Mes inscriptions</h5>
+          <div class="grid-cards">
+            {% for enrollment in enrollments %}
+              <a href="{% url 'courses:course_detail' enrollment.course.id %}" class="card-link">
+                <div class="card-media">
+                  {% if enrollment.course.thumbnail %}
+                    <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}" style="width:100%;height:100%;object-fit:cover;">
+                  {% else %}
+                    <div class="card-fallback">{{ enrollment.course.title|first|upper }}</div>
+                  {% endif %}
+                </div>
+                <div class="p-3">
+                  <h6 class="mb-1">{{ enrollment.course.title }}</h6>
+                  <small class="text-muted">Inscrit le {{ enrollment.enrolled_at|date:"d/m/Y" }}</small>
+                </div>
+              </a>
+            {% empty %}
+              <p class="text-muted">Aucune inscription.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      
+    </div>
+  </section>
+</div>
+<script>
+  (function(){
+    const btnA = document.getElementById('avatar-edit-btn');
+    const inpA = document.getElementById('avatar-input');
+    if(btnA && inpA){
+      btnA.addEventListener('click', ()=> inpA.click());
+      inpA.addEventListener('change', ()=>{ if(inpA.files.length){ document.getElementById('avatar-form').submit(); }});
+    }
+    const btnC = document.getElementById('cover-btn');
+    const inpC = document.getElementById('cover-input');
+    if(btnC && inpC){
+      btnC.addEventListener('click', ()=> inpC.click());
+      inpC.addEventListener('change', ()=>{ if(inpC.files.length){ document.getElementById('cover-form').submit(); }});
+    }
+    const dot = document.getElementById('online-dot');
+    if(dot){ dot.style.backgroundColor = (dot.dataset.online === '1') ? '#22c55e' : '#9ca3af'; }
+  })();
+</script>
+{% endblock %}

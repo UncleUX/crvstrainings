@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application de Messagerie</title>
+    <style>
+        /* Styles de base */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* En-tête */
+        .header {
+            background-color: #4a76a8;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .header a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .header a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Conteneur principal */
+        .main-container {
+            display: flex;
+            flex: 1;
+            background: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        /* Barre latérale */
+        .sidebar {
+            width: 350px;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #1c1e21;
+        }
+        
+        .search-bar {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .search-bar input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        
+        .user-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .user-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .user-item.active {
+            background-color: #e7f3ff;
+            border-left: 3px solid #4a76a8;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            margin-bottom: 3px;
+            color: #1c1e21;
+        }
+        
+        .last-message {
+            font-size: 0.85rem;
+            color: #65676b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            color: #65676b;
+            margin-top: 3px;
+        }
+        
+        /* Zone de chat */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+        
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: white;
+            display: flex;
+            align-items: center;
+        }
+        
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #1c1e21;
+        }
+        
+        .messages-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            max-width: 70%;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.sent {
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .message.received {
+            margin-right: auto;
+        }
+        
+        .message-content {
+            padding: 10px 15px;
+            border-radius: 18px;
+            display: inline-block;
+            max-width: 100%;
+            word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sent .message-content {
+            background-color: #4a76a8;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .received .message-content {
+            background-color: #ffffff;
+            color: #1c1e21;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            color: #65676b;
+            margin-top: 5px;
+        }
+        
+        .typing-indicator {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #f0f0f0;
+            border-radius: 18px;
+            font-style: italic;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        /* Zone de saisie */
+        .message-input-container {
+            padding: 15px 20px;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .message-form {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 1rem;
+            outline: none;
+            resize: none;
+            height: 44px;
+            max-height: 120px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        .message-input:focus {
+            border-color: #4a76a8;
+            box-shadow: 0 0 0 2px rgba(74, 118, 168, 0.2);
+        }
+        
+        .send-button {
+            background-color: #4a76a8;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .send-button:hover {
+            background-color: #3a5f8d;
+        }
+        
+        .send-button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
+        
+        /* État vide */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #65676b;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #c4c4c4;
+        }
+        
+        .empty-state h3 {
+            margin: 0 0 10px 0;
+            color: #1c1e21;
+        }
+        
+        /* Réactivité */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 300px;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            
+            .chat-area {
+                height: calc(100vh - 420px);
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Messagerie</h1>
+            <div>
+                <a href="#" id="profile-link">Profil</a>
+                <a href="#" id="settings-link">Paramètres</a>
+                <a href="#" id="logout-link">Déconnexion</a>
+            </div>
+        </header>
+        
+        <main class="main-container">
+            <!-- Barre latérale avec la liste des conversations -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Conversations</h2>
+                    <button id="new-chat-btn" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+                        <span style="font-size: 1.5rem;">+</span>
+                    </button>
+                </div>
+                
+                <div class="search-bar">
+                    <input type="text" id="search-conversations" placeholder="Rechercher des conversations...">
+                </div>
+                
+                <ul class="user-list" id="conversation-list">
+                    <!-- Les conversations seront chargées ici dynamiquement -->
+                    <li class="user-item active" data-user-id="1">
+                        <div class="user-avatar">JD</div>
+                        <div class="user-info">
+                            <div class="user-name">John Doe</div>
+                            <div class="last-message">Salut, comment ça va ?</div>
+                        </div>
+                        <div class="message-time">12:30</div>
+                    </li>
+                    <li class="user-item" data-user-id="2">
+                        <div class="user-avatar">JS</div>
+                        <div class="user-info">
+                            <div class="user-name">Jane Smith</div>
+                            <div class="last-message">À quelle heure est la réunion ?</div>
+                        </div>
+                        <div class="message-time">Hier</div>
+                    </li>
+                    <!-- Plus de conversations... -->
+                </ul>
+            </aside>
+            
+            <!-- Zone de chat principale -->
+            <section class="chat-area">
+                <div class="chat-header">
+                    <h2 id="chat-with">John Doe</h2>
+                </div>
+                
+                <div class="messages-container" id="messages-container">
+                    <!-- Messages seront chargés ici dynamiquement -->
+                    <div class="message received">
+                        <div class="message-content">
+                            Salut ! Comment vas-tu ?
+                        </div>
+                        <div class="message-time">12:28</div>
+                    </div>
+                    
+                    <div class="message sent">
+                        <div class="message-content">
+                            Ça va bien, merci ! Et toi ?
+                        </div>
+                        <div class="message-time">12:30</div>
+                    </div>
+                    
+                    <div class="message received">
+                        <div class="message-content">
+                            Très bien aussi, merci de demander. Je voulais te parler du projet sur lequel nous travaillons.
+                        </div>
+                        <div class="message-time">12:31</div>
+                    </div>
+                    
+                    <div class="typing-indicator">
+                        <span id="typing-text">John Doe est en train d'écrire...</span>
+                    </div>
+                </div>
+                
+                <div class="message-input-container">
+                    <form id="message-form" class="message-form">
+                        <textarea 
+                            id="message-input" 
+                            class="message-input" 
+                            placeholder="Écrivez un message..."
+                            rows="1"
+                        ></textarea>
+                        <button type="submit" class="send-button" id="send-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Données simulées pour les conversations
+        const conversations = [
+            {
+                id: 1,
+                name: 'John Doe',
+                avatar: 'JD',
+                lastMessage: 'Salut, comment ça va ?',
+                time: '12:30',
+                messages: [
+                    { text: 'Salut ! Comment vas-tu ?', sent: false, time: '12:28' },
+                    { text: 'Ça va bien, merci ! Et toi ?', sent: true, time: '12:30' },
+                    { text: 'Très bien aussi, merci de demander. Je voulais te parler du projet sur lequel nous travaillons.', sent: false, time: '12:31' }
+                ],
+                isTyping: true
+            },
+            {
+                id: 2,
+                name: 'Jane Smith',
+                avatar: 'JS',
+                lastMessage: 'À quelle heure est la réunion ?',
+                time: 'Hier',
+                messages: [
+                    { text: 'Bonjour, as-tu préparé la présentation ?', sent: false, time: 'Hier 16:45' },
+                    { text: 'Oui, tout est prêt. Je l\'ai envoyée par email.', sent: true, time: 'Hier 17:20' },
+                    { text: 'Parfait, merci ! À quelle heure est la réunion ?', sent: false, time: 'Hier 17:22' }
+                ],
+                isTyping: false
+            }
+        ];
+
+        // Éléments DOM
+        const conversationList = document.getElementById('conversation-list');
+        const messagesContainer = document.getElementById('messages-container');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const chatWith = document.getElementById('chat-with');
+        const typingIndicator = document.querySelector('.typing-indicator');
+        const searchInput = document.getElementById('search-conversations');
+        
+        // État de l'application
+        let currentConversationId = 1;
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            // Charger les conversations
+            renderConversations();
+            
+            // Charger les messages de la conversation active
+            loadMessages(currentConversationId);
+            
+            // Mettre à jour l'indicateur de frappe
+            updateTypingIndicator();
+            
+            // Gestionnaire d'événements pour la soumission du formulaire
+            messageForm.addEventListener('submit', handleMessageSubmit);
+            
+            // Gestionnaire d'événements pour la recherche
+            searchInput.addEventListener('input', handleSearch);
+            
+            // Gestionnaire d'événements pour le clic sur une conversation
+            conversationList.addEventListener('click', handleConversationClick);
+            
+            // Gestionnaire d'événements pour le redimensionnement de la zone de texte
+            messageInput.addEventListener('input', adjustTextareaHeight);
+            
+            // Simuler la réception de nouveaux messages
+            simulateIncomingMessages();
+        });
+        
+        // Afficher la liste des conversations
+        function renderConversations(filter = '') {
+            conversationList.innerHTML = '';
+            
+            const filteredConversations = conversations.filter(conv => 
+                conv.name.toLowerCase().includes(filter.toLowerCase()) ||
+                conv.lastMessage.toLowerCase().includes(filter.toLowerCase())
+            );
+            
+            if (filteredConversations.length === 0) {
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'user-item';
+                emptyItem.style.justifyContent = 'center';
+                emptyItem.textContent = 'Aucune conversation trouvée';
+                conversationList.appendChild(emptyItem);
+                return;
+            }
+            
+            filteredConversations.forEach(conversation => {
+                const li = document.createElement('li');
+                li.className = `user-item ${conversation.id === currentConversationId ? 'active' : ''}`;
+                li.dataset.userId = conversation.id;
+                
+                li.innerHTML = `
+                    <div class="user-avatar">${conversation.avatar}</div>
+                    <div class="user-info">
+                        <div class="user-name">${conversation.name}</div>
+                        <div class="last-message">${conversation.lastMessage}</div>
+                    </div>
+                    <div class="message-time">${conversation.time}</div>
+                `;
+                
+                conversationList.appendChild(li);
+            });
+        }
+        
+        // Charger les messages d'une conversation
+        function loadMessages(conversationId) {
+            const conversation = conversations.find(c => c.id === conversationId);
+            if (!conversation) return;
+            
+            // Mettre à jour le titre de la conversation
+            chatWith.textContent = conversation.name;
+            
+            // Effacer les messages actuels
+            messagesContainer.innerHTML = '';
+            
+            // Afficher les messages
+            conversation.messages.forEach(msg => {
+                addMessage(msg.text, msg.sent, msg.time);
+            });
+            
+            // Faire défiler vers le bas
+            scrollToBottom();
+            
+            // Mettre à jour l'indicateur de frappe
+            updateTypingIndicator();
+        }
+        
+        // Ajouter un message à la conversation
+        function addMessage(text, isSent, time = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            
+            const timeStr = time || formatTime(new Date());
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${text}
+                </div>
+                <div class="message-time">${timeStr}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        // Mettre à jour l'indicateur de frappe
+        function updateTypingIndicator() {
+            const conversation = conversations.find(c => c.id === currentConversationId);
+            if (!conversation) return;
+            
+            const typingText = document.getElementById('typing-text');
+            if (conversation.isTyping) {
+                typingIndicator.style.display = 'block';
+                typingText.textContent = `${conversation.name} est en train d'écrire...`;
+            } else {
+                typingIndicator.style.display = 'none';
+            }
+        }
+        
+        // Gérer la soumission du formulaire de message
+        function handleMessageSubmit(e) {
+            e.preventDefault();
+            
+            const messageText = messageInput.value.trim();
+            if (!messageText) return;
+            
+            // Ajouter le message à la conversation actuelle
+            const conversation = conversations.find(c => c.id === currentConversationId);
+            if (conversation) {
+                const newMessage = {
+                    text: messageText,
+                    sent: true,
+                    time: formatTime(new Date())
+                };
+                
+                conversation.messages.push(newMessage);
+                conversation.lastMessage = messageText.length > 30 ? messageText.substring(0, 30) + '...' : messageText;
+                conversation.time = 'À l\'instant';
+                
+                // Mettre à jour l'interface
+                addMessage(messageText, true);
+                renderConversations(searchInput.value);
+                
+                // Effacer le champ de saisie
+                messageInput.value = '';
+                adjustTextareaHeight();
+                
+                // Simuler une réponse après un délai
+                simulateReply(conversation);
+            }
+        }
+        
+        // Simuler une réponse de l'autre utilisateur
+        function simulateReply(conversation) {
+            const replies = [
+                "D'accord, je vois.",
+                "Intéressant !",
+                "Je suis d'accord avec toi.",
+                "Peux-tu me donner plus de détails ?",
+                "Je vais vérifier cela et je te redis.",
+                "Merci pour l'information !",
+                "Parfait, on en parle plus tard ?",
+                "Je ne suis pas sûr de comprendre.",
+                "C'est noté !"
+            ];
+            
+            // Mettre à jour l'indicateur de frappe
+            conversation.isTyping = true;
+            updateTypingIndicator();
+            
+            // Simuler un délai de frappe
+            setTimeout(() => {
+                const randomReply = replies[Math.floor(Math.random() * replies.length)];
+                const replyMessage = {
+                    text: randomReply,
+                    sent: false,
+                    time: formatTime(new Date())
+                };
+                
+                // Ajouter la réponse à la conversation
+                conversation.messages.push(replyMessage);
+                conversation.lastMessage = randomReply.length > 30 ? randomReply.substring(0, 30) + '...' : randomReply;
+                conversation.time = 'À l\'instant';
+                
+                // Mettre à jour l'interface
+                addMessage(randomReply, false);
+                renderConversations(searchInput.value);
+                
+                // Désactiver l'indicateur de frappe
+                conversation.isTyping = false;
+                updateTypingIndicator();
+                
+            }, 2000 + Math.random() * 3000); // Délai aléatoire entre 2 et 5 secondes
+        }
+        
+        // Gérer la recherche de conversations
+        function handleSearch(e) {
+            renderConversations(e.target.value);
+        }
+        
+        // Gérer le clic sur une conversation
+        function handleConversationClick(e) {
+            const listItem = e.target.closest('.user-item');
+            if (!listItem) return;
+            
+            const userId = parseInt(listItem.dataset.userId);
+            if (userId === currentConversationId) return;
+            
+            // Mettre à jour la conversation active
+            currentConversationId = userId;
+            
+            // Recharger les messages
+            loadMessages(userId);
+            
+            // Mettre à jour les styles des éléments de la liste
+            document.querySelectorAll('.user-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            listItem.classList.add('active');
+        }
+        
+        // Ajuster la hauteur de la zone de texte en fonction du contenu
+        function adjustTextareaHeight() {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+        }
+        
+        // Faire défiler vers le bas de la zone de messages
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Formater l'heure au format HH:MM
+        function formatTime(date) {
+            return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        // Simuler la réception de nouveaux messages
+        function simulateIncomingMessages() {
+            // Toutes les 30 secondes, il y a 30% de chances qu'un nouveau message arrive
+            setInterval(() => {
+                if (Math.random() < 0.3) {
+                    const inactiveConversations = conversations.filter(c => c.id !== currentConversationId);
+                    if (inactiveConversations.length > 0) {
+                        const randomConv = inactiveConversations[Math.floor(Math.random() * inactiveConversations.length)];
+                        const messages = [
+                            "Salut, tu es là ?",
+                            "J'ai une question à te poser.",
+                            "Tu as vu mon dernier message ?",
+                            "On se voit plus tard ?",
+                            "J'ai besoin de ton aide.",
+                            "Ça te dit de déjeuner ensemble ?",
+                            "J'ai terminé le rapport.",
+                            "Peux-tu m'appeler quand tu es disponible ?",
+                            "Bonne journée !"
+                        ];
+                        
+                        const newMessage = messages[Math.floor(Math.random() * messages.length)];
+                        randomConv.messages.push({
+                            text: newMessage,
+                            sent: false,
+                            time: formatTime(new Date())
+                        });
+                        
+                        randomConv.lastMessage = newMessage.length > 30 ? newMessage.substring(0, 30) + '...' : newMessage;
+                        randomConv.time = 'À l\'instant';
+                        
+                        // Mettre à jour la liste des conversations si nécessaire
+                        if (randomConv.id !== currentConversationId) {
+                            renderConversations(searchInput.value);
+                        }
+                    }
+                }
+            }, 30000); // Vérifier toutes les 30 secondes
+        }
+    </script>
+</body>
+</html>

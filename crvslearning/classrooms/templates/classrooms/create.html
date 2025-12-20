@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Créer une classe{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row align-items-center justify-content-center">
+
+    <!-- SECTION GAUCHE : TEXTE -->
+    <div class="col-md-6 mb-4 mb-md-0">
+      <h2 class="fw-bold mb-3">Créer une classe</h2>
+      <p class="text-muted">
+        Créez une classe pour regrouper vos apprenants.
+        Vous pourrez y planifier des sessions live, partager
+        des contenus et suivre la participation des étudiants.
+      </p>
+
+      <ul class="text-muted ps-3">
+        <li>Gestion centralisée des élèves</li>
+        <li>Sessions live et planning</li>
+        <li>Accès par code sécurisé</li>
+      </ul>
+    </div>
+
+    <!-- SECTION DROITE : FORMULAIRE -->
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-4">Informations de la classe</h5>
+
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label">Nom de la classe</label>
+              <input class="form-control" name="name" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Matière</label>
+              <input class="form-control" name="subject">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Programme / Planning</label>
+              <textarea class="form-control" name="schedule" rows="3"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Catégorie</label>
+              <select name="category_id" class="form-select" required>
+                <option value="">Sélectionnez une catégorie</option>
+                {% for cat in categories %}
+                  <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" name="description" rows="3"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a href="{% url 'classrooms:my_classrooms' %}" class="btn btn-outline-secondary">
+                Annuler
+              </a>
+              <button class="btn btn-primary" type="submit">
+                Créer la classe
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,254 @@
+{% extends 'interactions/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block chat_content %}
+<div class="chat-inbox">
+    <!-- Sidebar des conversations -->
+    <div class="chat-sidebar">
+        <div class="chat-sidebar-header">
+            <h2>{% trans "Messages" %}</h2>
+            <div class="chat-sidebar-actions">
+                <button class="search-btn" title="{% trans 'Rechercher des conversations' %}">
+                    <span class="material-icons">search</span>
+                </button>
+                <button class="new-chat-btn" id="new-chat-btn" title="{% trans 'Nouvelle conversation' %}">
+                    <span class="material-icons">edit</span>
+                </button>
+                <button class="more-options-btn" title="{% trans 'Plus d\'options' %}">
+                    <span class="material-icons">more_vert</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Filtres de conversation -->
+        <div class="conversation-filters">
+            <button class="filter-btn active" data-filter="all">
+                <span class="material-icons">chat</span>
+                <span>{% trans "Tous" %}</span>
+            </button>
+            <button class="filter-btn" data-filter="unread">
+                <span class="material-icons">mark_as_unread</span>
+                <span>{% trans "Non lus" %}</span>
+            </button>
+            <button class="filter-btn" data-filter="starred">
+                <span class="material-icons">star_border</span>
+                <span>{% trans "Importants" %}</span>
+            </button>
+        </div>
+        
+        <!-- Liste des conversations -->
+        <div class="conversation-list">
+            {% for conversation in conversations %}
+            <a href="{% url 'interactions:conversation' conversation.roomId %}" 
+               class="conversation-item {% if active_room_id == conversation.roomId %}active{% endif %} {% if conversation.unread_count > 0 %}unread{% endif %} {% if conversation.is_pinned %}pinned{% endif %}">
+                <div class="conversation-avatar">
+                    {% if conversation.type == 'DM' %}
+                        {% with recipient=conversation.get_other_member %}
+                            {% if recipient and recipient.avatar %}
+                                <img src="{{ recipient.avatar.url }}" alt="{{ recipient.get_full_name|default:recipient.username }}">
+                                <span class="online-status {% if not recipient.is_online %}offline{% endif %}"></span>
+                            {% elif recipient %}
+                                <div class="avatar-placeholder">
+                                    {{ recipient.first_name|first|upper }}{{ recipient.last_name|first|upper|default:recipient.username|first|upper }}
+                                </div>
+                                <span class="online-status {% if not recipient.is_online %}offline{% endif %}"></span>
+                            {% else %}
+                                <div class="avatar-placeholder">
+                                    <span class="material-icons">person</span>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        <div class="avatar-group">
+                            <span class="material-icons">group</span>
+                        </div>
+                    {% endif %}
+                    
+                    {% if conversation.unread_count > 0 %}
+                    <span class="unread-badge">{{ conversation.unread_count }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="conversation-details">
+                    <div class="conversation-header">
+                        <h4>
+                            {% if conversation.type == 'DM' %}
+                                {% with recipient=conversation.get_other_member %}
+                                    {{ recipient.get_full_name|default:recipient.username }}
+                                {% endwith %}
+                            {% else %}
+                                {{ conversation.name|default:"Groupe sans nom" }}
+                            {% endif %}
+                            {% if conversation.is_important %}
+                            <span class="material-icons" style="color: var(--warning-color); font-size: 16px;">star</span>
+                            {% endif %}
+                        </h4>
+                        <span class="conversation-time" data-timestamp="{{ conversation.updated_at|date:'c' }}">
+                            {{ conversation.updated_at|timesince }}
+                        </span>
+                    </div>
+                    
+                    <div class="conversation-preview">
+                        {% if conversation.last_message %}
+                            <span class="conversation-preview-text">
+                                {% if conversation.last_message.sender == request.user %}
+                                    <span class="sender-name">{% trans "Vous" %}:</span> 
+                                {% elif conversation.type != 'DM' %}
+                                    <span class="sender-name">{{ conversation.last_message.sender.first_name|default:conversation.last_message.sender.username }}:</span>
+                                {% endif %}
+                                <span class="message-preview">
+                                    {% if conversation.last_message.message_type == 'text' %}
+                                        {{ conversation.last_message.message|truncatechars:50 }}
+                                    {% elif conversation.last_message.message_type == 'image' %}
+                                        <span class="material-icons" style="font-size: 14px;">image</span> {% trans "Image" %}
+                                    {% elif conversation.last_message.message_type == 'file' %}
+                                        <span class="material-icons" style="font-size: 14px;">attach_file</span> {% trans "Fichier" %}
+                                    {% endif %}
+                                </span>
+                            </span>
+                            
+                            {% if conversation.last_message.sender != request.user and conversation.unread_count == 0 %}
+                            <span class="material-icons" style="color: var(--secondary-color); font-size: 16px;">done_all</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="conversation-preview-text">
+                                <em>{% trans "Aucun message" %}</em>
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <button class="conversation-more-options" data-conversation-id="{{ conversation.roomId }}">
+                    <span class="material-icons">more_vert</span>
+                </button>
+            </a>
+            {% empty %}
+            <div class="empty-state">
+                <span class="material-icons">forum</span>
+                <h3>{% trans "Aucune conversation" %}</h3>
+                <p>{% trans "Commencez une nouvelle conversation pour discuter avec vos contacts" %}</p>
+                <button class="btn" id="start-conversation-btn">
+                    <span class="material-icons">add</span>
+                    <span>{% trans "Nouvelle conversation" %}</span>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Zone de conversation active -->
+    <div class="chat-main">
+        {% if active_conversation %}
+            {% include 'interactions/partials/chat_window.html' with conversation=active_conversation %}
+        {% else %}
+            <div class="chat-welcome">
+                <div class="welcome-content">
+                    <span class="material-icons">chat_bubble_outline</span>
+                    <h3>{% trans "Bienvenue dans la messagerie" %}</h3>
+                    <p>{% trans "Sélectionnez une conversation ou créez-en une nouvelle pour commencer à discuter." %}</p>
+                    <button class="btn" id="welcome-new-chat-btn">
+                        <span class="material-icons">add</span>
+                        <span>{% trans "Nouvelle conversation" %}</span>
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Menu contextuel des conversations -->
+    <div class="conversation-context-menu" id="conversationContextMenu">
+        <div class="context-menu-item" data-action="mark-unread">
+            <span class="material-icons">mark_email_unread</span>
+            <span>{% trans "Marquer comme non lu" %}</span>
+        </div>
+        <div class="context-menu-item" data-action="pin">
+            <span class="material-icons">push_pin</span>
+            <span>{% trans "Épingler" %}</span>
+        </div>
+        <div class="context-menu-item" data-action="mute">
+            <span class="material-icons">notifications_off</span>
+            <span>{% trans "Désactiver les notifications" %}</span>
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item text-danger" data-action="delete">
+            <span class="material-icons">delete</span>
+            <span>{% trans "Supprimer la conversation" %}</span>
+        </div>
+    </div>
+
+    <!-- Modal pour nouvelle conversation -->
+    <div class="modal fade" id="newChatModal" tabindex="-1" aria-labelledby="newChatModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newChatModalLabel">{% trans "Nouvelle conversation" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Fermer' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="new-chat-form" method="post" action="{% url 'interactions:start_conversation' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <div class="search-box">
+                                <span class="material-icons">search</span>
+                                <input type="text" id="contact-search" placeholder="{% trans 'Rechercher un contact...' %}" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="contact-list">
+                                {% for user in available_users %}
+                                <div class="contact-item" data-user-id="{{ user.id }}">
+                                    <div class="contact-avatar">
+                                        {% if user.avatar %}
+                                            <img src="{{ user.avatar.url }}" alt="{{ user.get_full_name|default:user.username }}">
+                                        {% else %}
+                                            <div class="avatar-placeholder">
+                                                {{ user.first_name|first|upper }}{{ user.last_name|first|upper|default:user.username|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                        <span class="online-status {% if not user.is_online %}offline{% endif %}"></span>
+                                    </div>
+                                    <div class="contact-details">
+                                        <h5>{{ user.get_full_name|default:user.username }}</h5>
+                                        <p>{{ user.email }}</p>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm select-contact">
+                                        {% trans "Sélectionner" %}
+                                    </button>
+                                    <input type="checkbox" name="recipients" value="{{ user.id }}" style="display: none;">
+                                </div>
+                                {% empty %}
+                                <div class="empty-state">
+                                    <span class="material-icons">person_off</span>
+                                    <p>{% trans "Aucun contact disponible" %}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="initial_message" class="form-label">{% trans "Message (optionnel)" %}</label>
+                            <div class="message-input">
+                                <div class="message-toolbar">
+                                    <button type="button" class="toolbar-btn" title="{% trans 'Ajouter un émoji' %}">
+                                        <span class="material-icons">emoji_emotions</span>
+                                    </button>
+                                    <button type="button" class="toolbar-btn" title="{% trans 'Joindre un fichier' %}">
+                                        <span class="material-icons">attach_file</span>
+                                    </button>
+                                </div>
+                                <textarea id="initial_message" name="message" rows="3" placeholder="{% trans 'Écrivez un message...' %}"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-text" data-bs-dismiss="modal">{% trans "Annuler" %}</button>
+                    <button type="submit" form="new-chat-form" class="btn btn-primary" disabled>
+                        <span class="material-icons">send</span>
+                        <span>{% trans "Envoyer" %}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  web:
+    command: ["bash","-lc","python manage.py migrate --noinput && gunicorn -k uvicorn.workers.UvicornWorker -w ${WORKERS:-4} -b 0.0.0.0:8000 crvslearning.asgi:application"]
+    environment:
+      DEBUG: "0"
+  nginx:
+    ports:
+      - "8081:80"

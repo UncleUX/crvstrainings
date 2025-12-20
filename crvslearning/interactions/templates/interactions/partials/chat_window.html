@@ -1,0 +1,150 @@
+<!-- chat_window.html -->
+<div class="chat-window">
+    <!-- En-tête de la conversation -->
+    <div class="chat-header">
+        <div class="chat-header-info">
+            {% if conversation.type == 'DM' %}
+                {% with recipient=conversation.members.exclude(id=request.user.id).first %}
+                    {% if recipient.profile.avatar %}
+                        <img src="{{ recipient.profile.avatar.url }}" alt="{{ recipient.get_full_name }}" class="chat-avatar">
+                    {% else %}
+                        <div class="avatar-placeholder">
+                            {{ recipient.first_name|first|upper }}{% if recipient.last_name %}{{ recipient.last_name|first|upper }}{% endif %}
+                        </div>
+                    {% endif %}
+                    <div class="chat-title">
+                        <h4>{{ recipient.get_full_name|default:recipient.username }}</h4>
+                        <small class="text-muted">
+                            {% if recipient.is_online %}
+                                <span class="online-status online"></span> En ligne
+                            {% else %}
+                                <span class="online-status offline"></span> Hors ligne
+                            {% endif %}
+                        </small>
+                    </div>
+                {% endwith %}
+            {% else %}
+                <div class="group-avatar">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="chat-title">
+                    <h4>{{ conversation.name }}</h4>
+                    <small class="text-muted">
+                        {{ conversation.members.count }} membres
+                    </small>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="chat-actions">
+            <button class="btn btn-link" title="Appel vidéo">
+                <i class="fas fa-video"></i>
+            </button>
+            <button class="btn btn-link" title="Appel audio">
+                <i class="fas fa-phone"></i>
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-link dropdown-toggle" type="button" id="chatMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="chatMenuDropdown">
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-user-friends me-2"></i> Voir les membres</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-bell me-2"></i> Notifications</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i> Quitter la conversation</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Corps de la conversation -->
+    <div class="chat-messages" id="chat-messages">
+        {% for message in conversation.messages.all %}
+            <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}" data-message-id="{{ message.id }}">
+                {% if message.sender != request.user %}
+                    <div class="message-avatar">
+                        {% if message.sender.profile.avatar %}
+                            <img src="{{ message.sender.profile.avatar.url }}" alt="{{ message.sender.get_full_name }}">
+                        {% else %}
+                            <div class="avatar-placeholder">
+                                {{ message.sender.first_name|first|upper }}{% if message.sender.last_name %}{{ message.sender.last_name|first|upper }}{% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <div class="message-content">
+                    {% if conversation.type == 'GROUP' and message.sender != request.user %}
+                        <div class="message-sender">{{ message.sender.get_full_name|default:message.sender.username }}</div>
+                    {% endif %}
+                    
+                    <div class="message-text">
+                        {{ message.message|linebreaksbr }}
+                        
+                        {% if message.attachments.exists %}
+                            <div class="message-attachments">
+                                {% for attachment in message.attachments.all %}
+                                    <div class="attachment">
+                                        {% if attachment.file_type == 'image' %}
+                                            <img src="{{ attachment.file.url }}" alt="Image" class="img-thumbnail">
+                                        {% else %}
+                                            <a href="{{ attachment.file.url }}" target="_blank">
+                                                <i class="far fa-file-alt"></i> {{ attachment.filename }}
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="message-time">
+                            {{ message.timestamp|time:"H:i" }}
+                            {% if message.read and message.sender == request.user %}
+                                <i class="fas fa-check-double text-primary"></i>
+                            {% elif message.sender == request.user %}
+                                <i class="far fa-check"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-chat">
+                <i class="far fa-comment-dots"></i>
+                <p>{% trans "Aucun message dans cette conversation" %}</p>
+                <small class="text-muted">{% trans "Envoyez votre premier message pour commencer la discussion" %}</small>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Zone de saisie du message -->
+    <div class="chat-input">
+        <form id="message-form" class="message-form" data-room-id="{{ conversation.roomId }}">
+            {% csrf_token %}
+            <div class="input-group">
+                <button type="button" class="btn btn-link" id="attach-file-btn" title="Joindre un fichier">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <input type="file" id="file-upload" style="display: none;" multiple>
+                
+                <input type="text" 
+                       class="form-control" 
+                       id="message-input" 
+                       placeholder="{% trans 'Écrivez votre message...' %}" 
+                       autocomplete="off">
+                
+                <button type="submit" class="btn btn-primary" id="send-message-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            
+            <div class="typing-indicator" id="typing-indicator">
+                <!-- Indicateur de frappe -->
+            </div>
+            
+            <div class="preview-attachments" id="preview-attachments">
+                <!-- Aperçu des pièces jointes -->
+            </div>
+        </form>
+    </div>
+</div>

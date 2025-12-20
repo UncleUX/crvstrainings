@@ -1,0 +1,393 @@
+#!/usr/bin/env bash
+# Usage:
+#   ./deploy/deploy.sh [dev|staging|prod]
+#   ./deploy/deploy.sh onehost         # app + jitsi + jibri stack (uses .env)
+#   ./deploy/deploy.sh onehost-dev     # onehost + dev overrides
+#   ./deploy/deploy.sh onehost-prod    # onehost + prod overrides
+set -euo pipefail
+
+# Fonction pour exécuter les playbooks Ansible
+run_ansible_playbook() {
+    echo -e "\n\033[32m:::::::::::::::::::::: Exécution des playbooks Ansible :::::::::::::::::::::\033[0m"
+    
+    # Vérifier si Ansible est installé
+    if ! command -v ansible-playbook &> /dev/null; then
+        echo "Installation d'Ansible..."
+        pip3 install ansible
+    fi
+
+    # Vérifier si le fichier d'inventaire existe
+    if [ ! -f "../infrastructure/inventory.ini" ]; then
+        echo "Erreur: Le fichier d'inventaire Ansible est introuvable dans infrastructure/inventory.ini"
+        exit 1
+    fi
+
+    # Exécuter le playbook Ansible
+    echo "Exécution du playbook Ansible..."
+    cd ../infrastructure
+    ansible-playbook -i inventory.ini site.yml
+    cd - > /dev/null
+    
+    echo -e "\n\033[32mPlaybook Ansible exécuté avec succès!\033[0m\n"
+}
+
+# Appel de la fonction d'exécution Ansible
+run_ansible_playbook
+
+# Le reste du script de déploiement original suit...
+ENVIRONMENT=${1:-dev}
+BASE=docker-compose.base.yml
+
+wait_for_tcp() {
+  local host=${1}
+  local port=${2}
+  local label=${3:-"$host:$port"}
+  echo "Waiting for TCP ${label}..."
+  for i in {1..60}; do
+    if (echo >/dev/tcp/${host}/${port}) >/dev/null 2>&1; then
+      echo "OK: ${label}"
+      return 0
+    fi
+    sleep 1
+  done
+  echo "Timeout waiting for ${label}" >&2
+  return 1
+}
+
+wait_for_http() {
+  local url=${1}
+  local label=${2:-$url}
+  echo "Waiting for HTTP ${label}..."
+  for i in {1..60}; do
+    if curl -fsS -o /dev/null "$url"; then
+      echo "OK: ${label}"
+      return 0
+    fi
+    sleep 1
+  done
+  echo "Timeout waiting for ${label}" >&2
+  return 1
+}
+
+DOCKER_STARTED=0
+TMUX_STARTED=0
+
+echo -e "\033[32m:::::::::::::::::::::: Checking your operating system ::::::::::::::::::::::\033[0m"
+echo
+
+wslKernelWithUbuntu=false
+if [ -n "$(uname -r | grep microsoft-standard-WSL2)" ] && [ -n "$(cat /etc/os-release | grep Ubuntu)" ]; then
+  wslKernelWithUbuntu=true
+fi
+
+# Le reste du script original...
+# [Le reste du contenu original du script va ici]
+# Usage:
+#   ./deploy/deploy.sh [dev|staging|prod]
+#   ./deploy/deploy.sh onehost         # app + jitsi + jibri stack (uses .env)
+#   ./deploy/deploy.sh onehost-dev     # onehost + dev overrides
+#   ./deploy/deploy.sh onehost-prod    # onehost + prod overrides
+set -euo pipefail
+ENVIRONMENT=${1:-dev}
+BASE=docker-compose.base.yml
+
+wait_for_tcp() {
+  local host=${1}
+  local port=${2}
+  local label=${3:-"$host:$port"}
+  echo "Waiting for TCP ${label}..."
+  for i in {1..60}; do
+    if (echo >/dev/tcp/${host}/${port}) >/dev/null 2>&1; then
+      echo "OK: ${label}"
+      return 0
+    fi
+    sleep 1
+  done
+  echo "Timeout waiting for ${label}" >&2
+  return 1
+}
+
+wait_for_http() {
+  local url=${1}
+  local label=${2:-$url}
+  echo "Waiting for HTTP ${label}..."
+  for i in {1..60}; do
+    if curl -fsS -o /dev/null "$url"; then
+      echo "OK: ${label}"
+      return 0
+    fi
+    sleep 1
+  done
+  echo "Timeout waiting for ${label}" >&2
+  return 1
+}
+
+DOCKER_STARTED=0
+TMUX_STARTED=0
+
+  echo -e "\033[32m:::::::::::::::::::::: Checking your operating system ::::::::::::::::::::::\033[0m"
+  echo
+
+wslKernelWithUbuntu=false
+if  [ -n "$(uname -r | grep microsoft-standard-WSL2)" ] && [ -n "$(cat /etc/os-release | grep Ubuntu)" ]; then
+  wslKernelWithUbuntu=true
+  echo -e "\033[32m:::::::::::::::: You are running Windows Subsystem for Linux .  Checking distro ::::::::::::::::\033[0m"
+  echo
+fi
+
+if [  -n "$(uname -a | grep Ubuntu)" ] || [ $wslKernelWithUbuntu == true ]; then
+  echo -e "\033[32m:::::::::::::::: You are running Ubuntu.  Checking version ::::::::::::::::\033[0m"
+  echo
+
+  OS="UBUNTU"
+  ubuntuVersion="$(grep -oP 'VERSION_ID="\K[\d.]+' /etc/os-release)"
+  ubuntuVersionTest=$(do_version_check $ubuntuVersion 20.04)
+  if [ "$ubuntuVersionTest" == "LOWER" ] ; then
+    echo "Sorry your Ubuntu version is not supported.  You must upgrade Ubuntu to 20.04"
+    echo "Follow the instructions here: https://ubuntu.com/tutorials/upgrading-ubuntu-desktop#1-before-you-start"
+    exit 1
+  else
+    echo -e "Your Ubuntu version: $ubuntuVersion is \033[32msupported!\033[0m :)"
+    echo
+
+    echo -e "\033[32m:::::::: Setting memory requirements for file watch limit and ElasticSearch ::::::::\033[0m"
+    echo
+
+    if grep -Fxq "fs.inotify.max_user_watches=524288" /etc/sysctl.conf ; then
+        echo "File watch limit already meets requirements."
+    else
+        echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+    fi
+
+    if grep -Fxq "vm.max_map_count=262144" /etc/sysctl.conf ; then
+        echo "Max map count already meets requirements."
+    else
+        echo vm.max_map_count=262144 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+    fi
+  fi
+elif [ "$(uname)" == "Darwin" ]; then
+  echo -e "\033[32m::::::::::::::::::::::::: You are running Mac OSX. :::::::::::::::::::::::::\033[0m"
+  echo
+  OS="MAC"
+else
+  echo "Sorry your operating system is not supported."
+  echo "YOU MUST BE RUNNING A SUPPORTED OS: MAC or UBUNTU > 18.04"
+  exit 1
+fi
+
+
+echo -e "\033[32m:::::::: Checking that you have the required dependencies installed ::::::::\033[0m"
+echo
+
+# Reads .nvmrc and trims the whitespace
+nvmVersion=$(cat .nvmrc | tr -d '[:space:]')
+
+dependencies=( "docker" "node" "yarn" "tmux")
+
+for i in "${dependencies[@]}"
+do
+   :
+    if which $i >/dev/null; then
+
+        echo -e "âœ… $i \033[32minstalled!\033[0m :)"
+
+        sleep_if_non_ci 1
+    else
+        echo -e "OpenCRVS thinks $i is not installed.\r"
+        if [ $i == "docker" ] ; then
+            if [ $OS == "UBUNTU" ]; then
+                echo "You need to install Docker, or if you did, we can't find it and perhaps it is not in your PATH. Please fix your docker installation."
+                echo "Please follow the documentation here: https://docs.docker.com/engine/install/ubuntu/"
+            else
+                echo "You need to install Docker Desktop for Mac, or if you did, we can't find it and perhaps it is not in your PATH. Please fix your docker installation."
+                echo "Please follow the documentation here: https://docs.docker.com/desktop/mac/install/"
+            fi
+        fi
+
+        if [ $i == "node" ] ; then
+            echo "You need to install Node, or if you did, we can't find it and perhaps it is not in your PATH. Please fix your node installation."
+            echo "We recommend you install Node $nvmVersion as this release has been tested on that version."
+            echo "There are various ways you can install Node.  The easiest way to get Node running with the version of your choice is using Node Version Manager."
+            echo "Documentation is here: https://nodejs.org/en/download/package-manager/#nvm.  For example run:\033[0m"
+            echo "curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash"
+            echo "Then use nvm to install the Node version of choice.  For example run:\033[0m"
+            echo
+            echo "nvm install $nvmVersion"
+            echo
+            echo "When the version is installed, use it:"
+            echo
+            echo "nvm use $nvmVersion"
+            echo
+            echo "Finally set the version to be the default:"
+            echo
+            echo "nvm alias default $nvmVersion"
+        fi
+        if [ $i == "yarn" ] ; then
+           echo "You need to install the Yarn Package Manager for Node."
+           echo "The documentation is here: https://classic.yarnpkg.com/en/docs/install"
+        fi
+        if [ $i == "tmux" ] ; then
+          if [ $OS == "UBUNTU" ]; then
+              echo "OpenCRVS requires multiple terminal windows open in order to run OpenCRVS Core alongside the default country configuration."
+              echo -e "\033[32m::::::::::::: We want to install the tool tmux to do this. :::::::::::::\033[0m"
+              echo
+              echo -e "\033[32m::::::::::::: Run this command: sudo apt-get install tmux :::::::::::::\033[0m"
+          else
+              echo "OpenCRVS requires multiple terminal windows open in order to run OpenCRVS Core alongside the default country configuration."
+              echo
+              echo "We use the tool tmux to do this.  Please install it following the documentation here: https://github.com/tmux/tmux/wiki"
+          fi
+        fi
+        echo
+        echo -e "\033[32m::::::::::::::: After $i is installed please try again :::::::::::::::\033[0m"
+        echo
+        exit 1
+    fi
+done
+
+###
+#
+# Check if Docker Compose exists
+#
+###
+
+if ! docker compose version &> /dev/null
+then
+    echo "Docker Compose is not available in your Docker installation"
+    echo "Your Docker version may be too old to include Docker Compose as part of the Docker CLI."
+
+    if [ $OS == "UBUNTU" ]; then
+        echo "Please follow the installation instructions here: https://docs.docker.com/engine/install/ubuntu/"
+    else
+        echo "Please follow the installation instructions here: https://docs.docker.com/desktop/mac/install/"
+    fi
+
+    exit 1
+fi
+
+
+if [[ "$ENVIRONMENT" == "onehost" ]]; then
+  # One-host deployment: app + jitsi + jibri
+  bash deploy/preflight.sh || true
+  chmod +x deploy/entrypoint.sh || true
+  chmod +x deploy/jibri/finalize.sh || true
+  COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
+    docker compose \
+      -f "$BASE" \
+      -f docker-compose.jitsi.yml \
+      -f docker-compose.override.yml \
+      up -d --build
+  # Readiness checks (adapted to our stack)
+  wait_for_tcp localhost 6379 "Redis tcp:6379" || true
+  wait_for_http http://localhost/ "App http://localhost/" || true
+  wait_for_tcp localhost 8443 "Jitsi Web tcp:8443" || true
+  echo "Services started for onehost."
+  echo "- App: http://localhost/"
+  echo "- Jitsi: https://localhost:8443/"
+  echo "- Recordings: http://localhost/recordings/"
+  MODE_HANDLED=1
+fi
+
+if [[ "$ENVIRONMENT" == "onehost-dev" ]]; then
+  bash deploy/preflight.sh || true
+  chmod +x deploy/entrypoint.sh || true
+  chmod +x deploy/jibri/finalize.sh || true
+  COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
+    docker compose \
+      -f "$BASE" \
+      -f docker-compose.jitsi.yml \
+      -f docker-compose.override.yml \
+      -f docker-compose.dev.yml \
+      up -d --build
+  wait_for_tcp localhost 6379 "Redis tcp:6379" || true
+  wait_for_http http://localhost:8080/ "Nginx dev http://localhost:8080/" || true
+  wait_for_tcp localhost 8443 "Jitsi Web tcp:8443" || true
+  # Seed development data if available
+  if [[ -x deploy/seed_dev.sh ]]; then
+    echo "Seeding development data..."
+    bash deploy/seed_dev.sh || true
+  fi
+  echo "Services started for onehost-dev."
+  echo "- App: http://localhost:8080 (via Nginx dev) ou http://localhost:8000 (direct)"
+  echo "- Jitsi: https://localhost:8443/"
+  echo "- Recordings: http://localhost/recordings/"
+  # Defer tmux launch to end of script
+  TMUX_ENABLE=1
+  TMUX_SESSION_NAME=crvs-dev
+fi
+
+if [[ "$ENVIRONMENT" == "onehost-prod" ]]; then
+  bash deploy/preflight.sh || true
+  chmod +x deploy/entrypoint.sh || true
+  chmod +x deploy/jibri/finalize.sh || true
+  COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
+    docker compose \
+      -f "$BASE" \
+      -f docker-compose.jitsi.yml \
+      -f docker-compose.override.yml \
+      -f docker-compose.prod.yml \
+      up -d --build
+  wait_for_tcp localhost 6379 "Redis tcp:6379" || true
+  wait_for_http http://localhost/ "App http://localhost/" || true
+  wait_for_tcp localhost 8443 "Jitsi Web tcp:8443" || true
+  echo "Services started for onehost-prod."
+  echo "- App: http://localhost/"
+  echo "- Jitsi: https://localhost:8443/"
+  echo "- Recordings: http://localhost/recordings/"
+  exit 0
+fi
+
+case "$ENVIRONMENT" in
+  dev)
+    FILE=docker-compose.dev.yml
+    ;;
+  staging)
+    FILE=docker-compose.staging.yml
+    ;;
+  prod)
+    FILE=docker-compose.prod.yml
+    ;;
+  *)
+    echo "Unknown environment: $ENVIRONMENT" >&2
+    echo "Usage: $0 [dev|staging|prod|onehost|onehost-dev|onehost-prod]" >&2
+    exit 1
+    ;;
+esac
+
+# Ensure entrypoints are executable
+chmod +x deploy/entrypoint.sh || true
+chmod +x deploy/jibri/finalize.sh || true
+
+if [[ -z ${MODE_HANDLED:-} ]]; then
+  # Build and run
+  COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
+    docker compose -f "$BASE" -f "$FILE" up -d --build
+
+  echo "Services started for $ENVIRONMENT."
+  echo "- App: http://localhost:8000 (dev direct) or via Nginx: http://localhost:8080 (dev) / 8081 (staging) / 80 (prod)"
+fi
+
+# Common tmux launch at end (when requested)
+if [[ "${TMUX_ENABLE:-0}" == "1" ]]; then
+  if command -v tmux >/dev/null 2>&1; then
+    SESSION_NAME=${TMUX_SESSION_NAME:-crvs}
+    # Use exact requested sequence with dynamic session name
+    set -- $(stty size || echo "40 120") # $1=rows, $2=columns
+    # start a new session in detached mode with resizable panes
+    tmux new-session -s "$SESSION_NAME" -n "$SESSION_NAME" -d -x "$2" -y "$(($1 - 1))"
+    TMUX_STARTED=1
+    tmux set -p @mytitle "${SESSION_NAME}-core-working"
+    tmux send-keys -t "$SESSION_NAME" "bash development-environment/summary.sh" C-m
+    tmux split-window -h -l '30%'
+    tmux send-keys -t "$SESSION_NAME" "LANGUAGES=en && yarn start" C-m
+    tmux set -p @mytitle "${SESSION_NAME}-core"
+    tmux split-window -v
+    tmux set -p @mytitle "${SESSION_NAME}-countryconfig"
+    DIR=$(cd "$(dirname "$0")"; pwd)
+    tmux send-keys -t "$SESSION_NAME" "bash development-environment/setup-countryconfig.sh $DIR" C-m
+    tmux setw -g mouse on
+    tmux attach -t "$SESSION_NAME"
+  else
+    echo "tmux not found; skipping tmux session startup."
+  fi
+fi

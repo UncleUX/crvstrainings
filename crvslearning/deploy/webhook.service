@@ -1,0 +1,14 @@
+[Unit]
+Description=Webhook de déploiement CRVS Learning
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/chemin/absolu/vers/crvslearning
+Environment=WEBHOOK_SECRET=votre_secret_ici
+ExecStart=/usr/bin/python3 /chemin/absolu/vers/crvslearning/deploy/webhook_handler.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

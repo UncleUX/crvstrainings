@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Messagerie{% endblock %}</title>
+    
+</head>
+<body>
+    <div class="header">
+        <h1>Messagerie</h1>
+        <div>
+            <a href="{% url 'sms:inbox' %}">Boîte de réception</a>
+            <a href="{% url 'users:profile' %}">Mon Profil</a>
+            <a href="{% url 'users:logout' %}">Déconnexion</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

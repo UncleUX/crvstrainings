@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Catalogue des cours{% endblock %}
+
+{% block content %}
+<div class="pre-hero" style="margin-bottom:25px;text-align:center;">
+  <div style="font-size:clamp(24px,5vw,32px);font-weight:600;letter-spacing:.4px;line-height:1.15;">Bienvenue sur </div>
+  <div style="font-size:clamp(26px,6vw,66px);font-weight:700;letter-spacing:.5px;line-height:1.1;">Crvs Trainings</div>
+</div>
+<section class="hero">
+  <div class="hero-backdrop"></div>
+  <div class="hero-gradient"></div>
+  <div class="hero-content container-fluid">
+    <div class="highlights">
+      <div class="slider" id="hl-slider">
+        <div class="slide slide-1 active">
+          <div class="slide-overlay"></div>
+          <div class="slide-meta">
+            <span class="tag">Nouveau</span>
+            <h3>Python Débutant</h3>
+            <p>Bases, exercices, quiz — démarrez aujourd’hui.</p>
+          </div>
+        </div>
+        <div class="slide slide-2">
+          <div class="slide-overlay"></div>
+          <div class="slide-meta">
+            <span class="tag live">Live</span>
+            <h3>Session JavaScript</h3>
+            <p>ES6, DOM, événements — en direct cette semaine.</p>
+          </div>
+        </div>
+        <div class="slide slide-3">
+          <div class="slide-overlay"></div>
+          <div class="slide-meta">
+            <span class="tag">Tendance</span>
+            <h3>Django Avancé</h3>
+            <p>Channels, WebSockets, perf, déploiement.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slider-dots" id="hl-dots"></div>
+    </div>
+    <div class="hero-top">
+      <div>
+        <h1 class="hero-title">Apprendre, performer, réussir</h1>
+        <p class="hero-sub">Explorez des parcours de formation conçus pour vous faire passer au niveau supérieur.</p>
+      </div>
+      <div class="hero-cta">
+        <a href="{% url 'users:dashboard' %}" class="btn-primary">Entrer</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="filters mt-5">
+  <ul class="category-list">
+    <li>
+      <a href="{% url 'users:dashboard' %}"
+         class="pill {% if not selected_category %}active{% endif %}">Tous</a>
+    </li>
+    {% for category in categories %}
+      <li>
+        <a href="?category={{ category.slug }}"
+           class="pill {% if selected_category == category.slug %}active{% endif %}">{{ category.name }}</a>
+      </li>
+    {% empty %}
+      <li>Aucune catégorie trouvée.</li>
+    {% endfor %}
+  </ul>
+  {% if selected_category %}
+    <a href="{% url 'users:dashboard' %}" class="clear-filter">Réinitialiser</a>
+  {% endif %}
+  </div>
+
+<div class="courses-grid mb-5">
+  {% for course in courses %}
+    <a class="course-card" href="{% url 'courses:course_detail' course.id %}">
+      <div class="course-media">
+        {% if course.thumbnail %}
+          <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">
+        {% else %}
+          <div class="course-fallback" aria-label="Aperçu du cours {{ course.title }}">
+            <span class="course-initials">{{ course.title|first|upper }}</span>
+          </div>
+        {% endif %}
+        <div class="media-overlay"></div>
+        <div class="media-badge">{{ course.category.name|default:'Général' }}</div>
+      </div>
+      <div class="course-meta">
+        <h2 class="course-title">{{ course.title }}</h2>
+        <p class="course-desc">{{ course.description|truncatechars:120 }}</p>
+      </div>
+    </a>
+  {% empty %}
+    <p>Aucun cours disponible pour cette catégorie.</p>
+  {% endfor %}
+</div>
+
+<!-- SECTION CARROUSSEL-->
+ <section style="margin:40px auto;padding:48px;background:#15182b;border-radius:24px;display:flex;gap:48px;align-items:center;box-sizing:border-box;" class="mt-5">
+
+
+<!-- LEFT CONTENT -->
+<div style="flex:1;color:#ffffff;">
+<h1 style="font-size:40px;line-height:1.2;margin:0 0 20px 0;font-weight:700;">
+Réinventez votre carrière à l'ère<br>de l'IA
+</h1>
+
+
+<p style="font-size:16px;line-height:1.6;color:#cfd3ff;max-width:460px;margin:0 0 32px 0;">
+Pérennisez vos compétences avec l'Abonnement individuel. Accédez à une variété de nouveaux contenus créés par des formateurs confirmés.
+</p>
+
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-bottom:32px;">
+<div style="display:flex;gap:10px;align-items:center;color:#ffffff;">
+<span style="width:28px;height:28px;border-radius:50%;background:#7c7cff;display:flex;align-items:center;justify-content:center;font-size:14px;">✦</span>
+Apprenez à maîtriser l'IA et bien plus
+</div>
+<div style="display:flex;gap:10px;align-items:center;color:#ffffff;">
+<span style="width:28px;height:28px;border-radius:50%;background:#5fe1b2;display:flex;align-items:center;justify-content:center;font-size:14px;">🏆</span>
+Préparez une certification
+</div>
+<div style="display:flex;gap:10px;align-items:center;color:#ffffff;">
+<span style="width:28px;height:28px;border-radius:50%;background:#ffd36e;display:flex;align-items:center;justify-content:center;font-size:14px;">🤖</span>
+Entraînez-vous grâce au coaching IA
+</div>
+<div style="display:flex;gap:10px;align-items:center;color:#ffffff;">
+<span style="width:28px;height:28px;border-radius:50%;background:#7be3ff;display:flex;align-items:center;justify-content:center;font-size:14px;">📈</span>
+Évoluez dans votre carrière
+</div>
+</div>
+
+
+<button style="background:#ffffff;color:#0f1220;border:none;border-radius:8px;padding:12px 22px;font-size:14px;font-weight:600;cursor:pointer;">
+En savoir plus
+</button>
+
+
+<div style="margin-top:12px;font-size:13px;color:#cfd3ff;">
+À partir de $10.00/mois
+</div>
+</div>
+
+
+<!-- RIGHT VISUAL -->
+<div style="flex:1;display:grid;grid-template-columns:1.1fr 0.9fr;gap:20px;align-items:center;">
+
+
+<div style="height:360px;border-radius:20px;background:linear-gradient(135deg,#5fd3ff,#6f6bff);display:flex;align-items:center;justify-content:center;">
+<div style="width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,0.2);"></div>
+</div>
+
+
+<div style="display:grid;gap:20px;">
+<div style="background:#f4f5ff;border-radius:18px;padding:16px;display:flex;align-items:center;gap:12px;">
+<img src="https://via.placeholder.com/120x140" alt="person" style="border-radius:12px;object-fit:cover;" />
+<div style="color:#0f1220;font-size:14px;">
+<strong>Formateur IA</strong><br>
+Présentation interactive
+</div>
+</div>
+
+
+<div style="background:#c7a6ff;border-radius:18px;padding:20px;display:flex;align-items:center;justify-content:center;">
+<div style="width:64px;height:64px;border-radius:16px;background:#ffffff;display:flex;align-items:center;justify-content:center;font-size:32px;">✦</div>
+</div>
+
+
+<div style="background:#b78bff;border-radius:18px;padding:20px;display:flex;align-items:center;justify-content:center;">
+<img src="https://via.placeholder.com/120x80" alt="VR" />
+</div>
+</div>
+</div>
+</section>
+<!-- FIN SECTION CARROUSSEL -->
+<!-- SECTION TEMOIGNAGES -->
+<section style="padding:80px; background:#f8fafc;">
+    <h2 style="text-align:center; font-size:32px; margin-bottom:40px;">Ce que disent nos Apprenants</h2>
+    
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px;">
+        <div style="background:white; padding:30px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div style="display:flex; align-items:center; margin-bottom:20px;">
+                <div style="width:50px; height:50px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; margin-right:15px; font-weight:bold; color:#4a5568;">JD</div>
+                <div>
+                    <div style="font-weight:600;">ATANGANA MArtin</div>
+                    <div style="font-size:14px; color:#64748b;">Apprenant en Développement Web</div>
+                </div>
+            </div>
+            <p style="color:#4a5568; line-height:1.6; margin:0;">
+                "Les cours sont très bien structurés et les formateurs sont à l'écoute. J'ai pu acquérir des compétences concrètes en peu de temps."
+            </p>
+        </div>
+        
+        <div style="background:white; padding:30px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div style="display:flex; align-items:center; margin-bottom:20px;">
+                <div style="width:50px; height:50px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; margin-right:15px; font-weight:bold; color:#4a5568;">MS</div>
+                <div>
+                    <div style="font-weight:600;">Aude France</div>
+                    <div style="font-size:14px; color:#64748b;">Etudiante en NSE4 fortigate</div>
+                </div>
+            </div>
+            <p style="color:#4a5568; line-height:1.6; margin:0;">
+                "Une plateforme intuitive avec des cours de qualité. Les mises à jour régulières du contenu montrent un réel engagement envers les apprenants."
+            </p>
+        </div>
+        
+        <div style="background:white; padding:30px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+            <div style="display:flex; align-items:center; margin-bottom:20px;">
+                <div style="width:50px; height:50px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; margin-right:15px; font-weight:bold; color:#4a5568;">TP</div>
+                <div>
+                    <div style="font-weight:600;">AZEUFACK Pault</div>
+                    <div style="font-size:14px; color:#64748b;">Apprenant en Programmation Web</div>
+                </div>
+            </div>
+            <p style="color:#4a5568; line-height:1.6; margin:0;">
+                "L'approche pratique des formations m'a permis de mettre en application immédiatement ce que j'ai appris. Je recommande vivement !"
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- SECTION -->
+<div style="
+    width:100%;
+    padding:50px 20px;
+    background:#ffffff;
+    text-align:center;
+">
+
+    <!-- TEXTE -->
+    <p style="
+        font-size:18px;
+        color:#6b6b6b;
+        margin-bottom:40px;
+    ">
+        Plus de <strong>17 000 entreprises</strong> et des millions de participants nous font confiance dans le monde entier
+    </p>
+
+    <!-- LOGOS -->
+    <div style="
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:50px;
+    ">
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/VW_Logo.png"
+             alt="Volkswagen"
+             style="height:35px; filter:grayscale(100%); opacity:0.7;">
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg"
+             alt="Samsung"
+             style="height:30px; filter:grayscale(100%); opacity:0.7;">
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6e/Cisco_logo_blue_2016.svg"
+             alt="Cisco"
+             style="height:30px; filter:grayscale(100%); opacity:0.7;">
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9d/Vimeo_Logo.svg"
+             alt="Vimeo"
+             style="height:28px; filter:grayscale(100%); opacity:0.7;">
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Procter_%26_Gamble_logo.svg"
+             alt="P&G"
+             style="height:32px; filter:grayscale(100%); opacity:0.7;">
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Hewlett-Packard_Enterprise_logo.svg"
+             alt="HPE"
+             style="height:28px; filter:grayscale(100%); opacity:0.7;">
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/3/35/Citigroup_logo.svg"
+             alt="Citi"
+             style="height:30px; filter:grayscale(100%); opacity:0.7;">
+
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Ericsson_logo.svg"
+             alt="Ericsson"
+             style="height:30px; filter:grayscale(100%); opacity:0.7;">
+
+    </div>
+</div>
+
+<style>
+  .hero {
+    position: relative;
+    height: 56vh;
+    border-radius: 16px;
+    overflow: hidden;
+    display: block;
+    margin-bottom: 28px;
+  }
+  .hero-backdrop {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #0b0d0f 0%, #0b0d0f 100%);
+    filter: saturate(1.2);
+  }
+  .hero-gradient {
+    position: absolute; inset: 0;
+    background: none;
+  }
+  .hero-content { position: relative; z-index: 1; color: #fff; width: 100%; max-width: 1400px; height: 100%; padding: 0; }
+  .hero-top { position:absolute; left:24px; right:24px; top:50%; transform: translateY(-50%); display:flex; align-items:center; justify-content:space-between; gap:18px; }
+  .hero-title {
+    font-size: clamp(28px, 6vw, 56px);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin: 0 0 8px 0;
+  }
+  .hero-sub {
+    font-size: clamp(14px, 2.2vw, 18px);
+    opacity: 0.9;
+    margin: 0 0 18px 0;
+  }
+  .btn-primary {
+    display: inline-block; background: #2563eb; color: #fff; padding: 10px 16px; border-radius: 10px;
+    font-weight: 700; text-decoration: none; box-shadow: 0 8px 18px rgba(37,99,235,0.35);
+  }
+  .btn-primary:hover { background: #1d4ed8; }
+
+  /* Highlights slider */
+  .highlights { position: absolute; inset:0; }
+  .slider { position: absolute; inset:0; height: 100%; border-radius: 16px; overflow: hidden; }
+  .slide { position:absolute; inset:0; background-size:cover; background-position:center; opacity:0; transform: scale(1.04); transition: opacity .8s ease, transform .8s ease, clip-path 1.2s ease; clip-path: polygon(0% 0%, 100% 0%, 100% 92%, 0% 100%); animation: morph 12s ease-in-out infinite; animation-play-state: paused; }
+  .slide.active { opacity:1; transform: scale(1); animation-play-state: running; }
+  .slide-1 { background-image: url("{% static 'img/highlights-1.svg' %}"); }
+  .slide-2 { background-image: url("{% static 'img/highlights-2.svg' %}"); }
+  .slide-3 { background-image: url("{% static 'img/highlights-3.svg' %}"); }
+  .slide-overlay { position:absolute; inset:0; background:
+      linear-gradient(180deg, rgba(0,0,0,.75) 0%, rgba(0,0,0,.55) 60%, rgba(0,0,0,.85) 100%),
+      linear-gradient(90deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0.15) 50%),
+      linear-gradient(120deg, rgba(0,0,0,.45), rgba(0,0,0,.15)); }
+  .slide-meta { position:absolute; left:16px; bottom:16px; color:#fff; }
+  .slide-meta h3 { margin:4px 0 2px 0; font-weight:800; letter-spacing:.3px; }
+  .slide-meta p { margin:0; opacity:.9 }
+  .tag { display:inline-block; background:#111827; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:800; }
+  .tag.live { background:#dc2626; }
+  /* no arrows */
+  .slider-dots { position:absolute; left:0; right:0; bottom:8px; display:flex; gap:6px; justify-content:center; }
+  .slider-dots button { width:8px; height:8px; border-radius:50%; border:none; background:rgba(255,255,255,.4); cursor:pointer; }
+  .slider-dots button.active { background:#fff; }
+  @keyframes morph {
+    0%   { clip-path: polygon(0% 0%, 100% 0%, 100% 92%, 0% 100%); }
+    33%  { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 92%); }
+    66%  { clip-path: polygon(0% 0%, 100% 8%, 100% 100%, 0% 100%); }
+    100% { clip-path: polygon(0% 0%, 100% 0%, 100% 92%, 0% 100%); }
+  }
+
+  .filters { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 18px 0; }
+  .category-list { list-style: none; padding: 0; margin: 0; display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill {
+    display: inline-block; padding: 8px 12px; border-radius: 999px; text-decoration: none; color: #111;
+    background: #f3f4f6; border: 1px solid #e5e7eb; font-weight: 600; font-size: 0.95rem;
+  }
+  .pill:hover { background: #e5e7eb; }
+  .pill.active { background: #111827; color: #fff; border-color: #111827; }
+  .clear-filter { text-decoration: none; color: #6b7280; font-weight: 600; }
+
+  .courses-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+  .course-card {
+    position: relative; overflow: hidden; border-radius: 14px; background: #0b1220; text-decoration: none; color: inherit;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    display: grid; grid-template-rows: 180px auto;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .course-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(0,0,0,0.28); }
+  .course-media { position: relative; }
+  .course-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .course-fallback { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; font-size: 48px; color: #fff;
+    background: linear-gradient(135deg, #111827, #1f2937);
+  }
+  .media-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.1)); }
+  .media-badge { position: absolute; left: 12px; bottom: 12px; background: rgba(17,24,39,0.85); color: #fff; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .course-meta { padding: 14px 14px 16px 14px; background: #fff; }
+  .course-title { margin: 0 0 6px 0; font-size: 1.05rem; color: #0b1220; font-weight: 800; }
+  .course-desc { margin: 0; color: #4b5563; font-size: 0.95rem; }
+
+  @media (max-width: 768px) {
+    .hero { height: 46vh; }
+    .hero-top { flex-direction: column; align-items: flex-start; }
+    .course-card { grid-template-rows: 160px auto; }
+  }
+</style>
+<script>
+  (function(){
+    const slider = document.getElementById('hl-slider'); if(!slider) return;
+    const slides = Array.from(slider.querySelectorAll('.slide'));
+    const dotsWrap = document.getElementById('hl-dots');
+    let i = 0; let timer;
+    slides.forEach((_, idx)=>{
+      const b = document.createElement('button');
+      if(idx===0) b.classList.add('active');
+      b.addEventListener('click', ()=>go(idx));
+      dotsWrap.appendChild(b);
+    });
+    const dots = Array.from(dotsWrap.querySelectorAll('button'));
+    function show(idx){ slides.forEach((s,j)=>{ s.classList.toggle('active', j===idx); }); dots.forEach((d,j)=>{ d.classList.toggle('active', j===idx); }); }
+    function go(idx){ i = (idx+slides.length)%slides.length; show(i); restart(); }
+    function nextFn(){ go(i+1); }
+    function restart(){ clearInterval(timer); timer=setInterval(nextFn, 5000); }
+    restart();
+  })();
+</script>
+{% endblock %}

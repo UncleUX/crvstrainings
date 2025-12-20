@@ -1,0 +1,269 @@
+{% extends 'interactions/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block chat_content %}
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h2>{% trans "Notifications" %}</h2>
+        <div class="notifications-actions">
+            <button class="btn btn-outline-secondary btn-sm" id="mark-all-read">
+                <i class="far fa-check-circle me-1"></i> {% trans "Tout marquer comme lu" %}
+            </button>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter me-1"></i> {% trans "Filtrer" %}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item active" href="#" data-filter="all">{% trans "Toutes" %}</a></li>
+                    <li><a class="dropdown-item" href="#" data-filter="unread">{% trans "Non lues" %}</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" data-filter="message"><i class="far fa-envelope me-2"></i>{% trans "Messages" %}</a></li>
+                    <li><a class="dropdown-item" href="#" data-filter="mention"><i class="fas fa-at me-2"></i>{% trans "Mentions" %}</a></li>
+                    <li><a class="dropdown-item" href="#" data-filter="system"><i class="fas fa-cog me-2"></i>{% trans "Système" %}</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notifications-list" id="notifications-list">
+        {% for notification in notifications %}
+            {% include 'interactions/partials/notification_item.html' with notification=notification %}
+        {% empty %}
+            <div class="empty-state">
+                <i class="far fa-bell-slash"></i>
+                <h4>{% trans "Aucune notification" %}</h4>
+                <p>{% trans "Lorsque vous recevrez des notifications, elles apparaîtront ici." %}</p>
+            </div>
+        {% endfor %}
+    </div>
+    
+    {% if notifications.has_other_pages %}
+    <nav aria-label="{% trans 'Pagination des notifications' %}">
+        <ul class="pagination justify-content-center mt-4">
+            {% if notifications.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1" aria-label="{% trans 'Première page' %}">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ notifications.previous_page_number }}" aria-label="{% trans 'Précédent' %}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for i in notifications.paginator.page_range %}
+                {% if notifications.number == i %}
+                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                {% elif i > notifications.number|add:'-3' and i < notifications.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if notifications.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ notifications.next_page_number }}" aria-label="{% trans 'Suivant' %}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ notifications.paginator.num_pages }}" aria-label="{% trans 'Dernière page' %}">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteNotificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Supprimer la notification" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Fermer' %}"></button>
+            </div>
+            <div class="modal-body">
+                <p>{% trans "Êtes-vous sûr de vouloir supprimer cette notification ? Cette action est irréversible." %}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Annuler" %}</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-notification">
+                    <i class="fas fa-trash-alt me-1"></i> {% trans "Supprimer" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestion du marquage comme lu au clic
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Ne pas déclencher si on clique sur le bouton de suppression
+                if (e.target.closest('.notification-close')) {
+                    return;
+                }
+                
+                const notificationId = this.dataset.notificationId;
+                const url = this.dataset.url;
+                
+                // Marquer comme lu via AJAX
+                fetch(`/api/notifications/${notificationId}/read/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                }).then(response => {
+                    if (response.ok) {
+                        this.classList.remove('unread');
+                        this.querySelector('.notification-badge')?.remove();
+                        
+                        // Mettre à jour le compteur de notifications non lues
+                        updateUnreadCount(-1);
+                        
+                        // Rediriger si une URL est définie
+                        if (url) {
+                            window.location.href = url;
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Gestion du marquage de toutes les notifications comme lues
+        document.getElementById('mark-all-read')?.addEventListener('click', function() {
+            fetch('/api/notifications/mark-all-read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            }).then(response => {
+                if (response.ok) {
+                    document.querySelectorAll('.notification-item.unread').forEach(item => {
+                        item.classList.remove('unread');
+                        item.querySelector('.notification-badge')?.remove();
+                    });
+                    
+                    // Mettre à jour le compteur de notifications non lues
+                    updateUnreadCount('all');
+                }
+            });
+        });
+        
+        // Gestion de la suppression d'une notification
+        document.querySelectorAll('.notification-close').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const notificationId = this.dataset.notificationId;
+                const notificationItem = this.closest('.notification-item');
+                
+                // Afficher la modal de confirmation
+                const modal = new bootstrap.Modal(document.getElementById('deleteNotificationModal'));
+                const confirmBtn = document.getElementById('confirm-delete-notification');
+                
+                // Stocker l'ID de la notification à supprimer
+                confirmBtn.dataset.notificationId = notificationId;
+                
+                // Gérer la confirmation de suppression
+                const handleDelete = () => {
+                    fetch(`/api/notifications/${notificationId}/`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    }).then(response => {
+                        if (response.ok) {
+                            // Supprimer l'élément du DOM
+                            notificationItem.remove();
+                            
+                            // Mettre à jour le compteur si la notification n'était pas lue
+                            if (notificationItem.classList.contains('unread')) {
+                                updateUnreadCount(-1);
+                            }
+                            
+                            // Vérifier s'il reste des notifications
+                            if (!document.querySelector('.notification-item')) {
+                                const emptyState = `
+                                    <div class="empty-state">
+                                        <i class="far fa-bell-slash"></i>
+                                        <h4>{% trans "Aucune notification" %}</h4>
+                                        <p>{% trans "Lorsque vous recevrez des notifications, elles apparaîtront ici." %}</p>
+                                    </div>
+                                `;
+                                document.getElementById('notifications-list').innerHTML = emptyState;
+                            }
+                        }
+                    });
+                    
+                    // Nettoyer l'écouteur d'événements
+                    confirmBtn.removeEventListener('click', handleDelete);
+                };
+                
+                confirmBtn.addEventListener('click', handleDelete);
+                
+                modal.show();
+            });
+        });
+        
+        // Gestion du filtrage des notifications
+        document.querySelectorAll('[data-filter]').forEach(filter => {
+            filter.addEventListener('click', function(e) {
+                e.preventDefault();
+                const filterType = this.dataset.filter;
+                
+                // Mettre à jour le filtre actif
+                document.querySelectorAll('[data-filter]').forEach(item => {
+                    item.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Filtrer les notifications
+                document.querySelectorAll('.notification-item').forEach(item => {
+                    if (filterType === 'all') {
+                        item.style.display = '';
+                    } else if (filterType === 'unread') {
+                        item.style.display = item.classList.contains('unread') ? '' : 'none';
+                    } else {
+                        const type = item.dataset.notificationType;
+                        item.style.display = type === filterType ? '' : 'none';
+                    }
+                });
+            });
+        });
+        
+        // Fonction pour mettre à jour le compteur de notifications non lues
+        function updateUnreadCount(change) {
+            const badge = document.querySelector('.unread-notifications-badge');
+            if (!badge) return;
+            
+            let count = parseInt(badge.textContent) || 0;
+            
+            if (change === 'all') {
+                count = 0;
+            } else {
+                count += change;
+                count = Math.max(0, count); // Ne pas descendre en dessous de 0
+            }
+            
+            badge.textContent = count > 0 ? count : '';
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+    });
+</script>
+{% endblock %}

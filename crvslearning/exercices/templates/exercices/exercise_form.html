@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %} un exercice</h2>
+    <form method="post" id="exercise-form">
+        {% csrf_token %}
+        {{ form|crispy }}
+        
+        <h4 class="mt-4">Choix de réponses</h4>
+        <p class="text-muted">Cochez la case pour indiquer la bonne réponse.</p>
+        
+        {{ formset.management_form }}
+        <div id="choices-container">
+            {% for choice_form in formset %}
+                <div class="card mb-3 choice-form {% if forloop.first %}default-choice{% endif %}" {% if forloop.first %}data-default="true"{% endif %}>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-1 text-center">
+                                <div class="form-check">
+                                    {{ choice_form.is_correct|as_crispy_field }}
+                                    <label class="form-check-label" for="{{ choice_form.is_correct.id_for_label }}">
+                                        <i class="fas fa-check-circle"></i>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-9">
+                                {{ choice_form.text|as_crispy_field }}
+                            </div>
+                            <div class="col-1">
+                                {{ choice_form.order|as_crispy_field }}
+                            </div>
+                            <div class="col-1 text-end">
+                                {% if not forloop.first and formset.can_delete %}
+                                    {{ choice_form.DELETE|as_crispy_field }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                {{ choice_form.explanation|as_crispy_field }}
+                            </div>
+                        </div>
+                        {% for hidden in choice_form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <button type="button" class="btn btn-primary" id="add-choice">
+                        <i class="fas fa-plus-circle"></i> Ajouter un choix
+                    </button>
+                </div>
+                <div>
+                    <a href="{% url 'courses:lesson_detail' lesson_id=view.kwargs.lesson_id %}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Enregistrer l'exercice
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fonction pour initialiser les événements d'un choix
+    function initChoiceEvents(choiceElement) {
+        // Bouton pour afficher/masquer l'explication
+        const toggleBtn = choiceElement.querySelector('.toggle-explanation');
+        const explanationField = choiceElement.querySelector('.explanation-field');
+        
+        if (toggleBtn && explanationField) {
+            toggleBtn.addEventListener('click', function() {
+                const isVisible = explanationField.style.display === 'block';
+                explanationField.style.display = isVisible ? 'none' : 'block';
+                toggleBtn.innerHTML = isVisible 
+                    ? '<i class="fas fa-comment-dots"></i> Ajouter une explication'
+                    : '<i class="fas fa-eye-slash"></i> Masquer l\'explication';
+            });
+        }
+
+        // Bouton de suppression
+        const deleteBtn = choiceElement.querySelector('.delete-choice');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                const formCount = document.getElementById('id_choices-TOTAL_FORMS');
+                const container = choiceElement.closest('#choices-container');
+                
+                // Si c'est un formulaire existant, on le marque pour suppression
+                const deleteInput = choiceElement.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                if (deleteInput) {
+                    deleteInput.checked = true;
+                    choiceElement.style.display = 'none';
+                } else {
+                    // Sinon on le supprime directement
+                    container.removeChild(choiceElement);
+                    updateFormIndices();
+                }
+            });
+        }
+    }
+
+    // Initialiser les événements pour les choix existants
+    document.querySelectorAll('.choice-form').forEach(choice => {
+        initChoiceEvents(choice);
+    });
+
+    // Ajouter un nouveau choix
+    document.getElementById('add-choice').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const formCount = document.getElementById('id_choices-TOTAL_FORMS');
+        const totalForms = parseInt(formCount.value);
+        const container = document.getElementById('choices-container');
+        
+        // Get the first choice form as template
+        const template = document.querySelector('.choice-form');
+        if (!template) return;
+        
+        // Créer un nouvel élément de formulaire
+        const newForm = template.cloneNode(true);
+        
+        // Mettre à jour tous les IDs et noms dans le nouveau formulaire
+        const elements = newForm.querySelectorAll('[id^="id_choices-"]');
+        elements.forEach(element => {
+            const oldId = element.id;
+            const newId = oldId.replace(/\d+/, totalForms);
+            element.id = newId;
+            
+            // Mettre à jour les labels correspondants
+            const labels = newForm.querySelectorAll(`label[for="${oldId}"]`);
+            labels.forEach(label => {
+                label.htmlFor = newId;
+            });
+            
+            // Mettre à jour l'attribut name pour la soumission du formulaire
+            if (element.name) {
+                element.name = element.name.replace(/\d+/, totalForms);
+            }
+        });
+        
+        // Réinitialiser les valeurs
+        const textInputs = newForm.querySelectorAll('input[type="text"], textarea');
+        textInputs.forEach(input => {
+            input.value = '';
+        });
+        
+        // Réinitialiser les cases à cocher
+        const checkboxes = newForm.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            if (!checkbox.name.includes('DELETE')) {
+                checkbox.checked = false;
+            }
+            // Mettre à jour le nom et l'ID de la case à cocher
+            if (checkbox.name) {
+                checkbox.name = checkbox.name.replace(/\d+/, totalForms);
+                checkbox.id = `id_${checkbox.name}`;
+            }
+        });
+        
+        // Afficher le bouton de suppression et masquer la première case à cocher de suppression
+        const deleteCheckbox = newForm.querySelector('input[type="checkbox"][name$="-DELETE"]');
+        if (deleteCheckbox) {
+            deleteCheckbox.style.display = 'none'; // On laisse le bouton de suppression gérer ça
+        }
+        
+        // Afficher le bouton de suppression
+        const deleteBtn = newForm.querySelector('.delete-choice');
+        if (deleteBtn) {
+            deleteBtn.style.display = 'inline-block';
+        }
+        
+        // Masquer l'explication par défaut
+        const explanationField = newForm.querySelector('.explanation-field');
+        if (explanationField) {
+            explanationField.style.display = 'none';
+        }
+        
+        // Réinitialiser le bouton d'explication
+        const toggleBtn = newForm.querySelector('.toggle-explanation');
+        if (toggleBtn) {
+            toggleBtn.innerHTML = '<i class="fas fa-comment-dots"></i> Ajouter une explication';
+        }
+        
+        // Append the new form
+        container.appendChild(newForm);
+        
+        // Update the form count
+        formCount.value = totalForms + 1;
+        
+        // Initialize any new form widgets (if using a form library)
+        if (typeof django !== 'undefined' && django.jQuery) {
+            django.jQuery(newForm).find('select').select2();
+        }
+    });
+    
+    // Function to update form indices after deletion
+    function updateFormIndices() {
+        const forms = document.querySelectorAll('.choice-form:not([style*="display: none"])');
+        let formIndex = 0;
+        
+        forms.forEach((form, index) => {
+            // Update form IDs and names
+            form.querySelectorAll('[id^="id_choices-"]').forEach(element => {
+                const oldId = element.id;
+                const newId = oldId.replace(/\d+/, index);
+                element.id = newId;
+                
+                // Update for labels
+                const labels = document.querySelectorAll(`label[for="${oldId}"]`);
+                labels.forEach(label => {
+                    label.htmlFor = newId;
+                });
+                
+                // Update name attribute for form submission
+                if (element.name) {
+                    element.name = element.name.replace(/\d+/, index);
+                }
+            });
+            
+            // Update form index in management form
+            document.getElementById('id_choices-TOTAL_FORMS').value = forms.length;
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

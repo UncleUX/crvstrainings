@@ -1,0 +1,310 @@
+{% extends 'sms/base.html' %}
+{% load tz %}
+
+{% block title %}Discussion avec {{ other_user.get_full_name|default:other_user.username }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #4a76a8;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        .chat-container {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            height: 80vh;
+        }
+        .sidebar {
+            width: 300px;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+        }
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .message {
+            margin-bottom: 15px;
+            max-width: 70%;
+        }
+        .message.sent {
+            margin-left: auto;
+            text-align: right;
+        }
+        .message.received {
+            margin-right: auto;
+        }
+        .message-content {
+            padding: 10px 15px;
+            border-radius: 18px;
+            display: inline-block;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+        .sent .message-content {
+            background-color: #4a76a8;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        .received .message-content {
+            background-color: #e9ebee;
+            color: #1c1e21;
+            border-bottom-left-radius: 5px;
+        }
+        .message-time {
+            font-size: 0.8em;
+            color: #65676b;
+            margin-top: 5px;
+        }
+        .user-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .user-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .user-item:hover {
+            background-color: #f5f5f5;
+        }
+        .user-item.active {
+            background-color: #e9f0f7;
+            border-left: 3px solid #4a76a8;
+        }
+        .unread-count {
+            background-color: #ff3b30;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7em;
+            margin-left: 5px;
+        }
+        .message-input {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #f5f5f5;
+        }
+        .message-input input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+        .message-input button {
+            background-color: #4a76a8;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 0 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .message-input button:hover {
+            background-color: #3a5f8d;
+        }
+    </style>
+<div class="chat-container">
+    <div class="sidebar">
+        <h2 style="padding: 15px 20px; margin: 0; border-bottom: 1px solid #e0e0e0;">
+            <a href="{% url 'sms:inbox' %}" style="color: inherit; text-decoration: none;">
+                ← Conversations
+            </a>
+        </h2>
+        <ul class="user-list">
+            {% for user in request.user.contacts.all %}
+                {% if user != other_user %}
+                <li class="user-item" 
+                    data-chat-url="{% url 'sms:chat' user.id %}"
+                    data-user-id="{{ user.id }}"
+                    onclick="window.location.href=this.getAttribute('data-chat-url')">
+                    {{ user.get_full_name|default:user.username }}
+                    {% with unread_messages=user.sms_received_messages.all %}
+                        {% with unread_count=unread_messages|length %}
+                            {% if unread_count > 0 %}
+                                <span class="unread-count">{{ unread_count }}</span>
+                            {% endif %}
+                        {% endwith %}
+                    {% endwith %}
+                </li>
+                {% else %}
+                <li class="user-item active">
+                    {{ user.get_full_name|default:user.username }}
+                </li>
+                {% endif %}
+            {% empty %}
+                <li style="padding: 15px 20px;">Aucun contact</li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div class="chat-area">
+        <div class="messages" id="message-container">
+            {% for message in messages %}
+                <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}" data-message-id="{{ message.id }}">
+                    <div class="message-content">
+                        {{ message.content|linebreaksbr }}
+                        <div class="message-time">
+                            {{ message.timestamp|time:"H:i" }}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div style="text-align: center; margin-top: 50px; color: #666;">
+                    <p>Envoyez votre premier message à {{ other_user.get_full_name|default:other_user.username }}</p>
+                </div>
+            {% endfor %}
+            <div id="message-end"></div>
+        </div>
+        
+        <form method="post" action="{% url 'sms:send_message' other_user.id %}" class="message-input" id="message-form">
+            {% csrf_token %}
+            <input type="text" name="content" placeholder="Écrivez votre message..." autocomplete="off" id="message-input">
+            <button type="submit">Envoyer</button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Fonction pour formater l'heure
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    return date.getHours().toString().padStart(2, '0') + ':' + 
+           date.getMinutes().toString().padStart(2, '0');
+}
+
+// Fonction pour ajouter un message au chat
+function addMessage(message, isOwnMessage) {
+    const messageContainer = document.getElementById('message-container');
+    const messageEnd = document.getElementById('message-end');
+    
+    // Créer l'élément du message
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isOwnMessage ? 'sent' : 'received'}`;
+    messageDiv.setAttribute('data-message-id', message.id);
+    
+    // Formater le contenu du message
+    const messageTime = formatTime(message.timestamp);
+    const messageContent = message.content.replace(/\n/g, '<br>');
+    
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            ${messageContent}
+            <div class="message-time">${messageTime}</div>
+        </div>
+    `;
+    
+    // Ajouter le message avant le marqueur de fin
+    messageContainer.insertBefore(messageDiv, messageEnd);
+    
+    // Faire défiler vers le bas
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+}
+
+// Gestion de l'envoi du formulaire
+document.getElementById('message-form').onsubmit = async function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const messageInput = document.getElementById('message-input');
+    const message = messageInput.value.trim();
+    
+    if (message) {
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                // Ajouter le message envoyé à la conversation
+                addMessage(data.message, true);
+                messageInput.value = '';
+                messageInput.focus();
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+        }
+    }
+    
+    return false;
+};
+
+// Vérifier les nouveaux messages
+async function checkForNewMessages() {
+    const messages = document.querySelectorAll('.message');
+    const lastMessageId = messages.length > 0 ? 
+        messages[messages.length - 1].getAttribute('data-message-id') || '0' : '0';
+    
+    try {
+        const response = await fetch('{% url "sms:get_new_messages" other_user.id 0 %}'.replace('0', lastMessageId));
+        const newMessages = await response.json();
+        
+        newMessages.forEach(message => {
+            addMessage(message, message.sender === {{ request.user.id }});
+        });
+    } catch (error) {
+        console.error('Erreur lors de la récupération des messages:', error);
+    }
+}
+
+// Initialisation
+window.onload = function() {
+    // Faire défiler vers le bas
+    const messageContainer = document.getElementById('message-container');
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+    
+    // Mettre le focus sur le champ de saisie
+    document.getElementById('message-input').focus();
+    
+    // Vérifier les nouveaux messages immédiatement
+    checkForNewMessages();
+};
+
+// Vérifier les nouveaux messages toutes les 2 secondes
+setInterval(checkForNewMessages, 2000);
+</script>
+{% endblock %}

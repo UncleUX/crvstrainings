@@ -1,0 +1,92 @@
+version: "3.9"
+
+# Single-host override that ties the Django app stack and Jitsi/Jibri stack together
+# Usage:
+# docker compose \
+#   -f docker-compose.base.yml \
+#   -f docker-compose.jitsi.yml \
+#   -f docker-compose.override.yml \
+#   -f docker-compose.prod.yml \
+#   up -d
+
+services:
+  # =========================
+  # Django (adjustments)
+  # =========================
+  web:
+    environment:
+      # Public Jitsi URL already known by Django
+      MEETING_BASE_URL: ${MEETING_BASE_URL:-https://meet.etatcivil.cm}
+      WEBHOOK_TOKEN: ${WEBHOOK_TOKEN:-}
+    networks:
+      - app_net
+
+  # =========================
+  # Nginx (bridge between stacks)
+  # =========================
+  nginx:
+    depends_on:
+      - web
+    volumes:
+      # Serve Jibri recordings
+      - ./deploy/jibri/recordings:/recordings:ro
+    networks:
+      - crvslearning
+      - app_net
+      - jitsi_net
+
+  # =========================
+  # Jitsi stack adjustments
+  # =========================
+  prosody:
+    networks:
+      - jitsi_net
+
+  web-meet:
+    environment:
+      PUBLIC_URL: ${PUBLIC_MEET_URL:-https://meet.etatcivil.cm}
+    networks:
+      - jitsi_net
+
+  jicofo:
+    networks:
+      - jitsi_net
+
+  jvb:
+    ports:
+      - "10000:10000/udp"
+    networks:
+      - jitsi_net
+
+  # =========================
+  # Jibri (recording + webhook)
+  # =========================
+  jibri:
+    environment:
+      # Where Jibri stores recordings internally
+      RECORDING_PATH: /config/recordings
+
+      # Public URL exposed by nginx
+      PUBLIC_BASE_URL: https://meet.etatcivil.cm/recordings
+
+      # Webhook endpoint exposed by nginx → Django
+      WEBHOOK_URL: https://crvslearning.etatcivil.cm/classrooms/recording/webhook/
+      WEBHOOK_TOKEN: ${WEBHOOK_TOKEN:-}
+    volumes:
+      - ./deploy/jibri:/config
+      - ./deploy/jibri/recordings:/config/recordings
+    networks:
+      - jitsi_net
+
+# =========================
+# Networks (no creation here)
+# =========================
+networks:
+  crvslearning:
+    external: true
+
+  app_net:
+    internal: true
+
+  jitsi_net:
+    internal: true

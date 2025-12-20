@@ -1,0 +1,121 @@
+version: "3.9"
+
+services:
+  web:
+    image: jitsi/web:${JITSI_IMAGE_VERSION:-stable}
+    restart: unless-stopped
+    expose:
+      - "80"
+      - "443"
+    volumes:
+      - ${CONFIG}/web:/config
+      - ${CONFIG}/web/crontabs:/var/spool/cron/crontabs
+      - ${CONFIG}/transcripts:/usr/share/jitsi-meet/transcripts
+    environment:
+      - PUBLIC_URL
+      - ENABLE_AUTH
+      - ENABLE_GUESTS
+      - ENABLE_RECORDING
+      - ENABLE_XMPP_WEBSOCKET
+      - ENABLE_COLIBRI_WEBSOCKET
+      - XMPP_DOMAIN
+      - XMPP_AUTH_DOMAIN
+      - XMPP_GUEST_DOMAIN
+      - XMPP_MUC_DOMAIN
+      - XMPP_INTERNAL_MUC_DOMAIN
+      - XMPP_SERVER
+      - TZ
+    depends_on:
+      - prosody
+    networks:
+      - jitsi_net
+
+  prosody:
+    image: jitsi/prosody:${JITSI_IMAGE_VERSION:-stable}
+    restart: unless-stopped
+    expose:
+      - "5222"
+      - "5280"
+    volumes:
+      - ${CONFIG}/prosody/config:/config
+      - ${CONFIG}/prosody/prosody-plugins-custom:/prosody-plugins-custom
+    environment:
+      - AUTH_TYPE
+      - ENABLE_AUTH
+      - ENABLE_GUESTS
+      - ENABLE_RECORDING
+      - XMPP_DOMAIN
+      - XMPP_AUTH_DOMAIN
+      - XMPP_GUEST_DOMAIN
+      - XMPP_MUC_DOMAIN
+      - XMPP_INTERNAL_MUC_DOMAIN
+      - JICOFO_AUTH_PASSWORD
+      - JVB_AUTH_USER
+      - JVB_AUTH_PASSWORD
+      - JIBRI_XMPP_USER
+      - JIBRI_XMPP_PASSWORD
+      - TZ
+    networks:
+      - jitsi_net
+
+  jicofo:
+    image: jitsi/jicofo:${JITSI_IMAGE_VERSION:-stable}
+    restart: unless-stopped
+    volumes:
+      - ${CONFIG}/jicofo:/config
+    environment:
+      - XMPP_DOMAIN
+      - XMPP_AUTH_DOMAIN
+      - XMPP_INTERNAL_MUC_DOMAIN
+      - XMPP_MUC_DOMAIN
+      - XMPP_SERVER
+      - JICOFO_AUTH_PASSWORD
+      - TZ
+    depends_on:
+      - prosody
+    networks:
+      - jitsi_net
+
+  jvb:
+    image: jitsi/jvb:${JITSI_IMAGE_VERSION:-stable}
+    restart: unless-stopped
+    ports:
+      - "10000:10000/udp"
+    volumes:
+      - ${CONFIG}/jvb:/config
+    environment:
+      - JVB_AUTH_USER
+      - JVB_AUTH_PASSWORD
+      - JVB_PORT=10000
+      - XMPP_DOMAIN
+      - XMPP_AUTH_DOMAIN
+      - XMPP_INTERNAL_MUC_DOMAIN
+      - XMPP_SERVER
+      - TZ
+    depends_on:
+      - prosody
+    networks:
+      - jitsi_net
+
+  jibri:
+    image: jitsi/jibri:stable
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - ./deploy/jibri:/config
+      - ./deploy/jibri/recordings:/config/recordings
+    environment:
+      - XMPP_DOMAIN
+      - XMPP_AUTH_DOMAIN
+      - XMPP_SERVER=prosody
+      - JIBRI_BREWERY_MUC=jibribrewery
+      - DISPLAY=:0
+      - TZ
+    depends_on:
+      - prosody
+    networks:
+      - jitsi_net
+
+networks:
+  jitsi_net:
+    internal: true

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ learner.username }} - Espace apprenant{% endblock %}
+{% block content %}
+<style>
+  :root{ --cover-h: 220px; }
+  .l-cover{position:relative;height:var(--cover-h);background:#0b0d17;color:#fff;border-radius:14px;overflow:hidden;margin-bottom:0}
+  .l-head{display:flex;align-items:center;gap:14px;padding:12px 8px}
+  .l-avatar{position:relative;width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.2);background:#111827;margin-top:12px}
+  .l-name{font-weight:900;font-size:1.1rem}
+  .grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+</style>
+<div class="container px-0">
+  <section class="l-cover">
+    {% if learner.cover %}
+      <img src="{{ learner.cover.url }}" alt="cover" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;">
+    {% else %}
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1f2937,#111827);"></div>
+    {% endif %}
+  </section>
+
+  <section class="l-head container">
+    <div class="l-avatar">
+      {% if learner.avatar %}
+        <img src="{{ learner.avatar.url }}" alt="{{ learner.username }}" style="width:100%;height:100%;object-fit:cover;">
+      {% else %}
+        <div style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:900;font-size:24px;">{{ learner.username|first|upper }}</div>
+      {% endif %}
+    </div>
+    <div style="flex:1;">
+      <div class="l-name">{{ learner.username }}</div>
+      <div class="text-muted" style="font-size:.9rem;">Apprenant</div>
+    </div>
+  </section>
+
+  <section class="container">
+    <h4 style="margin-bottom:10px;">Mes cours suivis</h4>
+    <div class="grid-cards">
+      {% for e in enrollments %}
+        <a href="{% url 'courses:course_detail' e.course.id %}" style="text-decoration:none;color:inherit;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fff;">
+          <div style="position:relative;height:150px;background:#0b1220;">
+            {% if e.course.thumbnail %}
+              <img src="{{ e.course.thumbnail.url }}" alt="{{ e.course.title }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>
+            {% else %}
+              <div style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:42px;">{{ e.course.title|first|upper }}</div>
+            {% endif %}
+          </div>
+          <div style="padding:10px 12px;">
+            <div style="font-size:12px;color:#6b7280;margin-bottom:4px;">{{ e.course.category.name|default:'Général' }}</div>
+            <div style="font-weight:800;">{{ e.course.title }}</div>
+          </div>
+        </a>
+      {% empty %}
+        <div class="text-muted">Aucun cours inscrit pour le moment.</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

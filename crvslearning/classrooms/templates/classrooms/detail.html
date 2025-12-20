@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}{{ classroom.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- HEADER -->
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">
+      {{ classroom.name }}
+      {% if classroom.subject %}
+        <span class="text-muted fs-5">— {{ classroom.subject }}</span>
+      {% endif %}
+    </h2>
+    {% if classroom.description %}
+      <p class="text-muted">{{ classroom.description }}</p>
+    {% endif %}
+  </div>
+
+  <div class="row g-4">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-lg-4">
+
+      <!-- CLASS INFO -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3">Informations</h5>
+
+          {% if is_teacher_member %}
+            <div class="alert alert-light border">
+              <strong>Code d’invitation :</strong>
+              <span class="fw-bold">{{ classroom.join_code }}</span>
+            </div>
+          {% endif %}
+
+          <p class="mb-2">
+            <strong>Catégorie :</strong><br>
+            {% if classroom.category %}
+              {{ classroom.category.name }}
+            {% else %}
+              <em class="text-muted">Aucune</em>
+            {% endif %}
+          </p>
+
+          <p class="mb-0">
+            <strong>Planning :</strong><br>
+            {{ classroom.schedule|linebreaks }}
+          </p>
+        </div>
+      </div>
+
+      <!-- MEMBERS -->
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3">Membres</h5>
+
+          <ul class="list-group list-group-flush">
+            {% for m in classroom.memberships.all %}
+              <li class="list-group-item px-0 d-flex justify-content-between">
+                <span>{{ m.user.get_full_name|default:m.user.username }}</span>
+                <span class="badge bg-secondary">{{ m.get_role_display }}</span>
+              </li>
+            {% empty %}
+              <li class="list-group-item px-0 text-muted">Aucun membre</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-lg-8">
+
+      <!-- SESSIONS -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">Sessions à venir</h5>
+
+            {% if is_teacher_member %}
+              <a href="{% url 'classrooms:session_create' %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus me-1"></i> Planifier
+              </a>
+            {% endif %}
+          </div>
+
+          <ul class="list-group list-group-flush">
+            {% for s in classroom.sessions.all %}
+              <li class="list-group-item px-0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ s.title }}</strong><br>
+                    <small class="text-muted">{{ s.start_at|date:"d/m/Y H:i" }}</small>
+                  </div>
+                  <div class="d-flex gap-2">
+                    {% if s.recording_ready and s.recording_url %}
+                      <a class="btn btn-sm btn-outline-secondary" target="_blank" href="{{ s.recording_url }}">
+                        Enregistrement
+                      </a>
+                    {% endif %}
+                    {% if is_teacher_member %}
+                      <a class="btn btn-sm btn-success" href="{% url 'classrooms:session_start' s.id %}">
+                        Démarrer
+                      </a>
+                    {% elif is_member %}
+                      <a class="btn btn-sm btn-outline-primary" href="{% url 'classrooms:session_join' s.id %}">
+                        Rejoindre
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+              </li>
+            {% empty %}
+              <li class="list-group-item px-0 text-muted">
+                Aucune session planifiée
+              </li>
+            {% endfor %}
+          </ul>
+
+          <p class="text-muted small mt-3">
+            Astuce : le bouton <strong>Démarrer</strong> ouvre automatiquement la salle live.
+          </p>
+        </div>
+      </div>
+
+      <!-- CHAT -->
+      {% if is_member %}
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3">Chat en direct</h5>
+
+          <div id="chat-box"
+               class="border rounded p-3 mb-2"
+               style="height:240px;overflow:auto;background:#f9fafb">
+          </div>
+
+          <form id="chat-form" onsubmit="return false;">
+            <div class="input-group">
+              <input id="chat-input" class="form-control" placeholder="Votre message…">
+              <button id="chat-send" class="btn btn-primary">Envoyer</button>
+            </div>
+            <small class="text-muted">
+              Seuls les membres de la classe peuvent écrire.
+            </small>
+
+            <input type="hidden" id="classroom-id" value="{{ classroom.id }}">
+            <input type="hidden" id="ws-scheme" value="{% if request.is_secure %}wss{% else %}ws{% endif %}">
+            <input type="hidden" id="ws-host" value="{{ request.get_host }}">
+            <input type="hidden" id="is-member" value="{{ is_member|yesno:'1,0' }}">
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  const isMember = document.getElementById('is-member')?.value === '1';
+  if(!isMember) return;
+
+  const cid = document.getElementById('classroom-id').value;
+  const scheme = document.getElementById('ws-scheme').value;
+  const host = document.getElementById('ws-host').value;
+  const socket = new WebSocket(`${scheme}://${host}/ws/classrooms/${cid}/`);
+
+  const box = document.getElementById('chat-box');
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('chat-send');
+
+  socket.onmessage = e => {
+    const data = JSON.parse(e.data);
+    const div = document.createElement('div');
+    div.className = "mb-1";
+    div.innerHTML = data.system
+      ? `<em class="text-muted">${data.text}</em>`
+      : `<strong>${data.user}</strong> : ${data.text}`;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  };
+
+  btn.onclick = () => {
+    if(input.value.trim()){
+      socket.send(JSON.stringify({ text: input.value }));
+      input.value = '';
+    }
+  };
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Ajouter une vidéo - {{ lesson.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row align-items-start g-5">
+
+    <!-- SECTION GAUCHE : TEXTE -->
+    <div class="col-md-6">
+      <h2 class="fw-bold mb-3">
+        Ajouter une vidéo
+      </h2>
+
+      <p class="text-muted fs-5 mb-4">
+        Cette vidéo sera ajoutée à la leçon
+        <strong>{{ lesson.title }}</strong>.
+      </p>
+
+      <ul class="list-unstyled text-muted">
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Formats supportés : MP4, WebM
+        </li>
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Titre optionnel pour structurer la leçon
+        </li>
+        <li class="mb-2">
+          <i class="bi bi-check-circle-fill text-primary me-2"></i>
+          Ordre d’affichage personnalisable
+        </li>
+      </ul>
+    </div>
+
+    <!-- SECTION DROITE : FORMULAIRE -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-lg rounded-4">
+        <div class="card-body p-4">
+
+          <h5 class="fw-semibold mb-4">Informations de la vidéo</h5>
+
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <!-- TITRE -->
+            <div class="mb-3">
+              <label class="form-label">Titre (optionnel)</label>
+              <input type="text"
+                     name="title"
+                     class="form-control"
+                     placeholder="Introduction, Partie 1, ...">
+            </div>
+
+            <!-- FICHIER VIDEO -->
+            <div class="mb-3">
+              <label class="form-label">
+                Fichier vidéo <span class="text-danger">*</span>
+              </label>
+              <input type="file"
+                     name="video_file"
+                     accept="video/*"
+                     class="form-control"
+                     required>
+              <div class="form-text">
+                Formats recommandés : MP4, WebM
+              </div>
+            </div>
+
+            <!-- ORDRE -->
+            <div class="mb-4">
+              <label class="form-label">Ordre</label>
+              <input type="number"
+                     name="order"
+                     min="1"
+                     value="1"
+                     class="form-control">
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="d-flex justify-content-between align-items-center">
+              <a href="{% url 'courses:lesson_detail' lesson.id %}"
+                 class="btn btn-light">
+                <i class="bi bi-arrow-left me-1"></i> Annuler
+              </a>
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-upload me-1"></i> Ajouter la vidéo
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

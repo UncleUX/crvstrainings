@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Gérer mes cours{% endblock %}
+
+{% block content %}
+
+<style>
+:root{
+  --cover-h:240px;
+}
+
+/* ===== COVER ===== */
+.chan-cover{
+  position:relative;
+  height:var(--cover-h);
+  border-radius:18px;
+  overflow:hidden;
+  margin-bottom:24px;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+}
+.chan-cover img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:.9;
+}
+.chan-cover::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(to top, rgba(0,0,0,.65), rgba(0,0,0,.2));
+}
+.cover-edit{
+  position:absolute;
+  right:20px;
+  bottom:20px;
+  z-index:2;
+}
+
+/* ===== TITRES ===== */
+.page-title{
+  font-weight:900;
+  font-size:1.9rem;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar-card{
+  border:0;
+  border-radius:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
+}
+.sidebar-card .card-header{
+  border-radius:16px 16px 0 0;
+  font-weight:800;
+}
+.sidebar-card .list-group-item{
+  border:0;
+  padding:14px 18px;
+  font-weight:600;
+}
+.sidebar-card .list-group-item.active{
+  background:#0d6efd;
+  color:#fff;
+}
+
+/* ===== TABLE ===== */
+.table-wrapper{
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
+  overflow:hidden;
+}
+.table thead{
+  background:#111827;
+  color:#fff;
+}
+.table thead th{
+  border:0;
+  font-weight:700;
+}
+.table tbody tr{
+  transition:background .2s ease;
+}
+.table tbody tr:hover{
+  background:#f9fafb;
+}
+
+/* ===== ACTIONS ===== */
+.course-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.course-actions .btn{
+  border-radius:10px;
+}
+
+/* ===== PANEL AVANCÉ ===== */
+.adv-panel{
+  background:#f9fafb;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  padding:14px;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.04);
+  margin-top:12px;
+}
+
+/* ===== FORMS ===== */
+.form-label{
+  font-size:.85rem;
+  font-weight:700;
+}
+</style>
+
+<div class="container">
+
+  <!-- COVER -->
+  <section class="chan-cover">
+    {% if trainer.cover %}
+      <img src="{{ trainer.cover.url }}" alt="cover">
+    {% else %}
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0f172a,#1f2937);"></div>
+    {% endif %}
+
+    {% if request.user.is_authenticated and request.user.id == trainer.id or request.user.is_superuser %}
+    <div class="cover-edit">
+      <form method="post" action="{% url 'users:upload_cover' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="cover" accept="image/*" hidden id="cover-input">
+        <button type="button" class="btn btn-sm btn-light"
+                onclick="document.getElementById('cover-input').click()">
+          <i class="fas fa-image me-1"></i> Modifier la couverture
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="page-title mb-0">Gestion des cours</h2>
+    <a href="{% url 'courses:course_create' %}"
+       class="btn btn-primary px-4 fw-bold shadow-sm">
+      <i class="fas fa-plus me-1"></i> Créer un cours
+    </a>
+  </div>
+
+  <div class="row">
+    <!-- SIDEBAR -->
+    <div class="col-lg-3 mb-4">
+      <div class="card sidebar-card">
+        <div class="card-header bg-primary text-white">
+          Gestion des abonnements
+        </div>
+        <div class="list-group list-group-flush">
+          <a href="{% url 'subscriptions:my_subscriptions' %}"
+             class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'my_subscriptions' %}active{% endif %}">
+            <i class="fas fa-user-friends me-2"></i> Mes abonnements
+          </a>
+
+          {% if user.role == 'trainer' %}
+          <a href="{% url 'subscriptions:my_subscribers' %}"
+             class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'my_subscribers' %}active{% endif %}">
+            <i class="fas fa-users me-2"></i> Mes abonnés
+            <span class="badge bg-primary rounded-pill float-end">
+              {{ user.subscribers.count }}
+            </span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="col-lg-9">
+      <div class="table-wrapper">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Titre</th>
+              <th>Catégorie</th>
+              <th>Langue</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in courses %}
+            <tr data-course-id="{{ c.id }}">
+              <td class="fw-bold">{{ c.title }}</td>
+              <td>{{ c.category.name|default:"—" }}</td>
+              <td>{{ c.language|upper }}</td>
+              <td style="min-width:360px;">
+                <div class="course-actions">
+                  <a class="btn btn-sm btn-outline-primary"
+                     href="{% url 'courses:course_detail' c.id %}" title="Voir">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a class="btn btn-sm btn-outline-secondary"
+                     href="{% url 'courses:module_list' c.id %}" title="Modules">
+                    <i class="fas fa-layer-group"></i>
+                  </a>
+                  <a class="btn btn-sm btn-outline-success"
+                     href="{% url 'courses:module_create' c.id %}" title="Ajouter module">
+                    <i class="fas fa-plus-circle"></i>
+                  </a>
+                  <button class="btn btn-sm btn-dark" type="button" data-adv-toggle>
+                    <i class="fas fa-cog"></i>
+                  </button>
+                </div>
+
+                <!-- PANEL AVANCÉ -->
+                <div class="adv-panel" data-adv-panel style="display:none;">
+                  <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                      <label class="form-label">Module</label>
+                      <select class="form-select form-select-sm" data-mod-sel disabled>
+                        <option>—</option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-4">
+                      <label class="form-label">Leçon</label>
+                      <select class="form-select form-select-sm" data-les-sel disabled>
+                        <option>—</option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-12 d-flex gap-2 flex-wrap">
+                      <a class="btn btn-sm btn-primary" data-create-lesson>
+                        <i class="fas fa-plus me-1"></i> Leçon
+                      </a>
+                      <button class="btn btn-sm btn-outline-primary" data-add-video disabled>
+                        <i class="fas fa-video me-1"></i> Vidéo
+                      </button>
+                      <a class="btn btn-sm btn-outline-success" data-create-exercise disabled>
+                        <i class="fas fa-tasks me-1"></i> Exercice
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="text-center text-muted py-4">
+                Aucun cours pour le moment.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== JS (INCHANGÉ) ===== -->
+<script>
+  (function(){
+    async function fetchJSON(url){
+      const r = await fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'}});
+      if(!r.ok) throw new Error(r.status);
+      return r.json();
+    }
+    document.querySelectorAll('tr[data-course-id]').forEach(row=>{
+      const courseId=row.dataset.courseId;
+      const btn=row.querySelector('[data-adv-toggle]');
+      const panel=row.querySelector('[data-adv-panel]');
+      const selM=row.querySelector('[data-mod-sel]');
+      const selL=row.querySelector('[data-les-sel]');
+      const btnV=row.querySelector('[data-add-video]');
+      const btnE=row.querySelector('[data-create-exercise]');
+      let loaded=false;
+
+      btn.onclick=async()=>{
+        panel.style.display=panel.style.display==='none'?'block':'none';
+        if(loaded) return;
+        const data=await fetchJSON('{% url "courses:api_modules_for_course" 0 %}'.replace('/0/','/'+courseId+'/'));
+        selM.innerHTML='<option>—</option>';
+        data.modules.forEach(m=>{
+          const o=document.createElement('option');
+          o.value=m.id;o.textContent=m.title;selM.appendChild(o);
+        });
+        selM.disabled=false;
+        loaded=true;
+      };
+
+      selM.onchange=async()=>{
+        selL.innerHTML='<option>—</option>';
+        selL.disabled=!selM.value;
+        if(!selM.value) return;
+        const data=await fetchJSON('{% url "courses:api_lessons_for_module" 0 %}'.replace('/0/','/'+selM.value+'/'));
+        data.lessons.forEach(l=>{
+          const o=document.createElement('option');
+          o.value=l.id;o.textContent=l.title;selL.appendChild(o);
+        });
+      };
+
+      selL.onchange=()=>{
+        btnV.disabled=!selL.value;
+        btnE.disabled=!selL.value;
+      };
+
+      btnV.onclick=()=>{
+        if(selL.value){
+          window.location.href='{% url "courses:lesson_video_create" 0 %}'.replace('/0/','/'+selL.value+'/');
+        }
+      };
+    });
+  })();
+</script>
+
+{% endblock %}

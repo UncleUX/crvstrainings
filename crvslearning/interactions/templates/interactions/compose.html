@@ -1,0 +1,82 @@
+{% extends 'interactions/base.html' %}
+
+{% block title %}Nouveau message{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Nouveau message</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'interactions:compose' %}" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="recipient" class="form-label">Destinataire</label>
+                            <input type="text" class="form-control" id="recipient" name="recipient" 
+                                   value="{{ recipient.username }}" required 
+                                   list="recent-contacts" autocomplete="off">
+                            <div class="invalid-feedback">
+                                Veuillez spécifier un destinataire.
+                            </div>
+                            
+                            <datalist id="recent-contacts">
+                                {% for contact in recent_contacts %}
+                                    <option value="{{ contact.username }}">
+                                        {{ contact.get_full_name|default:contact.username }}
+                                    </option>
+                                {% endfor %}
+                            </datalist>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" name="message" rows="8" required></textarea>
+                            <div class="invalid-feedback">
+                                Le message ne peut pas être vide.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'interactions:inbox' %}" class="btn btn-outline-secondary me-md-2">
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send-fill me-1"></i> Envoyer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Désactiver la validation HTML5 par défaut
+(function () {
+  'use strict'
+
+  // Récupérer tous les formulaires auxquels nous voulons appliquer les styles de validation Bootstrap
+  var forms = document.querySelectorAll('.needs-validation')
+
+  // Boucler sur les formulaires et empêcher la soumission
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+
+        form.classList.add('was-validated')
+      }, false)
+    })
+})()
+</script>
+{% endblock %}

@@ -1,0 +1,117 @@
+version: "3.9"
+
+# Minimal Jitsi + Jibri stack (based on docker-jitsi-meet), for single-host deployment
+# Docs: https://github.com/jitsi/docker-jitsi-meet
+
+services:
+  # Prosody: XMPP server used by Jitsi
+  prosody:
+    image: jitsi/prosody:stable
+    restart: unless-stopped
+    expose:
+      - "5222"
+      - "5347"
+      - "5280"
+    environment:
+      - XMPP_DOMAIN=${XMPP_DOMAIN}
+      - XMPP_AUTH_DOMAIN=auth.${XMPP_DOMAIN}
+      - XMPP_MUC_DOMAIN=conference.${XMPP_DOMAIN}
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.${XMPP_DOMAIN}
+      - XMPP_GUEST_DOMAIN=guest.${XMPP_DOMAIN}
+      - JICOFO_COMPONENT_SECRET=${JICOFO_COMPONENT_SECRET}
+      - JVB_AUTH_PASSWORD=${JVB_AUTH_PASSWORD}
+      - JIGASI_XMPP_PASSWORD=${JIGASI_XMPP_PASSWORD}
+      - JIBRI_XMPP_PASSWORD=${JIBRI_XMPP_PASSWORD}
+      - JIBRI_RECORDER_PASSWORD=${JIBRI_RECORDER_PASSWORD}
+    networks:
+      - meet
+
+  web-meet:
+    image: jitsi/web:stable
+    restart: unless-stopped
+    depends_on:
+      - prosody
+      - jicofo
+      - jvb
+    environment:
+      - ENABLE_GUESTS=1
+      - XMPP_DOMAIN=${XMPP_DOMAIN}
+      - XMPP_AUTH_DOMAIN=auth.${XMPP_DOMAIN}
+      - XMPP_BOSH_URL_BASE=http://prosody:5280
+      - PUBLIC_URL=${PUBLIC_MEET_URL}
+      - ENABLE_LETSENCRYPT=${ENABLE_LETSENCRYPT}
+      - LETSENCRYPT_DOMAIN=${LETSENCRYPT_DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - ENABLE_AUTH=1
+      - ENABLE_GUEST_DOMAIN=1
+    ports:
+      - "443:443"
+      - "4443:4443"
+      - "10000:10000/udp"
+    volumes:
+      - ${CONFIG}/jitsi/web:/config
+      - ${CONFIG}/jitsi/transcripts:/usr/share/jitsi-meet/transcripts
+    networks:
+      - meet
+
+  jicofo:
+    image: jitsi/jicofo:stable
+    restart: unless-stopped
+    depends_on:
+      - prosody
+    environment:
+      - XMPP_DOMAIN=${XMPP_DOMAIN:-meet.local}
+      - JICOFO_COMPONENT_SECRET=${JICOFO_COMPONENT_SECRET:-changeme}
+      - JICOFO_AUTH_USER=focus
+      - JICOFO_AUTH_PASSWORD=${JICOFO_AUTH_PASSWORD:-changeme}
+      - XMPP_AUTH_DOMAIN=auth.${XMPP_DOMAIN:-meet.local}
+      - XMPP_SERVER=prosody
+    networks:
+      - meet
+
+  jvb:
+    image: jitsi/jvb:stable
+    restart: unless-stopped
+    depends_on:
+      - prosody
+    environment:
+      - XMPP_AUTH_DOMAIN=auth.${XMPP_DOMAIN:-meet.local}
+      - XMPP_SERVER=prosody
+      - JVB_AUTH_USER=jvb
+      - JVB_AUTH_PASSWORD=${JVB_AUTH_PASSWORD:-changeme}
+      - JVB_PORT=10000
+      - JVB_TCP_HARVESTER_DISABLED=true
+      - JVB_STUN_SERVERS=stun.l.google.com:19302
+    ports:
+      - "10000:10000/udp"
+    networks:
+      - meet
+
+  # Jibri for recording
+  jibri:
+    image: jitsi/jibri:stable
+    restart: unless-stopped
+    depends_on:
+      - prosody
+    privileged: true
+    environment:
+      - XMPP_AUTH_DOMAIN=auth.${XMPP_DOMAIN:-meet.local}
+      - XMPP_DOMAIN=${XMPP_DOMAIN:-meet.local}
+      - XMPP_SERVER=prosody
+      - XMPP_MUC_DOMAIN=muc.${XMPP_DOMAIN:-meet.local}
+      - XMPP_INTERNAL_MUC_DOMAIN=internal-muc.${XMPP_DOMAIN:-meet.local}
+      - JIBRI_BREWERY_MUC=jibribrewery
+      - JIBRI_PENDING_TIMEOUT=90
+      - JIBRI_STRIP_DOMAIN_JID=muc
+      - JIBRI_RECORDING_RESOLUTION=1280x720
+      - JIBRI_FINALIZE_RECORDING_SCRIPT_PATH=/config/finalize.sh
+      - DISPLAY=:0
+      - TZ=${TZ:-UTC}
+    volumes:
+      - ./deploy/jibri:/config
+    networks:
+      - meet
+
+networks:
+  meet:
+    driver: bridge
