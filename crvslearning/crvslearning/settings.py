@@ -24,7 +24,12 @@ SECRET_KEY = 'django-insecure-%bwq)y#z_--6j5qab#2(wo(tzy!=bslgofl&kt9nu$j9=x))_h
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['*']
+
+ALLOWED_HOSTS = [
+    "crvslearning.etatcivil.cm",
+    "www.crvslearning.etatcivil.cm",
+]
 
 # Application definition
 
@@ -74,6 +79,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # La session expire après SESSION_COOK
 CSRF_USE_SESSIONS = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = not DEBUG
+
 
 # Configuration d'authentification
 AUTHENTICATION_BACKENDS = [
@@ -230,10 +236,14 @@ else:
             'BACKEND': 'channels.layers.InMemoryChannelLayer',
         }
     }
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# CSRF_TRUSTED_ORIGINS = [
-#     "https://crvslearning.etatcivil.cm",
-#     "https://meet.etatcivil.cm",
-# ]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_TRUSTED_ORIGINS = [
+    "https://crvslearning.etatcivil.cm",
+    # "https://meet.etatcivil.cm",
+]
 
-# MEETING_BASE_URL = "https://meet.etatcivil.cm"
+
+
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+MEETING_BASE_URL = "https://meet.etatcivil.cm"
