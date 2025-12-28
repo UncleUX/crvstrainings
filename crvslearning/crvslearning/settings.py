@@ -27,6 +27,7 @@ DEBUG = True
 # ALLOWED_HOSTS = ['*']
 
 ALLOWED_HOSTS = [
+    "localhost"
     "crvslearning.etatcivil.cm",
     "www.crvslearning.etatcivil.cm",
 ]
