@@ -12,12 +12,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: web
     env_file:
       - .env
     environment:
       <<: *default-env
-    # depends_on:
-    #   - redis
+    depends_on:
+      - redis
     volumes:
       - ./:/app:rw
       - staticfiles:/app/staticfiles
@@ -27,12 +28,12 @@ services:
     networks:
       - app_net
 
-  # redis:
-  #   image: redis:7-alpine
-  #   volumes:
-  #     - redisdata:/data
-  #   networks:
-  #     - app_net
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    networks:
+      - app_net
 
   nginx:
     image: nginx:1.27-alpine
