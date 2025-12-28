@@ -14,14 +14,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ==================================================
 # SECURITY
 # ==================================================
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
-if not SECRET_KEY:
-    raise RuntimeError("DJANGO_SECRET_KEY is not set")
+# SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+# if not SECRET_KEY:
+#     raise RuntimeError("DJANGO_SECRET_KEY is not set")
+SECRET_KEY=django-insecure-9x7p@5n$3z!k^e6%2yq0a_4m#r8t*wb&c+f=1s(j)u!h-l
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
 
 ALLOWED_HOSTS = [
-    "localhost",
     "crvslearning.etatcivil.cm",
     "www.crvslearning.etatcivil.cm",
 ]
