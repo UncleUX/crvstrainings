@@ -31,7 +31,7 @@ services:
       - staticfiles:/app/staticfiles
       - media:/app/media
     expose:
-      - "8000"
+      - "8000:8000"
     networks:
       - app_net
 
@@ -48,23 +48,23 @@ services:
 # ==================================================
 # Nginx (Frontal unique)
 # ==================================================
-  nginx:
-    image: nginx:1.27-alpine
-    container_name: proxy
-    depends_on:
-      - web
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./deploy/nginx/:/etc/nginx/conf.d/:ro
-      - staticfiles:/staticfiles:ro
-      - media:/media:ro
-      - ./deploy/jibri/recordings:/recordings:ro
-    networks:
-      - crvslearning
-      - app_net
-      - jitsi_net
+  # nginx:
+  #   image: nginx:1.27-alpine
+  #   container_name: proxy
+  #   depends_on:
+  #     - web
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./deploy/nginx/:/etc/nginx/conf.d/:ro
+  #     - staticfiles:/staticfiles:ro
+  #     - media:/media:ro
+  #     - ./deploy/jibri/recordings:/recordings:ro
+  #   networks:
+  #     - crvslearning
+  #     - app_net
+  #     - jitsi_net
 
 
 volumes:
