@@ -116,10 +116,28 @@ TEMPLATES = [
 # ==================================================
 # DATABASE
 # ==================================================
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
+# --- PostgreSQL (PRODUCTION) ---
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": os.environ.get(
+            "DB_ENGINE", "django.db.backends.postgresql"
+        ),
+        "NAME": os.environ.get("DB_NAME", "crvslearning"),
+        "USER": os.environ.get("DB_USER", "admin"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "crvspassword"),
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
+        "CONN_MAX_AGE": 60,
+        "OPTIONS": {
+            "connect_timeout": 5,
+        },
     }
 }
 

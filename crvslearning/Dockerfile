@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt \
 COPY . /app
 
 # Django collectstatic at build time optionally (disabled by default)
-# RUN python manage.py collectstatic --noinput || true
+RUN python manage.py collectstatic --noinput || true
 
 EXPOSE 8000
 
