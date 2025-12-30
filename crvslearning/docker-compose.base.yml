@@ -30,7 +30,7 @@ services:
       - ./:/app:rw
       - staticfiles:/app/staticfiles
       - media:/app/media
-    expose:
+    ports:
       - "8000:8000"
     networks:
       - app_net
@@ -76,8 +76,7 @@ networks:
   crvslearning:
     external: true
 
-  app_net:
-    internal: true
+  app_net: {}
 
   jitsi_net:
     internal: true

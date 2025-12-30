@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Maintenance</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #081a11 0%, #010302 75%);
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", "Menlo", "Monaco", monospace;
+    color: #00ff9c;
+    overflow: hidden;
+}
+
+/* HUD grid */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0,255,156,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,156,0.07) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+}
+
+/* =========================
+   GLOBAL PULSE (BACKGROUND)
+   ========================= */
+@keyframes pulse {
+    0%   { opacity: 0.25; transform: scale(0.9); }
+    50%  { opacity: 0.9;  transform: scale(1.08); }
+    100% { opacity: 0.25; transform: scale(0.9); }
+}
+
+.pulse {
+    position: absolute;
+    inset: -20%;
+    background:
+        radial-gradient(circle,
+            rgba(0,255,156,0.45) 0%,
+            rgba(0,255,156,0.15) 30%,
+            transparent 65%);
+    animation: pulse 3s ease-in-out infinite;
+    filter: blur(2px);
+    z-index: 0;
+}
+
+/* =========================
+   SCANLINE (ONE SHOT)
+   ========================= */
+.scanline {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        to bottom,
+        rgba(0,255,156,0.12),
+        rgba(0,255,156,0.02),
+        rgba(0,255,156,0.12)
+    );
+    height: 200%;
+    opacity: 0;
+    transform: translateY(-100%);
+    z-index: 1;
+}
+
+.scanline.active {
+    animation: scan 4s linear;
+    opacity: 0.35;
+}
+
+@keyframes scan {
+    from { transform: translateY(-100%); }
+    to   { transform: translateY(0%); }
+}
+
+/* =========================
+   CENTER CONTENT
+   ========================= */
+.center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 2;
+}
+
+.center h1 {
+    font-size: clamp(2.2rem, 4vw, 3.8rem);
+    letter-spacing: 0.35em;
+    margin: 0;
+    font-weight: 800;
+    text-shadow:
+        0 0 18px rgba(0,255,156,0.8),
+        0 0 40px rgba(0,255,156,1);
+}
+
+/* Subtitle */
+.center p {
+    margin-top: 22px;
+    font-size: 1.15rem;
+    color: #9dffd8;
+    opacity: 0.9;
+    white-space: pre-line;
+}
+
+/* Divider */
+.line {
+    width: 240px;
+    height: 2px;
+    margin: 32px auto 0;
+    background: linear-gradient(90deg, transparent, #00ff9c, transparent);
+    box-shadow: 0 0 16px #00ff9c;
+    opacity: 0;
+}
+
+/* Clock */
+.clock {
+    position: fixed;
+    bottom: 48px;
+    right: 28px;
+    font-size: 0.95rem;
+    letter-spacing: 0.25em;
+    color: #7dffcc;
+    opacity: 0;
+    text-shadow: 0 0 10px rgba(0,255,156,0.6);
+    z-index: 3;
+}
+
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    color: rgba(125,255,204,0.75);
+    text-shadow: 0 0 8px rgba(0,255,156,0.35);
+    opacity: 0;
+    z-index: 3;
+}
+</style>
+</head>
+
+<body>
+
+<div class="pulse"></div>
+<div class="scanline" id="scanline"></div>
+
+<div class="center">
+    <h1 id="title"></h1>
+    <div class="line" id="line"></div>
+    <p id="subtitle"></p>
+</div>
+
+<div class="clock" id="clock">--:--:--</div>
+
+<div class="footer" id="footer">
+    © <span id="year"></span> — Serge Evega · System Maintenance Mode
+</div>
+
+<script>
+/* Typing */
+function typeText(el, text, speed, done) {
+    el.textContent = "";
+    let i = 0;
+    const timer = setInterval(() => {
+        el.textContent += text[i];
+        i++;
+        if (i >= text.length) {
+            clearInterval(timer);
+            if (done) done();
+        }
+    }, speed);
+}
+
+window.addEventListener("load", () => {
+    const title = document.getElementById("title");
+    const subtitle = document.getElementById("subtitle");
+    const scanline = document.getElementById("scanline");
+    const line = document.getElementById("line");
+    const clock = document.getElementById("clock");
+    const footer = document.getElementById("footer");
+
+    scanline.classList.add("active");
+
+    typeText(title, "SITE EN MAINTENANCE", 70, () => {
+        line.style.opacity = "1";
+
+        setTimeout(() => {
+            typeText(
+                subtitle,
+                "Système temporairement indisponible\nMaintenance technique en cours",
+                32,
+                () => {
+                    clock.style.opacity = "1";
+                    footer.style.opacity = "1";
+
+                    // STOP SCAN → PAGE STABLE
+                    setTimeout(() => {
+                        scanline.classList.remove("active");
+                    }, 800);
+                }
+            );
+        }, 300);
+    });
+});
+
+/* Clock */
+function updateClock() {
+    document.getElementById("clock").textContent =
+        new Date().toLocaleTimeString("fr-FR", { hour12: false });
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+/* Year */
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
