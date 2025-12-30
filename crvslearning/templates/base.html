@@ -175,14 +175,14 @@
         <a href="{% url 'tracking:course_progress' %}" title="Progression des cours"><i class="bi bi-journal-check"></i></a>
       {% endif %}
       <a href="{% url 'classrooms:my_classrooms' %}" title="Mes classes"><i class="bi bi-collection-play"></i></a>
-      <a href="{% url 'interactions:chat_global' %}" title="Chat global">
+      <!-- <a href="{% url 'interactions:chat_global' %}" title="Chat global">
         <i class="bi bi-chat-dots"></i>
         {% with unread_count=user.get_unread_messages_count %}
           {% if unread_count > 0 %}
             <span class="badge bg-danger" style="font-size:0.6rem;">{{ unread_count }}</span>
           {% endif %}
         {% endwith %}
-      </a>
+      </a> -->
       <a href="{% url 'users:profile' %}" title="Profil"><i class="bi bi-person"></i></a>
       <a href="{% url 'users:logout' %}" title="Déconnexion"><i class="bi bi-box-arrow-right"></i></a>
 

@@ -116,30 +116,33 @@ TEMPLATES = [
 # ==================================================
 # DATABASE
 # ==================================================
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
 
-# --- PostgreSQL (PRODUCTION) ---
 DATABASES = {
     "default": {
-        "ENGINE": os.environ.get(
-            "DB_ENGINE", "django.db.backends.postgresql"
-        ),
-        "NAME": os.environ.get("DB_NAME", "crvslearning"),
-        "USER": os.environ.get("DB_USER", "admin"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "crvspassword"),
-        "HOST": os.environ.get("DB_HOST", "localhost"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
-        "CONN_MAX_AGE": 60,
-        "OPTIONS": {
-            "connect_timeout": 5,
-        },
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# ==================================================
+# --- POSTGRES (PRODUCTION) ---
+# ==================================================
+# DATABASES = {
+#     "default": {
+#         "ENGINE": os.environ.get(
+#             "DB_ENGINE", "django.db.backends.postgresql"
+#         ),
+#         "NAME": os.environ.get("DB_NAME", "crvslearning"),
+#         "USER": os.environ.get("DB_USER", "admin"),
+#         "PASSWORD": os.environ.get("DB_PASSWORD", "crvspassword"),
+#         "HOST": os.environ.get("DB_HOST", "localhost"),
+#         "PORT": os.environ.get("DB_PORT", "5432"),
+#         "CONN_MAX_AGE": 60,
+#         "OPTIONS": {
+#             "connect_timeout": 5,
+#         },
+#     }
+# }
 
 # ==================================================
 # AUTH
@@ -175,12 +178,12 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 # ==================================================
 # STATIC & MEDIA
 # ==================================================
+
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 # STATICFILES_DIRS = [] 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -203,6 +206,7 @@ CSRF_COOKIE_SECURE = not DEBUG
 # ==================================================
 # SECURITY HEADERS
 # ==================================================
+
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 
@@ -218,6 +222,7 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 # ==================================================
 # CHANNELS / REDIS
 # ==================================================
+
 REDIS_URL = os.environ.get("REDIS_URL")
 
 if REDIS_URL:
@@ -239,6 +244,7 @@ else:
 # ==================================================
 # MISC
 # ==================================================
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 MEETING_BASE_URL = os.environ.get(

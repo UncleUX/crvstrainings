@@ -9,7 +9,9 @@
   --cover-h:240px;
 }
 
-/* ===== COVER ===== */
+/* ==================================================
+   COVER
+================================================== */
 .chan-cover{
   position:relative;
   height:var(--cover-h);
@@ -39,13 +41,17 @@
   z-index:2;
 }
 
-/* ===== TITRES ===== */
+/* ==================================================
+   TITRES
+================================================== */
 .page-title{
   font-weight:900;
   font-size:1.9rem;
 }
 
-/* ===== SIDEBAR ===== */
+/* ==================================================
+   SIDEBAR
+================================================== */
 .sidebar-card{
   border:0;
   border-radius:16px;
@@ -65,29 +71,55 @@
   color:#fff;
 }
 
-/* ===== TABLE ===== */
+/* ==================================================
+   TABLE – STYLE AVANCÉ (ESPACES + CARTES)
+================================================== */
 .table-wrapper{
-  background:#fff;
-  border-radius:16px;
-  box-shadow:0 12px 30px rgba(0,0,0,.08);
-  overflow:hidden;
-}
-.table thead{
-  background:#111827;
-  color:#fff;
-}
-.table thead th{
-  border:0;
-  font-weight:700;
-}
-.table tbody tr{
-  transition:background .2s ease;
-}
-.table tbody tr:hover{
-  background:#f9fafb;
+  background:transparent;
+  box-shadow:none;
 }
 
-/* ===== ACTIONS ===== */
+.table{
+  border-collapse:separate;       /* essentiel */
+  border-spacing:0 4px;           /* ESPACE ENTRE LES LIGNES */
+}
+
+.table thead th{
+  background:#111827;
+  color:#ffffff;
+  font-weight:800;
+  border:0;
+}
+
+.table td{
+  border:0;
+  padding:14px 16px;
+  vertical-align:middle;
+}
+
+.table tbody tr{
+  background:#ffffff;
+  box-shadow:0 2px 6px rgba(0,0,0,.05);
+  transition:all .2s ease;
+}
+
+.table tbody tr:hover{
+  background:#f9fafb;
+  transform:translateY(-1px);
+  box-shadow:0 8px 20px rgba(0,0,0,.1);
+}
+
+/* coins arrondis visibles */
+.table tbody tr td:first-child{
+  border-radius:12px 0 0 12px;
+}
+.table tbody tr td:last-child{
+  border-radius:0 12px 12px 0;
+}
+
+/* ==================================================
+   ACTIONS
+================================================== */
 .course-actions{
   display:flex;
   flex-wrap:wrap;
@@ -97,7 +129,9 @@
   border-radius:10px;
 }
 
-/* ===== PANEL AVANCÉ ===== */
+/* ==================================================
+   PANEL AVANCÉ
+================================================== */
 .adv-panel{
   background:#f9fafb;
   border:1px solid #e5e7eb;
@@ -107,10 +141,13 @@
   margin-top:12px;
 }
 
-/* ===== FORMS ===== */
+/* ==================================================
+   FORMULAIRES
+================================================== */
 .form-label{
-  font-size:.85rem;
-  font-weight:700;
+  font-size:.8rem;
+  font-weight:800;
+  text-transform:uppercase;
 }
 </style>
 
@@ -148,6 +185,7 @@
   </div>
 
   <div class="row">
+
     <!-- SIDEBAR -->
     <div class="col-lg-3 mb-4">
       <div class="card sidebar-card">
@@ -156,13 +194,13 @@
         </div>
         <div class="list-group list-group-flush">
           <a href="{% url 'subscriptions:my_subscriptions' %}"
-             class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'my_subscriptions' %}active{% endif %}">
+             class="list-group-item list-group-item-action">
             <i class="fas fa-user-friends me-2"></i> Mes abonnements
           </a>
 
           {% if user.role == 'trainer' %}
           <a href="{% url 'subscriptions:my_subscribers' %}"
-             class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'my_subscribers' %}active{% endif %}">
+             class="list-group-item list-group-item-action">
             <i class="fas fa-users me-2"></i> Mes abonnés
             <span class="badge bg-primary rounded-pill float-end">
               {{ user.subscribers.count }}
@@ -194,15 +232,15 @@
               <td style="min-width:360px;">
                 <div class="course-actions">
                   <a class="btn btn-sm btn-outline-primary"
-                     href="{% url 'courses:course_detail' c.id %}" title="Voir">
+                     href="{% url 'courses:course_detail' c.id %}">
                     <i class="fas fa-eye"></i>
                   </a>
                   <a class="btn btn-sm btn-outline-secondary"
-                     href="{% url 'courses:module_list' c.id %}" title="Modules">
+                     href="{% url 'courses:module_list' c.id %}">
                     <i class="fas fa-layer-group"></i>
                   </a>
                   <a class="btn btn-sm btn-outline-success"
-                     href="{% url 'courses:module_create' c.id %}" title="Ajouter module">
+                     href="{% url 'courses:module_create' c.id %}">
                     <i class="fas fa-plus-circle"></i>
                   </a>
                   <button class="btn btn-sm btn-dark" type="button" data-adv-toggle>
@@ -219,14 +257,12 @@
                         <option>—</option>
                       </select>
                     </div>
-
                     <div class="col-md-4">
                       <label class="form-label">Leçon</label>
                       <select class="form-select form-select-sm" data-les-sel disabled>
                         <option>—</option>
                       </select>
                     </div>
-
                     <div class="col-md-12 d-flex gap-2 flex-wrap">
                       <a class="btn btn-sm btn-primary" data-create-lesson>
                         <i class="fas fa-plus me-1"></i> Leçon
@@ -240,12 +276,13 @@
                     </div>
                   </div>
                 </div>
+
               </td>
             </tr>
             {% empty %}
             <tr>
               <td colspan="4" class="text-center text-muted py-4">
-                Aucun cours pour le moment.
+                Aucun cours pour le moment
               </td>
             </tr>
             {% endfor %}
@@ -253,63 +290,79 @@
         </table>
       </div>
     </div>
+
   </div>
 </div>
 
-<!-- ===== JS (INCHANGÉ) ===== -->
+<!-- ==================================================
+   JS (INCHANGÉ)
+================================================== -->
 <script>
-  (function(){
-    async function fetchJSON(url){
-      const r = await fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'}});
-      if(!r.ok) throw new Error(r.status);
-      return r.json();
-    }
-    document.querySelectorAll('tr[data-course-id]').forEach(row=>{
-      const courseId=row.dataset.courseId;
-      const btn=row.querySelector('[data-adv-toggle]');
-      const panel=row.querySelector('[data-adv-panel]');
-      const selM=row.querySelector('[data-mod-sel]');
-      const selL=row.querySelector('[data-les-sel]');
-      const btnV=row.querySelector('[data-add-video]');
-      const btnE=row.querySelector('[data-create-exercise]');
-      let loaded=false;
+(function(){
+  async function fetchJSON(url){
+    const r = await fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'}});
+    if(!r.ok) throw new Error(r.status);
+    return r.json();
+  }
 
-      btn.onclick=async()=>{
-        panel.style.display=panel.style.display==='none'?'block':'none';
-        if(loaded) return;
-        const data=await fetchJSON('{% url "courses:api_modules_for_course" 0 %}'.replace('/0/','/'+courseId+'/'));
-        selM.innerHTML='<option>—</option>';
-        data.modules.forEach(m=>{
-          const o=document.createElement('option');
-          o.value=m.id;o.textContent=m.title;selM.appendChild(o);
-        });
-        selM.disabled=false;
-        loaded=true;
-      };
+  document.querySelectorAll('tr[data-course-id]').forEach(row=>{
+    const courseId=row.dataset.courseId;
+    const btn=row.querySelector('[data-adv-toggle]');
+    const panel=row.querySelector('[data-adv-panel]');
+    const selM=row.querySelector('[data-mod-sel]');
+    const selL=row.querySelector('[data-les-sel]');
+    const btnV=row.querySelector('[data-add-video]');
+    const btnE=row.querySelector('[data-create-exercise]');
+    let loaded=false;
 
-      selM.onchange=async()=>{
-        selL.innerHTML='<option>—</option>';
-        selL.disabled=!selM.value;
-        if(!selM.value) return;
-        const data=await fetchJSON('{% url "courses:api_lessons_for_module" 0 %}'.replace('/0/','/'+selM.value+'/'));
-        data.lessons.forEach(l=>{
-          const o=document.createElement('option');
-          o.value=l.id;o.textContent=l.title;selL.appendChild(o);
-        });
-      };
+    btn.onclick=async()=>{
+      panel.style.display=panel.style.display==='none'?'block':'none';
+      if(loaded) return;
+      const data=await fetchJSON('{% url "courses:api_modules_for_course" 0 %}'.replace('/0/','/'+courseId+'/'));
+      selM.innerHTML='<option value="">—</option>';
+      data.modules.forEach(m=>{
+        const o=document.createElement('option');
+        o.value=m.id;o.textContent=m.title;selM.appendChild(o);
+      });
+      selM.disabled=false;
+      loaded=true;
+    };
 
-      selL.onchange=()=>{
-        btnV.disabled=!selL.value;
-        btnE.disabled=!selL.value;
-      };
+    selM.onchange=async()=>{
+      selL.innerHTML='<option value="">—</option>';
+      selL.disabled=!selM.value;
+      if(!selM.value) return;
+      const data=await fetchJSON('{% url "courses:api_lessons_for_module" 0 %}'.replace('/0/','/'+selM.value+'/'));
+      data.lessons.forEach(l=>{
+        const o=document.createElement('option');
+        o.value=l.id;o.textContent=l.title;selL.appendChild(o);
+      });
+    };
 
-      btnV.onclick=()=>{
-        if(selL.value){
-          window.location.href='{% url "courses:lesson_video_create" 0 %}'.replace('/0/','/'+selL.value+'/');
-        }
-      };
-    });
-  })();
+    selL.onchange=()=>{
+      btnV.disabled=!selL.value;
+      btnE.disabled=!selL.value;
+    };
+
+    btnV.onclick=()=>{
+      if(selL.value){
+        window.location.href=`/accueil/${courseId}/modules/${selM.value}/lessons/${selL.value}/videos/create/`;
+      }
+    };
+
+    row.querySelector('[data-create-lesson]').onclick=()=>{
+      if(selM.value){
+        window.location.href=`/accueil/${courseId}/modules/${selM.value}/lessons/create/`;
+      }
+    };
+
+    btnE.onclick=()=>{
+      if(selL.value){
+        window.location.href=`/accueil/${courseId}/modules/${selM.value}/lessons/${selL.value}/exercises/create/`;
+      }
+    };
+  });
+})();
 </script>
 
 {% endblock %}

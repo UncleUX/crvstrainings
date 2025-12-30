@@ -25,7 +25,6 @@ services:
       <<: *default-env
     depends_on:
       - redis
-      - postgres
     volumes:
       - ./:/app:rw
       - staticfiles:/app/staticfiles
@@ -35,23 +34,6 @@ services:
     networks:
       - app_net
 
-# ==================================================
-# PostgreSQL
-# ==================================================
-  postgres:
-    image: postgres:16-alpine
-    container_name: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-crvslearning}
-      POSTGRES_USER: ${POSTGRES_USER:-crvsuser}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crvspassword}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"   # optionnel (utile pour accès externe / debug)
-    networks:
-      - app_net
 
 # ==================================================
 # Redis
@@ -90,7 +72,6 @@ volumes:
   staticfiles:
   media:
   redisdata:
-  pgdata:
 
 networks:
   crvslearning:
