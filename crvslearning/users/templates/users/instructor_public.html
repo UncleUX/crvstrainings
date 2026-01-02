@@ -365,7 +365,7 @@
   {% if request.user.is_authenticated and request.user.id == trainer.id or request.user.is_authenticated and request.user.is_superuser %}
   <button id="fab-plus" class="fab-button" aria-label="Créer" title="Créer">+</button>
   <div id="fab-modal" class="fab-modal">
-    <div style="background:#fff;border-radius:12px;min-width:320px;max-width:92vw;padding:14px;">
+    <div style="background:#fff;border-radius:12px;width:36vw;padding:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div style="font-weight:900;">Actions rapides</div>
         <button id="fab-close" class="btn btn-sm btn-outline-dark">Fermer</button>
@@ -1369,6 +1369,28 @@
             });
           }
         });
+      }
+    });
+  </script>
+
+  <!-- Initialisation des onglets Bootstrap -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Activer les onglets
+      var tabEls = document.querySelectorAll('a[data-bs-toggle="tab"]');
+      tabEls.forEach(function(tabEl) {
+        tabEl.addEventListener('click', function (e) {
+          e.preventDefault();
+          var tab = new bootstrap.Tab(tabEl);
+          tab.show();
+        });
+      });
+      
+      // Activer le premier onglet par défaut
+      var firstTabEl = document.querySelector('a[data-bs-toggle="tab"]');
+      if (firstTabEl) {
+        var firstTab = new bootstrap.Tab(firstTabEl);
+        firstTab.show();
       }
     });
   </script>

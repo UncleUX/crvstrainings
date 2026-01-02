@@ -9,7 +9,15 @@
     <div>
       <a class="ld-breadcrumb" href="{% url 'courses:course_detail' course.id %}">← {{ course.title }}</a>
       <div class="ld-eyebrow">Module: {{ module.title }}</div>
-      <h1 id="lesson-title" class="ld-title">{{ lesson.title }}</h1>
+      <div class="d-flex align-items-center gap-3 mb-2">
+        <h1 id="lesson-title" class="ld-title mb-0">{{ lesson.title }}</h1>
+        {% if video_views_count > 0 %}
+          <span class="badge bg-secondary d-flex align-items-center gap-1">
+            <i class="bi bi-eye-fill"></i>
+            {{ video_views_count }} vue{{ video_views_count|pluralize }}
+          </span>
+        {% endif %}
+      </div>
       <div class="meta">
         <span class="badge">Formateur · {{ course.created_by.get_full_name|default:course.created_by.username }}</span>
       </div>
@@ -43,12 +51,18 @@
       {% endif %}
       <span class="spacer"></span>
       {% if user.is_authenticated %}
-        <button class="btn ghost" id="btn-open-rating" type="button">
+        <!-- <button class="btn ghost" id="btn-open-rating" type="button">
           <i class="bi bi-star me-2"></i>Noter ce cours
-        </button>
+        </button> -->
+        {% if video_views_count > 0 %}
+        <div class="btn ghost text-muted d-flex align-items-center gap-1" style="cursor: default;">
+          <i class="bi bi-eye-fill"></i>
+          <span>{{ video_views_count }} vue{{ video_views_count|pluralize:"s" }}</span>
+        </div>
+        {% endif %}
       {% endif %}
       <button class="btn ghost" id="btn-open-comment" type="button">
-        <i class="bi bi-chat-left-text me-2"></i>Commenter
+        <i class="bi bi-chat-left-text me-2"></i>
       </button>
       {% if user.is_authenticated and is_enrolled %}
         <form class="mark-lesson-completed-form" action="{% url 'courses:mark_lesson_completed' lesson.id %}" method="post" data-lesson-id="{{ lesson.id }}">
@@ -104,8 +118,35 @@
     </div>
   {% endif %} -->
 
+<!-- Section Overview -->
+<div class="overview-section mt-4 mb-5">
+  <h4 class="mb-3">Overview</h4>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">{{ course.title }}</h5>
+      <p class="card-text">{{ course.description|default:"Aucune description disponible pour ce cours." }}</p>
+      <div class="d-flex align-items-center mt-3">
+        <div class="d-flex align-items-center">
+          {% if course.created_by.avatar %}
+            <img src="{{ course.created_by.avatar.url }}" alt="Photo de {{ course.created_by.get_full_name|default:course.created_by.username }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+          {% else %}
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+              <i class="bi bi-person-fill" style="font-size: 1.5rem;"></i>
+            </div>
+          {% endif %}
+          <div>
+            <div class="fw-bold">Formateur</div>
+            <div>{{ course.created_by.get_full_name|default:course.created_by.username }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Section Commentaires -->
 <div class="comments">
-        <h5>Commentaires ({{ comments|length }})</h5>
+  <h5>Commentaires ({{ comments|length }})</h5>
 
         {% if comments %}
         <ul class="comment-list">
@@ -1451,7 +1492,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Gestion du formulaire de marquage de la leçon comme terminée
   document.querySelectorAll('.mark-lesson-completed-form').forEach(form => {
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const button = this.querySelector('button[type="submit"]');
@@ -1460,69 +1501,89 @@ document.addEventListener('DOMContentLoaded', function() {
       const isCurrentlyCompleted = button.dataset.completed === 'true';
       const formData = new FormData(this);
       
-      // Désactiver le bouton pendant la requête
-      button.disabled = true;
-      
-      // Mise à jour immédiate de l'interface utilisateur
-      button.classList.toggle('btn-success', !isCurrentlyCompleted);
-      button.classList.toggle('btn-outline-secondary', isCurrentlyCompleted);
-      icon.className = !isCurrentlyCompleted ? 'bi bi-check-circle-fill me-2' : 'bi bi-circle me-2';
-      text.textContent = !isCurrentlyCompleted ? 'Leçon terminée' : 'Marquer comme terminée';
-      
-      // Envoyer la requête au serveur
-      fetch(this.action, {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-        },
-        body: formData
-      })
-      .then(response => {
+      try {
+        // Désactiver le bouton pendant la requête
+        button.disabled = true;
+        
+        // Mise à jour immédiate de l'interface utilisateur
+        const newState = !isCurrentlyCompleted;
+        button.dataset.completed = newState.toString();
+        button.classList.toggle('btn-success', newState);
+        button.classList.toggle('btn-outline-secondary', !newState);
+        icon.className = newState ? 'bi bi-check-circle-fill me-2' : 'bi bi-circle me-2';
+        text.textContent = newState ? 'Leçon terminée' : 'Marquer comme terminée';
+        
+        // Mettre à jour le badge de statut de la leçon
+        const lessonStatus = document.getElementById('lesson-status');
+        if (lessonStatus) {
+          lessonStatus.innerHTML = newState ? 
+            '<span class="pill done">✅ Leçon terminée</span>' : 
+            '';
+        }
+        
+        // Envoyer la requête au serveur
+        const response = await fetch(this.action, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          },
+          body: formData
+        });
+        
         if (!response.ok) {
           throw new Error('Erreur réseau');
         }
-        return response.json();
-      })
-      .then(data => {
-        if (data.status === 'success') {
-          // Mettre à jour l'interface utilisateur avec la réponse du serveur
-          button.dataset.completed = data.completed.toString();
-          button.classList.toggle('btn-success', data.completed);
-          button.classList.toggle('btn-outline-secondary', !data.completed);
-          icon.className = data.completed ? 'bi bi-check-circle-fill me-2' : 'bi bi-circle me-2';
-          text.textContent = data.completed ? 'Leçon terminée' : 'Marquer comme terminée';
-          
-          // Mettre à jour le badge de statut de la leçon
-          const lessonStatus = document.getElementById('lesson-status');
-          if (lessonStatus) {
-            lessonStatus.innerHTML = data.completed ? 
-              '<span class="pill done">✅ Leçon terminée</span>' : 
-              '';
-          }
-          
-          // Mettre à jour la barre de progression si elle existe
-          if (data.progress) {
-            const progressBar = document.querySelector('.progress-bar');
-            const progressText = document.querySelector('.progress-percent');
-            if (progressBar && progressText) {
-              progressBar.style.width = `${data.progress.percent}%`;
-              progressBar.setAttribute('aria-valuenow', data.progress.percent);
-              progressText.textContent = `${data.progress.percent}%`;
-            }
-          }
-          
-          // Afficher un message de succès
-          showToast('Succès', data.message, 'success');
-        } else {
-          // En cas d'erreur, revenir à l'état précédent
+        
+        const data = await response.json();
+        
+        if (data.status !== 'success') {
           throw new Error(data.message || 'Erreur inconnue');
         }
-      })
-      .catch(error => {
+        
+        // Mettre à jour la barre de progression si elle existe
+        if (data.progress) {
+          const progressBar = document.querySelector('.progress-bar');
+          const progressText = document.querySelector('.progress-percent');
+          const progressCount = document.querySelector('.progress-count');
+          
+          if (progressBar) {
+            progressBar.style.width = `${data.progress.percent}%`;
+            progressBar.setAttribute('aria-valuenow', data.progress.percent);
+          }
+          
+          if (progressText) {
+            progressText.textContent = `${data.progress.percent}%`;
+          }
+          
+          if (progressCount) {
+            progressCount.textContent = `${data.progress.completed}/${data.progress.total} leçons`;
+          }
+        }
+        
+        // Mettre à jour le compteur de leçons terminées dans le module
+        if (data.module) {
+          const moduleProgress = document.querySelector(`.module-progress[data-module-id="${data.module_id}"]`);
+          if (moduleProgress) {
+            moduleProgress.textContent = `${data.module.completed_lessons}/${data.module.total_lessons}`;
+          }
+        }
+        
+        // Mettre à jour l'état du cours si nécessaire
+        if (data.course_completed !== undefined) {
+          const courseCompletionBadge = document.querySelector('.course-completion-badge');
+          if (courseCompletionBadge) {
+            courseCompletionBadge.style.display = data.course_completed ? 'block' : 'none';
+          }
+        }
+        
+        // Afficher un message de succès
+        showToast('Succès', data.message || 'Progression mise à jour avec succès', 'success');
+        
+      } catch (error) {
         console.error('Erreur:', error);
         
-        // Revenir à l'état précédent
+        // Revenir à l'état précédent en cas d'erreur
         button.dataset.completed = isCurrentlyCompleted.toString();
         button.classList.toggle('btn-success', isCurrentlyCompleted);
         button.classList.toggle('btn-outline-secondary', !isCurrentlyCompleted);
@@ -1531,10 +1592,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Afficher un message d'erreur
         showToast('Erreur', error.message || 'Une erreur est survenue lors de la mise à jour', 'error');
-      })
-      .finally(() => {
+      } finally {
+        // Réactiver le bouton
         button.disabled = false;
-      });
+      }
     });
   });
   

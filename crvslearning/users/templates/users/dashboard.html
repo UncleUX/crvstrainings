@@ -4,17 +4,187 @@
 {% block title %}Catalogue des cours{% endblock %}
 
 {% block content %}
+ <style>
+        :root {
+            --google-blue: #4285F4;
+            --google-red: #EA4335;
+            --google-yellow: #FBBC05;
+            --google-green: #34A853;
+            --bg-off-white: #F8F9FA;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+
+        .canvas {
+            position: relative;
+            margin-top: -4%;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- Éléments de fond (Cercles et Rectangles) --- */
+        .shape { position: absolute; }
+        
+        .red-block { top: 0; left: 3%; width: 80px; height: 60px; background: var(--google-red); }
+        .green-ring { 
+            top: 20%; left: -60px; width: 150px; height: 150px; 
+            border: 15px solid var(--google-green); border-radius: 50%; 
+        }
+        .yellow-ring { 
+            bottom: -50px; right: 10%; width: 300px; height: 300px; 
+            border: 30px solid var(--google-blue); border-radius: 50%; 
+        }
+        .blue-ring { 
+            bottom: -100px; right: -5%; width: 400px; height: 400px; 
+            border: 35px solid var(--google-blue); border-radius: 50%; 
+        }
+        .blue-rect { bottom: 45%; right: 22%; width: 80px; height: 50px; background: #000;border-radius: 5px; box-shadow: 0 10px 40px rgba(236, 232, 232, 0.04); }
+        .green-rect { bottom: 0; left: 35%; width: 120px; height: 40px; background: var(--google-green); }
+
+        /* --- Typographie Centrale --- */
+        .main-content {
+            position: relative;
+            z-index: 10;
+            text-align: left;
+        }
+
+        .google-text {
+           font-family: 'Montserrat', sans-serif;
+            font-size: 130px;
+            font-weight: 700;
+            letter-spacing: -5px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .g1 { color: var(--google-green); }
+        .o1 { color: var(--google-red); }
+        .o2 { color: var(--google-yellow); }
+        .g2 { color: var(--google-blue); }
+        .l  { color: var(--google-green); }
+        .e  { color: var(--google-red); }
+        .sup { font-size: 40px; color: #333; margin-top: 15px; }
+
+        .humanz {
+            font-family:'Montserrat', sans-serif;
+            font-size: 140px;
+            font-weight: 900;
+            color: #1a1a1a;
+            margin-top: -60px;
+            letter-spacing: -5px;
+            position: relative;
+            
+        }
+        .humanz span { text-decoration: underline; text-decoration-thickness: 10px; }
+
+        .in-text {
+            position: absolute;
+            right: 120%;
+            top: 50%;
+            font-size: 80px;
+            font-weight: 900;
+            color: #1a1a1a;
+            transform: rotate(-30deg);
+        }
+
+        /* --- Éléments UI Flottants --- */
+        .ui-bubble {
+            position: absolute;
+            background: #000;
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 50px;
+            right: -200px;
+            top: 10px;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+
+        .come-back-box {
+            position: absolute;
+            top: 18%;
+            left: 230px;
+            background: white;
+            border: 3px solid #000;
+            border-radius: 20px;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            /* box-shadow: 10px 10px 0 #000; */
+        }
+
+        .phone-mockup {
+            position: absolute;
+            left: -120px;
+            top: 10%;
+            width: 130px;
+            transform: rotate(-15deg);
+            z-index: 5;
+        }
+
+        .megaphone {
+            position: absolute;
+            left: 30px;
+            top: -50px;
+            width: 80px;
+            transform: rotate(-10deg);
+        }
+
+        /* --- Footer Info --- */
+        .footer-info {
+            position: absolute;
+            bottom: 40px;
+            left: 60px;
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            gap: 40px;
+        }
+
+        .play-store {
+            position: absolute;
+            bottom: 40px;
+            left: 45%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .rights {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        /* --- Curseur --- */
+        .cursor {
+            position: absolute;
+            top: 45%;
+            left: 58%;
+            width: 70px;
+            z-index: 20;
+        }
+    </style>
   <style>
     body{
       background:#ededed;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family:  'Montserrat', sans-serif;
     }
     .overlay {
     position: absolute;
     font-weight: 800;
     width: 100% !important;
     height: 100%;
-    background: #FFEB00;
+    background: #ffffff;
+    opacity: 1;
     top: 0%;
     left: -0%;
     z-index: 999;
@@ -32,7 +202,7 @@
     }
 
     .overlay span {
-    letter-spacing: 20px;
+    letter-spacing: 5px;
     font-size: 70px;
     font-weight: 600;
     }
@@ -168,152 +338,1248 @@
       box-shadow: #333;
     }
 .filters { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 18px 0; }
-  .category-list { list-style: none; padding: 0; margin: 0; display: flex; gap: 10px; flex-wrap: wrap; }
+  .category-list { list-style: none; padding: 0; margin: 20px 28px; display: flex; gap: 10px; flex-wrap: wrap; }
   .pill {
-    display: inline-block; padding: 8px 12px; border-radius: 999px; text-decoration: none; color: #111;
+    display: inline-block; padding: 28px 32px; border-radius: 10px; text-decoration: none; color: #111;
     background: #f3f4f6; border: 1px solid #e5e7eb; font-weight: 600; font-size: 0.95rem;
   }
-  .pill:hover { background: #e5e7eb; }
+  .pill:hover { background: #e5e7eb; scale: 1.3; z-index: 2; box-shadow: #333;background: #111827;color: #fff; border: none;}
   .pill.active { background: #111827; color: #fff; border-color: #111827; }
   .clear-filter { text-decoration: none; color: #6b7280; font-weight: 600; }
 
-  .courses-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+  .courses-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding: 20px 0 40px;
+  }
+  
+  .courses-slider {
+    display: flex;
+    gap: 15px;
+    padding: 10px 0 30px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+  .courses-slider::-webkit-scrollbar {
+    display: none;
+  }
+  
   .course-card {
-    position: relative; overflow: hidden; border-radius: 14px; background: #0b1220; text-decoration: none; color: inherit;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
-    display: grid; grid-template-rows: 200px auto;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+    width: 110%;
+    height: 75%;
+    border-radius: 16px;
+    background: #fff;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.05);
   }
   .course-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(0,0,0,0.28); }
-  .course-media { position: relative; }
+  .course-media {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+  }
   .course-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .course-fallback { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; font-size: 48px; color: #fff;
     background: linear-gradient(135deg, #111827, #1f2937);
   }
   .media-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.1)); }
-  .media-badge { position: absolute; left: 12px; bottom: 12px; background: rgba(17,24,39,0.85); color: #fff; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-  .course-meta { padding: 14px 14px 16px 14px; background: #fff; }
-  .course-title { margin: 0 0 6px 0; font-size: 1.05rem; color: #0b1220; font-weight: 800; }
-  .course-desc { margin: 0; color: #4b5563; font-size: 0.95rem; }
-
-  @media (max-width: 768px) {
-    .hero { height: 46vh; }
-    .hero-top { flex-direction: column; align-items: flex-start; }
-    .course-card { grid-template-rows: 160px auto; }
+  .media-badge { position: absolute; left: 12px; bottom: 7px; background: rgba(17,24,39,0.85); color: #fff; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .course-meta {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+    background: #fff;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
   }
-    @media(max-width:992px){
-      .hero-title{font-size:96px;}
-      .cards{grid-template-columns:1fr;}
-      .about{grid-template-columns:1fr;gap:24px;}
+  .course-title {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    color: #1f2937;
+    font-weight: 700;
+    line-height: 1.4;
+    min-height: 3.2em; /* 2 lignes de texte */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .course-desc {
+    margin: 0 0 16px 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 4.5em; /* 3 lignes de texte */
+    flex-grow: 1;
+  }
+
+  /* Navigation du slider */
+  .slider-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 
+      0 4px 30px rgba(0, 0, 0, 0.1),
+      0 1px 3px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.9;
+    color: #4f46e5;
+    border: none;
+    outline: none;
+  }
+
+  .slider-nav:hover {
+    transform: translateY(-50%) scale(1.1);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 
+      0 6px 35px rgba(0, 0, 0, 0.15),
+      0 2px 5px rgba(0, 0, 0, 0.1);
+    opacity: 1;
+  }
+
+  .slider-nav.prev {
+    left: 20px;
+  }
+
+  .slider-nav.next {
+    right: 10px;
+  }
+
+  .slider-nav i {
+    font-size: 1.4rem;
+    color: #4f46e5;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  }
+
+  .slider-nav:hover i {
+    transform: scale(1.2);
+  }
+
+  /* Pour les écrans plus petits */
+  @media (max-width: 768px) {
+    .slider-nav {
+      width: 36px;
+      height: 36px;
     }
-  </style>
+    
+    .slider-nav i {
+      font-size: 1.1rem;
+    }
+    
+    .slider-nav.prev {
+      left: 10px;
+    }
+    
+    .slider-nav.next {
+      right: 10px;
+    }
+  }
+
+  .course-card-wrapper {
+    position: relative;
+    margin: 0 15px 40px;
+    width: 250px;
+    height: 430px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    overflow: visible;
+    flex-shrink: 0;
+  }
+.section {
+  overflow: hidden;
+  background: #fff !important;
+}
+  .card-arrow {
+    position: absolute;
+    bottom: 40px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #4f46e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translate(10px, 10px);
+    pointer-events: none;
+  }
+
+  .card-arrow i {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+  }
+
+  .course-card-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #4f46e5;
+    transform: scale(0.1);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+  }
+
+  .course-card-wrapper:hover .card-arrow {
+    transform: translate(0, 0) scale(1.05);
+    background: #4338ca;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .course-card-wrapper:hover::after {
+    transform: scale(1.8);
+    opacity: 0.1;
+  }
+
+  .course-card-wrapper:hover .card-arrow i {
+    transform: rotate(45deg) scale(1.1);
+  }
+</style>
 </head>
 <body>
+<div id="loading-indicator" style="display: none; position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 10px 15px; border-radius: 20px; z-index: 1000;">
+    <i class="bi bi-arrow-repeat bi-spin me-2"></i> Filtrage en cours...
+</div>
     <div class="overlay">
     <h1>Welcome</h1>
-    <span>{{ request.user.username }}</span>
+    <span style="color: #330aec;">@{{ request.user.username|lower }}</span>
   </div>
 <div class="page">
 
-  <!-- Header -->
-  <div class="topbar">
-    <div class="menu">
-      <a href="#" class="active btn-round">Explore →</a>
-    </div>
+   <div class="canvas" id="#hero">
+        <div class="shape red-block"></div>
+        <div class="shape green-ring"></div>
+        <div class="shape yellow-ring"></div>
+        <!-- <div class="shape blue-ring"></div> -->
+        <div class="shape blue-rect"></div>
+        <div class="shape green-rect"></div>
 
-    <div class="fw-semibold">– BUNEC - ELEARNING –</div>
-
-    <div class="icons">
-      <!-- <i class="bi bi-search"></i>
-      <i class="bi bi-bag"></i>
-      <i class="bi bi-person"></i> -->
-    </div>
-  </div>
-
-  <!-- Hero -->
-  <div class="hero">
-    <img src="{% static 'img/crayon.png' %}" alt="stool">
-    <div class="hero-title">CrvsTrainingZ</div>
-    
-
-
-    <div class="tags mt-5">
-        <img src="{% static 'img/bunec.png' %}" alt="bunec">
-        <img src="{% static 'img/vitalstrategy.png' %}" alt="vitalstrategy">
-        <img src="{% static 'img/giz.png' %}" alt="giz">
-       <!-- <span class="tag">stool</span>
-        <span class="tag">furniture</span>
-        <span class="tag">modern</span>
-        <span class="tag active">chair</span> -->
-    </div>
-  </div>
-
-  <!-- About -->
-  <div class="about">
-    <div>
-      <small class="text-muted">About us</small>
-      <h5 class="fw-semibold mt-2">What we do</h5>
-    </div>
-
-    <div class="each">
-      <p>
-        Each piece in our collection embodies a harmonious blend of creativity and functionality.
-      </p>
-      <a href="#" class="btn-round">Learn more <i class="bi bi-arrow-right"></i></a>
-    </div>
-  </div>
-
-  <!-- Cards -->
-
-    <div class="filters mt-5">
-    <ul class="category-list mt-5">
-        <li>
-        <a href="{% url 'users:dashboard' %}"
-            class="pill {% if not selected_category %}active{% endif %}">Tous</a>
-        </li>
-        {% for category in categories %}
-        <li>
-            <a href="?category={{ category.slug }}"
-            class="pill {% if selected_category == category.slug %}active{% endif %}">{{ category.name }}</a>
-        </li>
-        {% empty %}
-        <li>Aucune catégorie trouvée.</li>
-        {% endfor %}
-    </ul>
-    {% if selected_category %}
-        <a href="{% url 'users:dashboard' %}" class="clear-filter">Réinitialiser</a>
-    {% endif %}
-    </div>
-    <div class="courses-grid mt-2">
-    {% for course in courses %}
-        <a class="course-card" href="{% url 'courses:course_detail' course.id %}">
-        <div class="course-media">
-            {% if course.thumbnail %}
-            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">
-            {% else %}
-            <div class="course-fallback" aria-label="Aperçu du cours {{ course.title }}">
-                <span class="course-initials">{{ course.title|first|upper }}</span>
+        <div class="main-content">
+            <div class="come-back-box">
+                <img class="phone-mockup" src="https://cdn-icons-png.flaticon.com/512/0/191.png" alt="phone">
+                <img class="megaphone" src="https://cdn-icons-png.flaticon.com/512/1997/1997935.png" alt="megaphone">
+                <div style="font-size: 24px; font-weight: 900;">¡WelCome back <br> {{ request.user.username }}!</div>
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                    <div style="background:var(--google-red); width:35px; height:12px; border-radius:5px;"></div>
+                    <div style="background:var(--google-blue); width:35px; height:12px; border-radius:5px;"></div>
+                </div>
             </div>
+
+            <div class="google-text">
+                <span class="g1">C</span><span class="o1">r</span><span class="o2">v</span><span class="g2">s</span><span class="l"></span><span class="e">e</span>
+                <!-- <span class="sup">1</span>
+                <div class="ui-bubble">Let's go<br>It's plato</div> -->
+            </div>
+
+            <div class="humanz">
+                Lea<span>rning</span>
+                <div class="in-text">e</div>
+            </div>
+
+            <!-- <div style="font-size: 10px; font-weight: 800; margin-top: 10px;">
+                Maitriser <br>&nbsp;&nbsp;&nbsp;Game Evaluation
+            </div> -->
+        </div>
+
+
+<!-- Scroll Down Pulse Button -->
+<a href="#course-category"
+   style="
+     position:absolute;
+     bottom:80px;
+     left:50%;
+     transform:translateX(-50%);
+     width:74px;
+     height:74px;
+     border-radius:50%;
+     background:rgba(255,255,255,0.12);
+     backdrop-filter:blur(8px);
+     -webkit-backdrop-filter:blur(8px);
+     display:flex;
+     align-items:center;
+     justify-content:center;
+     text-decoration:none;
+     cursor:pointer;
+     box-shadow:
+       0 12px 35px rgba(0,0,0,0.35),
+       inset 0 0 0 1px rgba(255,255,255,0.25);
+     animation:outerPulse 2.4s infinite;
+     z-index:50;
+   ">
+
+  <!-- Inner ellipse -->
+  <span style="
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.18);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:
+      0 6px 18px rgba(0,0,0,0.35),
+      inset 0 0 0 1px rgba(255,255,255,0.35);
+    animation:innerPulse 2.4s infinite;
+  ">
+
+    <!-- Arrow -->
+    <span style="
+      width:16px;
+      height:16px;
+      border-left:3px solid #4285F4;
+      border-bottom:3px solid #4285F4;
+      transform:rotate(-45deg);
+      margin-top:-2px;
+      display:block;
+      filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+    "></span>
+
+  </span>
+</a>
+        
+        <div class="footer-info">
+            <!-- <div>Log in<br>Full coverage list</div>
+            <div style="font-weight: 800; font-size: 14px;">20 / 25</div> -->
+        </div>
+
+        <!-- <div class="play-store">
+            <span style="color:var(--google-blue)">▶</span> Bureau National de l'Etat Civil
+        </div> -->
+
+        <img class="cursor" src="{% static '/img/crayon.png' %}" alt="cursor">
+    </div>
+
+<section id="course-category" class="mb-5" style="background-color: #fff;">
+
+  <!-- Intro -->
+  <!-- <div class="inText d-flex align-items-center justify-content-between mt-5">
+    
+    <div class="col-md-6 d-flex justify-content-center align-items-center">
+      <img src="{% static '/img/femme.webp' %}" alt="" style="height: 220px;">
+    </div>
+
+    <div class="col-md-6">
+      <h1 class="mb-1" style="
+        text-transform: uppercase; 
+        text-align: left; 
+        font-family: 'Montserrat', sans-serif;
+        font-size: clamp(24px, 4vw, 32px); 
+        font-weight: 600;
+        line-height: 1.3; 
+        color: #000000; 
+        max-width: 900px; 
+        margin-left: auto; 
+        margin-top: 10%;
+        margin-right: auto;
+        letter-spacing: 1px;">
+        Développez votre <br> expertise métier : <br> 
+        <span style="color: #6b6b6b;">
+          Accédez aux modules de formation spécialisés
+        </span>
+      </h1>
+    </div>
+
+  </div> -->
+  <!-- /Intro -->
+
+<div class="row" style="margin-top: 60px !important;">
+    <!-- Categories -->
+  <ul class="category-list mt-5">
+    <li>
+      <a href="{% url 'users:dashboard' %}"
+         class="pill {% if not selected_category %}active{% endif %}">
+        Tous
+      </a>
+    </li>
+
+    {% for category in categories %}
+    <li>
+      <a href="?category={{ category.slug }}"
+         class="pill {% if selected_category == category.slug %}active{% endif %}">
+        {{ category.name }}
+      </a>
+    </li>
+    {% empty %}
+    <li>Aucune catégorie trouvée.</li>
+    {% endfor %}
+  </ul>
+
+  {% if selected_category %}
+    <a href="{% url 'users:dashboard' %}" class="clear-filter">
+      Réinitialiser
+    </a>
+  {% endif %}
+  <!-- /Categories -->
+</div>
+
+  <!-- Courses -->
+<div class="row">
+  <div class="col-md-9">
+      <div class="courses-container mt-5 position-relative">
+    <div class="slider-wrapper">
+      <div class="courses-slider mt-4" id="courses-slider">
+    {% for course in courses %}
+      <div class="course-card-wrapper">
+        <a class="course-card mt-5"
+           href="{% url 'courses:course_detail' course.id %}"
+           data-category="{{ course.category.slug|default:'all' }}">
+
+          <div class="course-media">
+            {% if course.thumbnail %}
+              <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">
+            {% else %}
+              <div class="course-fallback" aria-label="Aperçu du cours {{ course.title }}">
+                <span class="course-initials">{{ course.title|first|upper }}</span>
+              </div>
             {% endif %}
             <div class="media-overlay"></div>
-            <div class="media-badge">{{ course.category.name|default:'Général' }}</div>
-        </div>
-        <div class="course-meta">
-            <h2 class="course-title">{{ course.title }}</h2>
-            <p class="course-desc">{{ course.description|truncatechars:120 }}</p>
-            <br>
-            <br>
-            <div class="arrow"><i class="bi bi-arrow-up"></i></div>
-        </div>
-        </a>
-    {% empty %}
-        <p>Aucun cours disponible pour cette catégorie.</p>
-    {% endfor %}
-    </div>
+            <div class="media-badge">
+              {{ course.category.name|default:'Général' }}
+            </div>
+          </div>
 
+          <div class="course-meta">
+            <h2 class="course-title">{{ course.title }}</h2>
+            <p class="course-desc">
+              {{ course.description|truncatechars:120 }}
+            </p>
+          </div>
+        </a>
+        
+        <div class="card-arrow">
+          <i class="bi bi-arrow-up-right"></i>
+        </div>
+      </div>
+    {% empty %}
+      <p id="no-courses-message" class="no-courses" style="display: none;">
+        Aucun cours disponible pour cette catégorie.
+        <br>
+        <a href="{% url 'users:dashboard' %}"
+           class="btn btn-outline-primary mt-2">
+          Réinitialiser les filtres
+        </a>
+      </p>
+    {% endfor %}
+      </div>
+      
+      <!-- Dots navigation -->
+      <div class="slider-dots" id="slider-dots" style="position: absolute; bottom: -1px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; padding: 10px 0;">
+        <!-- Les points seront ajoutés dynamiquement par JavaScript -->
+      </div>
+    </div>
+    <button class="slider-nav prev" aria-label="Précédent">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <button class="slider-nav next" aria-label="Suivant">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+  </div>
+  <div class="col-md-3"></div>
 </div>
-<script src="{% static 'vendor/gsap/gsap-3-12.js' %}"></script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script> -->
+  <!-- /Courses -->
+
+</section>
+
+<style>
+/* Supprimer l'espace en dessous des dots */
+.courses-container {
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+.slider-wrapper {
+  padding-bottom: 0 !important;
+  margin-bottom: -3% !important;
+}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryLinks = document.querySelectorAll('.category-list a.pill');
+    const coursesContainer = document.getElementById('courses-container');
+    const courseCards = document.querySelectorAll('.course-card');
+    const noCoursesMessage = document.getElementById('no-courses-message');
+    const loadingIndicator = document.getElementById('loading-indicator');
+
+    // Vérifier si GSAP est chargé
+    if (typeof gsap === 'undefined') {
+        console.warn('GSAP non chargé, chargement en cours...');
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js';
+        script.onload = initFiltering;
+        document.head.appendChild(script);
+    } else {
+        initFiltering();
+    }
+
+    function initFiltering() {
+        // Initialiser les écouteurs d'événements
+        setupEventListeners();
+        // Gérer le chargement initial
+        handleInitialLoad();
+    }
+
+    function setupEventListeners() {
+        // Gestion des clics sur les catégories
+        categoryLinks.forEach(link => {
+            link.addEventListener('click', handleCategoryClick);
+        });
+
+        // Gestion du bouton de réinitialisation
+        const resetFilter = document.querySelector('a.clear-filter');
+        if (resetFilter) {
+            resetFilter.addEventListener('click', function(e) {
+                e.preventDefault();
+                const allLink = document.querySelector('.category-list a[href="{% url 'users:dashboard' %}"]');
+                if (allLink) allLink.click();
+            });
+        }
+
+        // Gestion des boutons précédent/suivant du navigateur
+        window.addEventListener('popstate', handlePopState);
+    }
+
+    function handleCategoryClick(e) {
+        e.preventDefault();
+        
+        // Afficher l'indicateur de chargement
+        if (loadingIndicator) loadingIndicator.style.display = 'block';
+        
+        // Mettre à jour la classe active
+        categoryLinks.forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+        
+        const selectedCategory = this.getAttribute('href').includes('category=') 
+            ? this.getAttribute('href').split('category=')[1] 
+            : 'all';
+        
+        // Filtrer les cours avec animation
+        filterCourses(selectedCategory);
+        
+        // Mettre à jour l'URL
+        const url = new URL(window.location);
+        if (selectedCategory !== 'all') {
+            url.searchParams.set('category', selectedCategory);
+        } else {
+            url.searchParams.delete('category');
+        }
+        window.history.pushState({}, '', url);
+        
+        // Faire défiler vers le haut des résultats
+        setTimeout(() => {
+            const targetElement = document.getElementById('course-category');
+            if (targetElement) {
+                targetElement.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+            if (loadingIndicator) loadingIndicator.style.display = 'none';
+        }, 100);
+    }
+
+    function filterCourses(category) {
+        let visibleCount = 0;
+        
+        // Désactiver les clics pendant l'animation
+        document.body.style.pointerEvents = 'none';
+        
+        // Animer la disparition des cartes
+        gsap.to(courseCards, {
+            duration: 0.3,
+            opacity: 0,
+            y: 20,
+            ease: "power2.inOut",
+            stagger: 0.03,
+            onComplete: function() {
+                // Masquer les cartes qui ne correspondent pas
+                courseCards.forEach(card => {
+                    const cardCategory = card.getAttribute('data-category');
+                    if (category === 'all' || cardCategory === category) {
+                        card.style.display = '';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Animer la réapparition des cartes visibles
+                const visibleCards = document.querySelectorAll('.course-card[style*="display: block"], .course-card:not([style*="display: none"])');
+                if (visibleCards.length > 0) {
+                    gsap.fromTo(visibleCards, 
+                        { opacity: 0, y: 20 },
+                        {
+                            duration: 0.4,
+                            opacity: 1,
+                            y: 0,
+                            stagger: 0.03,
+                            ease: "back.out(1.2)",
+                            onComplete: function() {
+                                document.body.style.pointerEvents = 'auto';
+                            }
+                        }
+                    );
+                } else {
+                    document.body.style.pointerEvents = 'auto';
+                }
+                
+                // Afficher le message si aucun cours n'est visible
+                if (noCoursesMessage) {
+                    if (visibleCount === 0) {
+                        noCoursesMessage.style.display = 'block';
+                        gsap.fromTo(noCoursesMessage, 
+                            { opacity: 0, y: 20 },
+                            { opacity: 1, y: 0, duration: 0.4 }
+                        );
+                    } else {
+                        noCoursesMessage.style.display = 'none';
+                    }
+                }
+                
+                // Masquer l'indicateur de chargement
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
+            }
+        });
+    }
+
+    function handlePopState() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const category = urlParams.get('category');
+        
+        // Mettre à jour les liens actifs
+        categoryLinks.forEach(link => {
+            const linkCategory = link.getAttribute('href').includes('category=') 
+                ? link.getAttribute('href').split('category=')[1] 
+                : 'all';
+                
+            if ((category && link.getAttribute('href').includes(`category=${category}`)) || 
+                (!category && link.getAttribute('href') === "{% url 'users:dashboard' %}")) {
+                link.classList.add('active');
+                filterCourses(category || 'all');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    }
+
+    function handleInitialLoad() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const category = urlParams.get('category');
+        
+        if (category) {
+            const activeLink = Array.from(categoryLinks).find(link => {
+                return link.getAttribute('href').includes(`category=${category}`);
+            });
+            
+            if (activeLink) {
+                activeLink.classList.add('active');
+                filterCourses(category);
+            }
+        } else if (categoryLinks.length > 0) {
+            categoryLinks[0].classList.add('active');
+        }
+    }
+});
+</script>
+
+<style>
+/* Animations pour le bouton de défilement */
+@keyframes outerPulse {
+  0% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+  50% { transform: translateX(-50%) scale(1.05); opacity: 1; }
+  100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+}
+
+@keyframes innerPulse {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+/* Styles pour les animations de filtrage */
+.courses-grid {
+    position: relative;
+    min-height: 200px;
+    perspective: 1000px;
+}
+
+.course-card {
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+}
+
+.no-courses {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.1rem;
+    color: #666;
+    grid-column: 1 / -1;
+}
+
+.category-list .pill {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.category-list .pill::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #4f46e5;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(-50%);
+}
+
+.category-list .pill.active {
+    background: #4f46e5;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.category-list .pill.active::after {
+    width: 60%;
+}
+
+/* Animation pour le chargement initial */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Styles pour le slider et les dots */
+.slider-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 30px;
+}
+
+.slider-dots {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 25px;
+  gap: 12px;
+  padding: 5px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(79, 70, 229, 0.3);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  transform: scale(0.9);
+}
+
+.dot.active {
+  background-color: #4f46e5;
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+.dot:hover {
+  background-color: #4f46e5;
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
+.courses-slider {
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  will-change: transform, scroll-position;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  padding: 20px 0 10px;
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.courses-slider::-webkit-scrollbar {
+  display: none;
+}
+
+/* Amélioration des boutons de navigation */
+.slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 4px 30px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.9;
+  color: #4f46e5;
+  border: none;
+  outline: none;
+}
+
+.slider-nav:hover {
+  transform: translateY(-50%) scale(1.1);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    0 6px 35px rgba(0, 0, 0, 0.15),
+    0 2px 5px rgba(0, 0, 0, 0.1);
+  opacity: 1;
+}
+
+.slider-nav.prev {
+  left: 20px;
+}
+
+.slider-nav.next {
+  right: 20px;
+}
+
+.slider-nav i {
+  font-size: 1.4rem;
+  color: #4f46e5;
+  transition: transform 0.2s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.slider-nav:hover i {
+  transform: scale(1.2);
+}
+
+/* Pour les écrans plus petits */
+@media (max-width: 768px) {
+  .slider-nav {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .slider-nav i {
+    font-size: 1.1rem;
+  }
+  
+  .slider-nav.prev {
+    left: 10px;
+  }
+  
+  .slider-nav.next {
+    right: 10px;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const slider = document.querySelector('.courses-slider');
+    const prevBtn = document.querySelector('.slider-nav.prev');
+    const nextBtn = document.querySelector('.slider-nav.next');
+    const dotsContainer = document.getElementById('slider-dots');
+    const cardWidth = 280 + 22; // Largeur de la carte + marge
+    let slides = [];
+    let dots = [];
+    let currentSlide = 0;
+    let slidesPerView = 0;
+    let isDragging = false;
+    let startPos = 0;
+    let currentTranslate = 0;
+    let prevTranslate = 0;
+    let animationID = 0;
+    
+    // Initialiser les dots
+    function initDots() {
+        if (!slider || !dotsContainer) return;
+        
+        // Calculer le nombre de slides visibles
+        slides = Array.from(document.querySelectorAll('.course-card'));
+        const containerWidth = slider.clientWidth;
+        slidesPerView = Math.min(Math.floor(containerWidth / cardWidth) || 1, slides.length);
+        const dotsCount = Math.ceil(slides.length / slidesPerView);
+        
+        // Vider les dots existants
+        dotsContainer.innerHTML = '';
+        dots = [];
+        
+        // Créer les dots
+        for (let i = 0; i < dotsCount; i++) {
+            const dot = document.createElement('div');
+            dot.className = `dot ${i === 0 ? 'active' : ''}`;
+            dot.dataset.index = i;
+            
+            // Animation au clic
+            dot.addEventListener('click', (e) => {
+                e.preventDefault();
+                goToSlide(i);
+                // Feedback visuel
+                dot.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    dot.style.transform = 'scale(1.2)';
+                }, 100);
+            });
+            
+            dotsContainer.appendChild(dot);
+            dots.push(dot);
+        }
+        
+        // Mettre à jour la position initiale
+        updateSliderPosition();
+    }
+    
+    // Aller à un slide spécifique avec animation fluide
+    function goToSlide(index, instant = false) {
+        if (!slider || index < 0 || index >= dots.length) return;
+        
+        // Annimer le changement de slide
+        const start = performance.now();
+        const startPosition = slider.scrollLeft;
+        const targetPosition = index * cardWidth * slidesPerView;
+        const distance = targetPosition - startPosition;
+        
+        if (instant) {
+            slider.scrollLeft = targetPosition;
+            currentSlide = index;
+            updateDots();
+            return;
+        }
+        
+        function animateScroll(timestamp) {
+            const elapsed = timestamp - start;
+            const progress = Math.min(elapsed / 300, 1); // Durée de l'animation : 300ms
+            const easeProgress = easeInOutCubic(progress);
+            
+            slider.scrollLeft = startPosition + (distance * easeProgress);
+            
+            if (progress < 1) {
+                animationID = requestAnimationFrame(animateScroll);
+            } else {
+                currentSlide = index;
+                updateDots();
+            }
+        }
+        
+        // Fonction d'accélération/décélération
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+        }
+        
+        // Annuler l'animation en cours si elle existe
+        cancelAnimationFrame(animationID);
+        animationID = requestAnimationFrame(animateScroll);
+    }
+    
+    // Mettre à jour l'état des dots
+    function updateDots() {
+        dots.forEach((dot, index) => {
+            if (index === currentSlide) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
+    
+    // Gérer le défilement du slider avec détection de la position
+    function handleScroll() {
+        if (!slider || isDragging) return;
+        
+        const scrollPosition = slider.scrollLeft;
+        const newSlide = Math.round(scrollPosition / (cardWidth * slidesPerView));
+        
+        if (newSlide !== currentSlide) {
+            currentSlide = newSlide;
+            updateDots();
+        }
+    }
+    
+    // Gestion du glissement tactile
+    function handleTouchStart(e) {
+        isDragging = true;
+        startPos = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        prevTranslate = slider.scrollLeft;
+        slider.style.scrollBehavior = 'auto';
+        slider.style.cursor = 'grabbing';
+    }
+    
+    function handleTouchMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        
+        const currentPosition = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        const diff = currentPosition - startPos;
+        
+        // Limiter le défilement aux limites
+        const maxScroll = slider.scrollWidth - slider.clientWidth;
+        const newScroll = Math.max(0, Math.min(prevTranslate - diff, maxScroll));
+        
+        // Appliquer le défilement
+        slider.scrollLeft = newScroll;
+        
+        // Mettre à jour la position actuelle pour le prochain mouvement
+        updateSliderPosition();
+    }
+    
+    function handleTouchEnd() {
+        isDragging = false;
+        slider.style.scrollBehavior = 'smooth';
+        slider.style.cursor = 'grab';
+        
+        // Ajuster à la position de diapositive la plus proche
+        const scrollPosition = slider.scrollLeft;
+        const newSlide = Math.round(scrollPosition / (cardWidth * slidesPerView));
+        goToSlide(newSlide);
+    }
+    
+    function updateSliderPosition() {
+        const scrollPosition = slider.scrollLeft;
+        const maxScroll = slider.scrollWidth - slider.clientWidth;
+        
+        // Activer/désactiver les boutons en fonction de la position
+        if (prevBtn && nextBtn) {
+            prevBtn.style.opacity = scrollPosition <= 10 ? '0.3' : '0.9';
+            nextBtn.style.opacity = scrollPosition >= maxScroll - 10 ? '0.3' : '0.9';
+        }
+    }
+    
+    // Masquer les boutons de navigation s'il n'y a pas assez de cartes
+    function updateNavButtons() {
+        if (!slider || !prevBtn || !nextBtn) return;
+        
+        const isScrollable = slider.scrollWidth > slider.clientWidth;
+        prevBtn.style.display = isScrollable ? 'flex' : 'none';
+        nextBtn.style.display = isScrollable ? 'flex' : 'none';
+    }
+    
+    // Navigation au clic sur les boutons avec effet de rebond
+    function scrollTo(direction) {
+        if (!slider) return;
+        
+        let targetSlide = currentSlide;
+        
+        if (direction === 'prev' && currentSlide > 0) {
+            targetSlide = currentSlide - 1;
+        } else if (direction === 'next' && currentSlide < dots.length - 1) {
+            targetSlide = currentSlide + 1;
+        } else {
+            // Effet de secousse si on est à la fin/début
+            if (direction === 'prev') {
+                slider.style.transform = 'translateX(-5px)';
+            } else {
+                slider.style.transform = 'translateX(5px)';
+            }
+            
+            setTimeout(() => {
+                slider.style.transform = 'translateX(0)';
+                slider.style.transition = 'transform 0.3s ease-out';
+            }, 50);
+            
+            setTimeout(() => {
+                slider.style.transition = '';
+            }, 350);
+            
+            return;
+        }
+        
+        // Animation du bouton cliqué
+        const button = direction === 'prev' ? prevBtn : nextBtn;
+        if (button) {
+            button.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 150);
+        }
+        
+        // Aller au slide cible
+        goToSlide(targetSlide);
+    }
+    
+    // Vérifier si les éléments existent avant d'ajouter les écouteurs
+    if (prevBtn && nextBtn) {
+        // Événements de clic
+        prevBtn.addEventListener('click', () => scrollTo('prev'));
+        nextBtn.addEventListener('click', () => scrollTo('next'));
+        
+        // Désactiver les boutons si nécessaire
+        slider.addEventListener('scroll', updateSliderPosition);
+    }
+    
+    // Écouteurs d'événements tactiles et souris
+    if (slider) {
+        // Défilement
+        slider.addEventListener('scroll', handleScroll);
+        
+        // Glissement tactile
+        slider.addEventListener('mousedown', handleTouchStart);
+        slider.addEventListener('touchstart', handleTouchStart, { passive: true });
+        
+        // Mouvement
+        window.addEventListener('mousemove', handleTouchMove);
+        window.addEventListener('touchmove', handleTouchMove, { passive: false });
+        
+        // Fin de l'interaction
+        window.addEventListener('mouseup', handleTouchEnd);
+        window.addEventListener('touchend', handleTouchEnd);
+        
+        // Annuler le comportement par défaut du glisser-déposer
+        slider.addEventListener('dragstart', (e) => e.preventDefault());
+        
+        // Style du curseur
+        slider.style.cursor = 'grab';
+    }
+    
+    // Mise à jour initiale
+    initDots();
+    updateNavButtons();
+    updateSliderPosition();
+    
+    // Mettre à jour lors du redimensionnement avec debounce
+    let resizeTimer;
+    const handleResize = () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            const oldSlidesPerView = slidesPerView;
+            initDots();
+            
+            // Si le nombre de slides visibles a changé, ajuster la position
+            if (slidesPerView !== oldSlidesPerView) {
+                goToSlide(currentSlide, true);
+            }
+            
+            updateNavButtons();
+            updateSliderPosition();
+        }, 150);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Observer les changements de contenu
+    const observer = new MutationObserver(handleResize);
+    if (slider) {
+        observer.observe(slider, { childList: true, subtree: true });
+    }
+    const resizeObserver = new ResizeObserver(updateNavButtons);
+    if (slider) {
+        resizeObserver.observe(slider);
+    }
+    
+    // Désactiver le défilement avec la molette sur le slider
+    if (slider) {
+        slider.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            slider.scrollLeft += e.deltaY;
+        });
+    }
+    
+    // Nettoyage
+    return () => {
+        if (prevBtn) prevBtn.removeEventListener('click', () => scrollTo('prev'));
+        if (nextBtn) nextBtn.removeEventListener('click', () => scrollTo('next'));
+        
+        if (slider) {
+            slider.removeEventListener('scroll', handleScroll);
+            slider.removeEventListener('scroll', updateSliderPosition);
+            slider.removeEventListener('mousedown', handleTouchStart);
+            slider.removeEventListener('touchstart', handleTouchStart);
+            slider.removeEventListener('dragstart', (e) => e.preventDefault());
+            
+            // Réinitialiser les styles
+            slider.style.cursor = '';
+            slider.style.transform = '';
+            slider.style.transition = '';
+        }
+        
+        window.removeEventListener('mousemove', handleTouchMove);
+        window.removeEventListener('touchmove', handleTouchMove);
+        window.removeEventListener('mouseup', handleTouchEnd);
+        window.removeEventListener('touchend', handleTouchEnd);
+        window.removeEventListener('resize', handleResize);
+        
+        // Annuler l'animation en cours
+        cancelAnimationFrame(animationID);
+        
+        // Nettoyer l'observer
+        observer.disconnect();
+    };
+    
+    // Détection du support des événements tactiles
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints;
+    if (!isTouchDevice) {
+        slider.style.scrollBehavior = 'smooth';
+    }
+});
+</script>
 
 </body>
-{% endblock %}
+{% endblock %}2

@@ -1,0 +1,121 @@
+{% extends 'users/admin/base_site.html' %}
+{% load i18n admin_urls static admin_list %}
+
+{% block content_title %}{{ opts.verbose_name_plural|capfirst }}{% endblock %}
+
+{% block breadcrumbs_items %}
+<li class="breadcrumb-item">{{ opts.app_config.verbose_name }}</li>
+<li class="breadcrumb-item active">{{ opts.verbose_name_plural|capfirst }}</li>
+{% endblock %}
+
+{% block object-tools %}
+{% if has_add_permission %}
+<div class="btn-group" role="group">
+    <a href="{% url 'users:admin_model_add' app_label=opts.app_label model_name=opts.model_name %}" class="btn btn-success">
+        <i class="bi bi-plus-lg me-1"></i> Ajouter {{ opts.verbose_name }}
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content_main %}
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        {% if object_list %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        {% for field_name in list_display %}
+                        <th>{{ opts.get_field(field_name).verbose_name|capfirst }}</th>
+                        {% endfor %}
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for obj in page_obj %}
+                    <tr>
+                        {% for field_name in list_display %}
+                        <td>
+                            {% if forloop.first %}
+                                <a href="{% url 'users:admin_model_edit' app_label=opts.app_label model_name=opts.model_name object_id=obj.pk %}" class="text-decoration-none">
+                                    {{ obj|string_format:"%s"|truncatechars:50 }}
+                                </a>
+                            {% else %}
+                                {{ obj|getattr:field_name|stringformat:"s"|truncatechars:50 }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'users:admin_model_edit' app_label=opts.app_label model_name=opts.model_name object_id=obj.pk %}" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="post" action="{% url 'users:admin_model_delete' app_label=opts.app_label model_name=opts.model_name object_id=obj.pk %}" 
+                                      class="d-inline" 
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet objet ?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="card-footer bg-white">
+            <nav aria-label="Pagination">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Précédent">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% else %}
+                            {% if num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Suivant">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="p-5 text-center text-muted">
+            <i class="bi bi-inbox display-4 d-block mb-3"></i>
+            <h5>Aucun {{ opts.verbose_name }} trouvé.</h5>
+            {% if has_add_permission %}
+            <p class="mb-0">
+                <a href="{% url 'users:admin_model_add' app_label=opts.app_label model_name=opts.model_name %}" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-lg me-1"></i> Ajouter un{{ opts.verbose_name|slice:"1" }}
+                </a>
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

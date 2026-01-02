@@ -17,8 +17,12 @@ from django.contrib.auth import update_session_auth_hash
 
 def instructor_public(request, username: str):
     trainer = get_object_or_404(CustomUser, username=username)
-    if getattr(trainer, 'role', None) != 'trainer' and not trainer.is_superuser:
+    # Vérifier si l'utilisateur est un formateur ou un administrateur
+    if getattr(trainer, 'role', None) not in ['trainer', 'admin'] and not trainer.is_superuser:
+        # Rediriger vers le profil public si l'utilisateur n'est pas un formateur
         return redirect('users:profile')
+    
+    # Le reste du code s'exécute pour les formateurs et les administrateurs
     
     # Vérifier si l'utilisateur actuel est abonné à ce formateur
     is_subscribed = False
@@ -132,22 +136,22 @@ def user_login(request):
             login(request, user)
             
             # Vérifier s'il y a une URL de redirection valide
-            if next_url and next_url != 'None':
+            if next_url and next_url != 'None' and not next_url.startswith('/admin/'):
                 return redirect(next_url)
                 
-            # Redirection selon le rôle si pas de redirection spécifiée
-            if getattr(user, 'role', None) == 'trainer':
+            # Redirection selon le rôle
+            if user.is_staff or user.is_superuser or getattr(user, 'role', None) == 'admin':
+                return redirect('users:admin_dashboard')
+            elif getattr(user, 'role', None) == 'trainer':
                 return redirect('users:handle_profile', username=user.username)
             elif getattr(user, 'role', None) == 'learner':
                 return redirect('users:learner_dashboard_handle', username=user.username)
-            elif user.is_superuser or getattr(user, 'role', None) == 'admin':
-                return redirect('users:dashboard')  # dashboard général pour admin
             else:
-                return redirect('users:dashboard')  # fallback
+                return redirect('users:dashboard')
         else:
             messages.error(request, "Identifiants invalides.")
     
-    # Afficher le formulaire de connexion avec la valeur de 'next' pour la redirection
+    # Afficher le formulaire de connexion
     next_url = request.GET.get('next', '')
     return render(request, 'users/login.html', {'next': next_url})
 
@@ -176,8 +180,8 @@ def register(request):
     
     return render(request, 'users/register.html', {'form': form})
 
-@login_required
-def dashboard(request):
+# @login_required
+# def dashboard(request):
     user = request.user
 
     # Récupérer toutes les catégories pour les filtres
@@ -209,6 +213,45 @@ def dashboard(request):
 
     return render(request, 'users/dashboard.html', context)
 
+@login_required
+def dashboard(request):
+    user = request.user
+    categories = Category.objects.all()
+    category_slug = request.GET.get('category')
+
+    # Récupérer les cours en fonction de la catégorie sélectionnée
+    if category_slug:
+        courses = Course.objects.filter(category__slug=category_slug)
+    else:
+        courses = Course.objects.all()
+
+    # Récupérer les leçons terminées par l'utilisateur
+    from courses.models import LessonProgress
+    completed_lessons = []
+    if user.is_authenticated:
+        completed_lessons = LessonProgress.objects.filter(
+            user=user,
+            is_completed=True
+        ).values_list('lesson_id', flat=True)
+
+    context = {
+        'user': user,
+        'courses': courses,
+        'categories': categories,
+        'selected_category': category_slug,
+        'completed_lessons': list(completed_lessons),  # Convertir en liste pour le template
+    }
+
+    # Logique spécifique selon le rôle
+    if user.role == 'trainer':
+        context['trainer_view'] = True
+    elif user.role == 'learner':
+        context['learner_view'] = True
+    elif user.is_superuser or user.role == 'admin':
+        context['admin_view'] = True
+
+    return render(request, 'users/dashboard.html', context)
+    
 @login_required
 def instructor_dashboard(request):
     return redirect('handle_profile', username=request.user.username)

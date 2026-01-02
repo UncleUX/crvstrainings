@@ -64,6 +64,7 @@ class Lesson(models.Model):
     content_file = models.FileField(upload_to='lessons/files/', blank=True, null=True)
     # video_file = models.FileField(upload_to='lessons/videos/', blank=True, null=True)
     order = models.PositiveIntegerField(default=1)
+    is_active = models.BooleanField('Active', default=True)
     thumbnail = models.ImageField(upload_to='lessons/thumbnails/', blank=True, null=True)
     duration = models.DurationField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
@@ -84,6 +85,10 @@ class LessonVideo(models.Model):
 
     class Meta:
         ordering = ['order', 'id']
+
+    @property
+    def views_count(self):
+        return self.views.count()
 
     def __str__(self):
         return self.title or f"Video #{self.pk} for {self.lesson.title}"
@@ -282,18 +287,33 @@ class LearningPath(models.Model):
 
 
 class LessonProgress(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE)
-    is_completed = models.BooleanField(default=False)
-    completed_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    
-    class Meta:
-        unique_together = ('user', 'lesson')
-        verbose_name = 'Progression de leçon'
-        verbose_name_plural = 'Progressions des leçons'
-    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='utilisateur')
+    lesson = models.ForeignKey('Lesson', on_delete=models.CASCADE, verbose_name='leçon')
+    is_completed = models.BooleanField('est complétée', default=False)
+    completed_at = models.DateTimeField('date de complétion', auto_now_add=True, null=True, blank=True)
+
     def __str__(self):
-        return f"{self.user.username} - {self.lesson.title} ({'Complétée' if self.is_completed else 'En cours'})"
+        return f"{self.user.username} - {self.lesson.title}"
 
     class Meta:
+        verbose_name = 'Progression de leçon'
+        verbose_name_plural = 'Progressions des leçons'
         unique_together = ('user', 'lesson')
+
+
+class VideoView(models.Model):
+    """Modèle pour suivre les vues des vidéos"""
+    video = models.ForeignKey('LessonVideo', on_delete=models.CASCADE, related_name='views')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    ip_address = models.GenericIPAddressField('adresse IP', null=True, blank=True)
+    created_at = models.DateTimeField('date de visualisation', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Vue vidéo'
+        verbose_name_plural = 'Vues vidéo'
+        indexes = [
+            models.Index(fields=['video', 'user', 'ip_address']),
+        ]
+
+    def __str__(self):
+        return f"Vue de {self.video.title} par {self.user.username if self.user else self.ip_address}"

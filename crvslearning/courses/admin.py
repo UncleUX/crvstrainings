@@ -28,11 +28,47 @@ class ModuleAdmin(admin.ModelAdmin):
     ordering = ('course', 'order')
 
 
+class IsActiveFilter(admin.SimpleListFilter):
+    title = 'statut actif'
+    parameter_name = 'is_active'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('1', 'Actives uniquement'),
+            ('0', 'Inactives uniquement'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(is_active=True)
+        if self.value() == '0':
+            return queryset.filter(is_active=False)
+        return queryset
+
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ('title', 'module', 'order')
-    list_filter = ('module',)
+    list_display = ('title', 'module', 'order', 'is_active', 'created_at')
+    list_filter = (IsActiveFilter, 'module', 'created_at')
+    list_editable = ('is_active', 'order')
     ordering = ('module', 'order')
+    actions = ['mark_as_active', 'mark_as_inactive']
+    
+    def get_queryset(self, request):
+        # Par défaut, n'afficher que les leçons actives
+        qs = super().get_queryset(request)
+        if not request.GET.get('is_active') and not request.POST.get('action'):
+            qs = qs.filter(is_active=True)
+        return qs
+    
+    @admin.action(description='Marquer les leçons sélectionnées comme actives')
+    def mark_as_active(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated} leçon(s) marquée(s) comme active(s).')
+    
+    @admin.action(description='Marquer les leçons sélectionnées comme inactives')
+    def mark_as_inactive(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'{updated} leçon(s) marquée(s) comme inactive(s).')
 
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):

@@ -159,9 +159,9 @@
                     <span class="small text-muted">{{ video.lesson.module.course.created_by.get_full_name|default:video.lesson.module.course.created_by.username }}</span>
                   </div>
                   <div class="d-flex text-muted small mt-2">
-                    <span class="me-2">{{ video.views|default:0|intcomma }} vues</span>
-                    <span>•</span>
-                    <span class="ms-2">{{ video.created_at|timesince }}</span>
+                    <span class="me-2"><i class="fas fa-eye me-1"></i> {{ video.video_views_count|default:0|intcomma }} vue{{ video.video_views_count|default:0|pluralize }}</span>
+                    <span class="mx-2">•</span>
+                    <span>{{ video.lesson.created_at|timesince }}</span>
                   </div>
                 </div>
               </a>

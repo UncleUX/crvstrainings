@@ -3,6 +3,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from . import views
 from .views_learner_tracking import learner_dashboard, course_progress, update_learning_time
+from .admin_views import admin_dashboard
 
 app_name = 'users'  # Pense à définir un namespace pour tes URLs
 
@@ -22,6 +23,9 @@ urlpatterns = [
     path('instructor/<str:username>/', views.instructor_public, name='instructor_public'),
     path('<str:username>/', views.instructor_public, name='handle_profile'),
     path('learner/<str:username>/', views.learner_public, name='learner_dashboard_handle'),
+    
+    # URLs pour l'administration
+    path('admin/dashboard/', admin_dashboard, name='admin_dashboard'),
     
     # URLs pour le suivi des apprenants
     path('tracking/', learner_dashboard, name='learner_tracking'),

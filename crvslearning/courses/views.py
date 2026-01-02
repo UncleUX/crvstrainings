@@ -7,7 +7,7 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView
  
-from .models import Course, Module, Lesson, UserLessonProgress, Enrollment, LessonProgress, Comment, CourseRating, CourseLike, LessonVideo, Category, CourseCompletion
+from .models import Course, Module, Lesson, Enrollment, Comment, CourseRating, CourseLike, LessonVideo, Category, CourseCompletion
 from evaluations.models import EvaluationLevel
 from exercices.models import UserExerciseAttempt
 from certifications.models import Certification
@@ -56,10 +56,14 @@ def course_list(request):
 
 
 from django.db.models import Count, Q
-from .models import UserLessonProgress, LessonProgress, CourseCompletion
 
 @login_required
 def course_detail(request, course_id):
+    from .models import LessonProgress
+    from evaluations.models import Attempt
+    from django.db.models import Count, Q, Prefetch
+    from users.models import CustomUser
+    
     course = get_object_or_404(Course, id=course_id)
     is_enrolled = False
     is_course_completed = False
@@ -68,111 +72,168 @@ def course_detail(request, course_id):
     total_lessons = 0
     completed_lesson_ids = set()
     
+    # Vérifier si l'utilisateur a réussi une évaluation pour ce cours
+    has_passed_evaluation = False
     if request.user.is_authenticated:
-        # Vérifier si l'utilisateur est inscrit
+        has_passed_evaluation = Attempt.objects.filter(
+            user=request.user,
+            evaluation__course=course,
+            passed=True
+        ).exists()
+    
+    # Précharger les modules avec leurs leçons actives et la progression
+    modules = course.modules.prefetch_related(
+        Prefetch(
+            'lessons',
+            queryset=Lesson.objects.filter(is_active=True).prefetch_related(
+                Prefetch(
+                    'lessonprogress_set',
+                    queryset=LessonProgress.objects.filter(user=request.user) if request.user.is_authenticated else LessonProgress.objects.none(),
+                    to_attr='user_progress'
+                )
+            )
+        )
+    ).annotate(
+        total_lessons=Count('lessons', filter=Q(lessons__is_active=True)),
+        completed_lessons=Count(
+            'lessons',
+            filter=Q(
+                lessons__lessonprogress__user=request.user, 
+                lessons__lessonprogress__is_completed=True,
+                lessons__is_active=True
+            ) if request.user.is_authenticated else Q(pk__in=[]),
+            distinct=True
+        )
+    )
+    
+    # Calculer la progression globale en ne considérant que les leçons actives
+    active_lessons = Lesson.objects.filter(module__course=course, is_active=True)
+    total_lessons = active_lessons.count()
+    
+    if request.user.is_authenticated:
+        completed_lessons = LessonProgress.objects.filter(
+            user=request.user,
+            is_completed=True,
+            lesson__in=active_lessons
+        ).count()
+    else:
+        completed_lessons = 0
+    
+    if total_lessons > 0:
+        progress_percent = int((completed_lessons / total_lessons) * 100)
+    else:
+        progress_percent = 0
+    
+    # Vérifier si l'utilisateur est inscrit
+    if request.user.is_authenticated:
         is_enrolled = Enrollment.objects.filter(
             user=request.user, 
             course=course
         ).exists()
         
-        # Vérifier si le cours est marqué comme terminé
+        # Récupérer les IDs des leçons terminées
         if is_enrolled:
-            is_course_completed = False
-            try:
+            completed_lessons = LessonProgress.objects.filter(
+                user=request.user,
+                lesson__module__course=course,
+                is_completed=True
+            )
+            completed_lesson_ids = set(completed_lessons.values_list('lesson_id', flat=True))
+            completed_count = len(completed_lesson_ids)
+            
+            # Marquer le cours comme terminé si toutes les leçons sont terminées
+            if total_lessons > 0 and completed_count == total_lessons:
+                CourseCompletion.objects.get_or_create(
+                    user=request.user,
+                    course=course
+                )
+                is_course_completed = True
+            else:
                 is_course_completed = CourseCompletion.objects.filter(
                     user=request.user,
                     course=course
                 ).exists()
-            except Exception as e:
-                print(f"Erreur lors de la vérification de la complétion du cours: {e}")
-            
-            # Récupérer tous les IDs de leçons du cours
-            lesson_ids = list(Lesson.objects.filter(
-                module__course=course
-            ).values_list('id', flat=True))
-            
-            total_lessons = len(lesson_ids)
-            completed_count = 0
-            completed_lesson_ids = set()
-            
-            # Récupérer les leçons terminées
-            if total_lessons > 0:
-                try:
-                    completed_lessons = LessonProgress.objects.filter(
-                        user=request.user,
-                        lesson_id__in=lesson_ids,
-                        is_completed=True
-                    )
-                    completed_count = completed_lessons.count()
-                    completed_lesson_ids = set(completed_lessons.values_list('lesson_id', flat=True))
-                except Exception as e:
-                    print(f"Erreur lors de la récupération des leçons terminées: {e}")
-                    completed_count = 0
-                    completed_lesson_ids = set()
-                progress_percent = int((completed_count / total_lessons) * 100)
-                
-                # Si toutes les leçons sont terminées, marquer le cours comme terminé
-                if not is_course_completed and completed_count == total_lessons:
-                    CourseCompletion.objects.get_or_create(
-                        user=request.user,
-                        course=course
-                    )
-                    is_course_completed = True
     
-    # Obtenir le nombre d'inscrits
-    nombre_inscrits = course.enrollments.count()
-    modules = course.modules.prefetch_related('lessons', 'lessons__videos').all()
-
-    # Progression par niveau (beginner/intermediate/advanced)
+    # Obtenir les utilisateurs inscrits
+    enrolled_users = course.enrollments.select_related('user').all()
+    nombre_inscrits = enrolled_users.count()
+    
+    # Calculer la progression par niveau
     level_labels = {
         'beginner': 'Débutant',
         'intermediate': 'Intermédiaire',
         'advanced': 'Avancé',
     }
     levels_progress = []
-    if is_enrolled:
-        for level_key, level_name in level_labels.items():
-            level_modules = [m for m in modules if m.level == level_key]
-            lesson_ids_level = []
-            for m in level_modules:
-                lesson_ids_level.extend(list(m.lessons.values_list('id', flat=True)))
-            total_level = len(lesson_ids_level)
-            done_level = 0
-            if total_level:
-                from .models import LessonProgress
-                done_level = LessonProgress.objects.filter(
-                    user=request.user, lesson_id__in=lesson_ids_level, is_completed=True
-                ).count()
-            percent_level = int((done_level / total_level) * 100) if total_level else 0
-            is_level_completed = total_level > 0 and done_level == total_level
+    
+    for level_key, level_name in level_labels.items():
+        level_modules = [m for m in modules if m.level == level_key]
+        lesson_ids_level = []
+        
+        # Récupérer toutes les leçons pour ce niveau
+        for m in level_modules:
+            lesson_ids_level.extend(list(m.lessons.values_list('id', flat=True)))
+        
+        total_level = len(lesson_ids_level)
+        done_level = 0
+        percent_level = 0
+        is_level_completed = False
+        
+        # Calculer la progression pour ce niveau
+        if total_level and request.user.is_authenticated:
+            done_level = LessonProgress.objects.filter(
+                user=request.user, 
+                lesson_id__in=lesson_ids_level, 
+                is_completed=True
+            ).count()
+            percent_level = int((done_level / total_level * 100)) if total_level > 0 else 0
+            is_level_completed = (done_level == total_level) and (total_level > 0)
+        
+        # Vérifier s'il y a une évaluation pour ce niveau
+        evaluation = None
+        certification = None
+        if request.user.is_authenticated:
+            evaluation = EvaluationLevel.objects.filter(
+                course=course, 
+                level=level_key, 
+                is_active=True
+            ).first()
+            
+            certification = Certification.objects.filter(
+                user=request.user, 
+                course=course, 
+                level=level_key, 
+                is_valid=True
+            ).first()
+        
+        # Ajouter les informations de progression pour ce niveau
+        levels_progress.append({
+            'key': level_key,
+            'name': level_name,
+            'label': level_name,
+            'total': total_level,
+            'completed_lessons': done_level,
+            'total_lessons': total_level,
+            'percent': percent_level,
+            'is_completed': is_level_completed,
+            'evaluation': evaluation,
+            'certification': certification
+        })
 
-            # Evaluation et certification
-            evaluation = EvaluationLevel.objects.filter(course=course, level=level_key, is_active=True).first()
-            cert = Certification.objects.filter(user=request.user, course=course, level=level_key, is_valid=True).first()
-
-            levels_progress.append({
-                'key': level_key,
-                'label': level_name,
-                'total': total_level,
-                'done': done_level,
-                'percent': percent_level,
-                'completed': is_level_completed,
-                'evaluation': evaluation,
-                'cert': cert,
-            })
-
+    # Préparer le contexte
     context = {
         'course': course,
         'modules': modules,
         'is_enrolled': is_enrolled,
+        'is_course_completed': is_course_completed,
         'completed_count': completed_count,
         'completed_lesson_ids': completed_lesson_ids,
         'progress_percent': progress_percent,
         'total_lessons': total_lessons,
-        'completed_count': completed_count,
         'levels_progress': levels_progress,
-        'is_course_completed': is_course_completed,
-        'completed_lesson_ids': completed_lesson_ids,
+        'enrolled_users': enrolled_users,
+        'nombre_inscrits': nombre_inscrits,
+        'has_passed_evaluation': has_passed_evaluation,
     }
 
     # Course rating & like context
@@ -207,8 +268,13 @@ def module_detail(request, course_id, module_id):
     return render(request, 'courses/module_detail.html', {'module': module, 'lessons': lessons})
 
 
+from django.utils import timezone
+from django.db.models import Count
+
 @login_required
 def lesson_detail(request, lesson_id):
+    from .models import LessonProgress, VideoView
+    
     lesson = get_object_or_404(Lesson, id=lesson_id)
     course = lesson.module.course
 
@@ -238,9 +304,21 @@ def lesson_detail(request, lesson_id):
 
     # Videos: active video for current lesson and media for next lessons
     lesson_videos = list(lesson.videos.all())
+    active_video = None
     active_video_url = None
+    
     if lesson_videos:
-        active_video_url = lesson_videos[0].video_file.url if lesson_videos[0].video_file else None
+        active_video = lesson_videos[0]
+        active_video_url = active_video.video_file.url if active_video.video_file else None
+        
+        # Enregistrer la vue de la vidéo
+        if active_video:
+            VideoView.objects.create(
+                video=active_video,
+                user=request.user if request.user.is_authenticated else None,
+                ip_address=request.META.get('REMOTE_ADDR')
+            )
+    
     if not active_video_url and getattr(lesson, 'video_file', None):
         # fallback to legacy field
         try:
@@ -371,12 +449,15 @@ def lesson_detail(request, lesson_id):
         ur = CourseRating.objects.filter(course=course, user=request.user).first()
         if ur:
             user_rating_value = ur.rating
-        user_liked = CourseLike.objects.filter(course=course, user=request.user).exists()
-
     # Vérifier si la leçon est marquée comme terminée
     lesson_completed = progress.is_completed if hasattr(progress, 'is_completed') else False
     
-    return render(request, 'courses/lesson_detail.html', {
+    # Compter le nombre de vues uniques pour la leçon
+    video_views_count = 0
+    if active_video:
+        video_views_count = VideoView.objects.filter(video=active_video).count()
+
+    context = {
         'lesson': lesson,
         'module': lesson.module,
         'course': course,
@@ -402,7 +483,12 @@ def lesson_detail(request, lesson_id):
         'combined_playlist': combined_playlist,
         'user_exercise_attempts': user_exercise_attempts,
         'lesson_completed': lesson_completed,
-    })
+        'video_views_count': video_views_count,
+        'active_video': active_video,  # Ajouté pour le débogage
+    }
+    print(f"Contexte envoyé au template: {context.keys()}")
+    print(f"Nombre de vues: {video_views_count}")
+    return render(request, 'courses/lesson_detail.html', context)
 
 
 @login_required
@@ -709,6 +795,17 @@ def search(request):
         
         # Recherche de formateurs (chaînes)
         if search_type in ['all', 'channels']:
+            from django.db.models import Subquery, OuterRef, Count, Q, Case, When, Value, IntegerField
+            from django.db.models.functions import Concat
+            
+            # Sous-requête pour compter les abonnés actifs
+            from subscriptions.models import Subscription
+            active_subscribers = Subscription.objects.filter(
+                trainer=OuterRef('pk'),
+                is_active=True
+            ).values('trainer').annotate(count=Count('id')).values('count')
+            
+            # Récupérer tous les formateurs correspondant à la recherche
             instructor_results = User.objects.filter(
                 Q(username__icontains=q) | 
                 Q(first_name__icontains=q) | 
@@ -720,7 +817,7 @@ def search(request):
             ).annotate(
                 full_name=Concat('first_name', Value(' '), 'last_name'),
                 courses_count=Count('courses', distinct=True),
-                subscribers_count=Count('subscribers', filter=Q(subscriptions__is_active=True), distinct=True),
+                subscribers_count=Subquery(active_subscribers, output_field=IntegerField()),
                 # Score de pertinence
                 relevance=Case(
                     When(username__iexact=q, then=Value(100)),
@@ -732,6 +829,11 @@ def search(request):
                     output_field=IntegerField()
                 )
             ).order_by('-relevance', '-subscribers_count')
+            
+            # Remplacer None par 0 pour les formateurs sans abonnés
+            for instructor in instructor_results:
+                if instructor.subscribers_count is None:
+                    instructor.subscribers_count = 0
         
         # Recherche de cours
         if search_type in ['all', 'courses']:
@@ -775,6 +877,9 @@ def search(request):
         if search_type in ['all', 'videos']:
             from datetime import datetime
             
+            # Sous-requête pour compter les vues de chaque vidéo
+            from django.db.models import Count, OuterRef, Subquery, IntegerField
+            
             video_results = LessonVideo.objects.filter(
                 Q(title__icontains=q) | 
                 Q(lesson__title__icontains=q) |
@@ -795,6 +900,8 @@ def search(request):
                     Value(' '),
                     'lesson__module__course__created_by__last_name'
                 ),
+                # Compter les vues directement dans la requête (utiliser un nom différent de la propriété existante)
+                video_views_count=Count('views'),
                 # Score de pertinence
                 relevance=Case(
                     When(title__iexact=q, then=Value(100)),
@@ -967,16 +1074,16 @@ def mark_lesson_completed(request, lesson_id):
     from django.db import transaction
     from django.utils import timezone
     from django.http import JsonResponse
+    from django.db.models import Count, Q
     
     try:
         with transaction.atomic():
-            # Récupérer la leçon avec ses relations
-            lesson = Lesson.objects.select_related(
-                'module', 
-                'module__course'
-            ).prefetch_related(
-                'module__lessons'
-            ).get(id=lesson_id)
+            # Récupérer la leçon active avec ses relations
+            lesson = get_object_or_404(
+                Lesson.objects.select_related('module', 'module__course'),
+                id=lesson_id,
+                is_active=True  # Ne traiter que les leçons actives
+            )
             
             course = lesson.module.course
             module = lesson.module
@@ -1004,39 +1111,52 @@ def mark_lesson_completed(request, lesson_id):
             progress.completed_at = timezone.now() if progress.is_completed else None
             progress.save()
             
-            # Mettre à jour les statistiques de progression
-            total_lessons = Lesson.objects.filter(module__course=course).count()
-            completed_lessons = LessonProgress.objects.filter(
-                user=request.user,
-                lesson__module__course=course,
-                is_completed=True
-            ).count()
+            # Récupérer tous les modules du cours avec le nombre de leçons
+            modules = course.modules.annotate(
+                total_lessons=Count('lessons'),
+                completed_lessons=Count(
+                    'lessons',
+                    filter=Q(lessons__lessonprogress__user=request.user, 
+                           lessons__lessonprogress__is_completed=True)
+                )
+            )
             
-            # Vérifier si le module est maintenant terminé
-            module_lessons = module.lessons.all()
-            module_lesson_ids = list(module_lessons.values_list('id', flat=True))
-            completed_module_lessons = LessonProgress.objects.filter(
-                user=request.user,
-                lesson_id__in=module_lesson_ids,
-                is_completed=True
-            ).count()
-            
-            module_completed = (completed_module_lessons == len(module_lessons))
+            # Calculer la progression globale du cours
+            total_lessons = sum(m.total_lessons for m in modules)
+            completed_lessons = sum(m.completed_lessons for m in modules)
             
             # Vérifier si le cours est maintenant terminé
             course_completed = (completed_lessons == total_lessons)
-            if course_completed and progress.is_completed:  # Seulement si on marque comme terminé
+            
+            # Mettre à jour l'achèvement du cours si nécessaire
+            if course_completed and progress.is_completed:
                 CourseCompletion.objects.get_or_create(
                     user=request.user,
                     course=course,
                     defaults={'completed_at': timezone.now()}
                 )
-            elif not progress.is_completed and course_completed:
-                # Si on décoche une leçon et que le cours était marqué comme terminé
+            elif not progress.is_completed:
+                # Si on décoche une leçon, supprimer l'achèvement du cours s'il existe
                 CourseCompletion.objects.filter(
                     user=request.user,
                     course=course
                 ).delete()
+            
+            # Préparer les données de progression des modules
+            modules_progress = []
+            for m in modules:
+                module_completed = (m.completed_lessons == m.total_lessons)
+                modules_progress.append({
+                    'id': m.id,
+                    'title': m.title,
+                    'completed': module_completed,
+                    'completed_lessons': m.completed_lessons,
+                    'total_lessons': m.total_lessons,
+                    'progress_percent': int((m.completed_lessons / m.total_lessons * 100)) if m.total_lessons > 0 else 0
+                })
+            
+            # Calculer la progression globale en pourcentage
+            progress_percent = int((completed_lessons / total_lessons * 100)) if total_lessons > 0 else 0
             
             # Préparer la réponse
             response_data = {
@@ -1048,15 +1168,11 @@ def mark_lesson_completed(request, lesson_id):
                 'progress': {
                     'completed': completed_lessons,
                     'total': total_lessons,
-                    'percent': int((completed_lessons / total_lessons * 100)) if total_lessons > 0 else 0
+                    'percent': progress_percent
                 },
-                'module': {
-                    'completed': module_completed,
-                    'completed_lessons': completed_module_lessons,
-                    'total_lessons': len(module_lessons)
-                },
+                'modules': modules_progress,
                 'course_completed': course_completed,
-                'message': f'Leçon marquée comme {"terminée" if progress.is_completed else "non terminée"} avec succès.'
+                'message': f'Progression mise à jour avec succès. {completed_lessons}/{total_lessons} leçons terminées.'
             }
             
             return JsonResponse(response_data)
