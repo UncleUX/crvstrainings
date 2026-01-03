@@ -84,7 +84,40 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   }
 </style>
+<style>
+      .overlay {
+    position: absolute;
+    font-weight: 800;
+    width: 100% !important;
+    height: 100%;
+    background: #ffffff;
+    opacity: 1;
+    top: 0%;
+    left: -0%;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    }
 
+    .overlay h1 {
+    font-size: 100px;
+    letter-spacing: 20px;
+    font-size: 150px;
+    font-weight: 800;
+    }
+
+    .overlay span {
+    letter-spacing: 5px;
+    font-size: 70px;
+    font-weight: 600;
+    }
+</style>
+ <div class="overlay">
+    <h1>Welcome</h1>
+    <span style="color: #330aec;">@{{ request.user.username|lower }}</span>
+  </div>
 <div class="container px-0">
   <section class="chan-cover">
     {% if trainer.cover %}
@@ -1395,4 +1428,62 @@
     });
   </script>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+
+    TweenMax.to(".overlay h1", 2, {
+      opacity: 0,
+      y: -60,
+      ease: Expo.easeInOut
+    })
+
+    TweenMax.to(".overlay span", 2, {
+      delay: .3,
+      opacity: 0,
+      y: -60,
+      ease: Expo.easeInOut
+    })
+
+    TweenMax.to(".overlay", 2, {
+      delay: 1,
+      top: "-100%",
+      ease: Expo.easeInOut
+    })
+     TweenMax.from(".hero-title", 1, {
+      delay: 2.4,
+      opacity: 0,
+      ease: Expo.easeInOut
+    })
+     TweenMax.from(".hero img", 1, {
+      delay: 2.8,
+      opacity: 0,
+      ease: Expo.easeInOut
+    })
+    TweenMax.from(".menu a", 1, {
+      delay: 3,
+      opacity: 0,
+      y: -100,
+      ease: Expo.easeInOut
+    })
+      TweenMax.from("Header", 1, {
+      delay: 3.4,
+      opacity: 0,
+      y: -100,
+      ease: Expo.easeInOut
+    })
+     TweenMax.staggerFrom(".fw-semibold", 1, {
+      delay: 3.2,
+      opacity: 0,
+      x: -100,
+      ease: Expo.easeInOut
+    }, 0.08)
+
+    TweenMax.from(".each", 1, {
+      delay: 3.4,
+      opacity: 0,
+      x: 200,
+      ease: Expo.easeInOut
+    })
+
+</script>
 {% endblock %}

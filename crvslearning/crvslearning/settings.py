@@ -195,14 +195,16 @@ MEDIA_ROOT = BASE_DIR / "media"
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_NAME = "crvslearning_sessionid"
 SESSION_COOKIE_AGE = 1209600
-SESSION_COOKIE_SECURE = not DEBUG
+# SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 CSRF_USE_SESSIONS = True
 CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SECURE = not DEBUG
+# CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = True
 
 # ==================================================
 # SECURITY HEADERS
@@ -213,6 +215,7 @@ USE_X_FORWARDED_HOST = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://crvslearning.etatcivil.cm",
+    "https://www.crvslearning.etatcivil.cm",
 ]
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
