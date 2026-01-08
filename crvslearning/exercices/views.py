@@ -21,10 +21,12 @@ class ExerciseCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.lesson = get_object_or_404(Lesson, id=self.kwargs['lesson_id'])
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        messages.success(self.request, 'Exercice enregistré avec succès!')
+        return response
 
     def get_success_url(self):
-        return reverse_lazy('courses:lesson_detail', kwargs={'pk': self.object.lesson.id})
+        return reverse_lazy('users:instructor_public', kwargs={'username': self.request.user.username})
 
 @login_required
 @require_POST

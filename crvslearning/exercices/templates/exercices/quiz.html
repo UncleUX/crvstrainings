@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Quiz : {{ lesson.title }}</h2>
+                    <p class="mb-0">{{ course.title }} - Module {{ lesson.module.title }}</p>
+                </div>
+                
+                <div class="card-body">
+                    {% if exercises %}
+                        <form method="post" id="quiz-form">
+                            {% csrf_token %}
+                            
+                            {% for exercise in exercises %}
+                                <div class="card mb-4">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Question {{ forloop.counter }}</h5>
+                                        <p class="card-text">{{ exercise.question }}</p>
+                                        
+                                        <div class="choices-container ms-3">
+                                            {% for choice in exercise.choices.all %}
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input" 
+                                                           type="radio" 
+                                                           name="exercise_{{ exercise.id }}" 
+                                                           id="choice_{{ choice.id }}" 
+                                                           value="{{ choice.id }}"
+                                                           {% if user_attempts|get_item:exercise.id == choice.id %}checked{% endif %}>
+                                                    <label class="form-check-label" for="choice_{{ choice.id }}">
+                                                        {{ choice.text }}
+                                                    </label>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send-check me-2"></i>Soumettre le quiz
+                                </button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Aucun exercice disponible pour cette leçon pour le moment.
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-light">
+                    <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Retour au cours
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier que tous les champs sont remplis avant de soumettre
+    const form = document.getElementById('quiz-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const unanswered = [];
+            const exerciseInputs = form.querySelectorAll('input[type="radio"]:checked');
+            const totalExercises = {{ exercises|length }};
+            
+            if (exerciseInputs.length < totalExercises) {
+                e.preventDefault();
+                alert('Veuillez répondre à toutes les questions avant de soumettre.');
+                return false;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

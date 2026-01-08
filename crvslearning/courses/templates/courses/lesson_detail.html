@@ -61,8 +61,9 @@
         </div>
         {% endif %}
       {% endif %}
-      <button class="btn ghost" id="btn-open-comment" type="button">
+      <button class="btn ghost" id="btn-open-comment" type="button" style="color: #000000 !important;">
         <i class="bi bi-chat-left-text me-2"></i>
+        <span>Commentaires</span>
       </button>
       {% if user.is_authenticated and is_enrolled %}
         <form class="mark-lesson-completed-form" action="{% url 'courses:mark_lesson_completed' lesson.id %}" method="post" data-lesson-id="{{ lesson.id }}">
@@ -200,8 +201,8 @@
 
 
     <!-- Section des exercices -->
-    <!-- <div class="mt-5 bg-primary">
-        <h3>Exercices</h3>
+    <!-- <div id="exercises" class="mt-5">
+        <h3 class="mb-4">Exercices</h3>
         
         {% for exercise in lesson.exercises.all %}
         <div class="card mb-4 exercise-card" data-exercise-id="{{ exercise.id }}">
@@ -242,7 +243,7 @@
         <div class="mt-3">
             <a href="{% url 'exercises:exercise_create' lesson_id=lesson.id %}" 
                class="btn btn-outline-primary btn-sm">
-                <i class="fas fa-plus"></i> Ajouter un exercice
+                <i class="bi bi-plus-circle"></i> Ajouter un exercice
             </a>
         </div>
         {% endif %}
@@ -250,83 +251,168 @@
 
     <input type="hidden" id="next-url" value="{% if next_lesson %}{% url 'courses:lesson_detail' next_lesson.id %}{% endif %}">
 </div>
-  <aside class="ld-aside" style="height: 300px;">
+  <aside class="ld-aside">
     <h4 class="aside-title">À suivre</h4>
     <div class="yt-list" id="yt-list"></div>
-     <!-- Section des exercices -->
-    <div class="mt-5 bg-primary" style="border-radius: 10px;">
-        <h3>Exercices</h3>
-        
-        {% for exercise in lesson.exercises.all %}
-        <div class="card mb-4 exercise-card" data-exercise-id="{{ exercise.id }}">
-            <div class="card-body">
-                <h5 class="card-title">Exercice {{ exercise.order }}</h5>
-                <p class="card-text">{{ exercise.question }}</p>
-                
-                <form class="exercise-form">
-                    {% csrf_token %}
-                    <div class="choices-container mb-3">
-                        {% for choice in exercise.choices.all %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" 
-                                   name="exercise_{{ exercise.id }}" 
-                                   id="choice_{{ choice.id }}" 
-                                   value="{{ choice.id }}"
-                                   {% with attempt=user_exercise_attempts|get_item:exercise.id|default:None %}
-                                   {% if attempt and attempt.choice_id == choice.id %}checked{% endif %}
-                                   {% endwith %}>
-                            <label class="form-check-label" for="choice_{{ choice.id }}">
-                                {{ choice.text }}
-                            </label>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <button type="submit" class="btn btn-sm btn-primary">Valider</button>
-                    <div class="feedback mt-2" style="display: none;"></div>
-                </form>
-            </div>
-        </div>
-        {% empty %}
-        <div class="alert alert-info">
-            Aucun exercice disponible pour cette leçon.
-        </div>
-        {% endfor %}
-        
-        {% if user.is_authenticated and user == lesson.course.instructor %}
-        <div class="mt-3">
-            <a href="{% url 'exercises:exercise_create' lesson_id=lesson.id %}" 
-               class="btn btn-outline-primary btn-sm">
-                <i class="fas fa-plus"></i> Ajouter un exercice
-            </a>
-        </div>
-        {% endif %}
-    </div>
-
   </aside>
 </div>
 
 
 <style>
-  /* Style pour le bouton de marquage de leçon */
-  .mark-lesson-btn {
-    transition: all 0.3s ease;
+  /* Style de base pour tous les boutons */
+  .btn {
+    position: relative;
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    color: #000000 !important; /* Couleur de texte noire pour une meilleure lisibilité */
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Bordure subtile */
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: none;
+    letter-spacing: 0.5px;
     display: inline-flex;
     align-items: center;
-    border: 1px solid #dee2e6;
+    justify-content: center;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    cursor: pointer;
   }
 
-  .mark-lesson-btn:hover {
-    background-color: rgba(25, 135, 84, 0.1);
+  /* Effet de vague au survol */
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: 0.5s;
   }
 
-  .mark-lesson-btn.completed {
-    color: #198754;
-    border-color: #198754;
-    background-color: rgba(25, 135, 84, 0.05);
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    color: #fff !important;
   }
 
-  .mark-lesson-btn.completed:hover {
-    background-color: rgba(25, 135, 84, 0.15);
+  .btn:hover::before {
+    left: 100%;
+  }
+
+  .btn i {
+    margin-right: 8px;
+    transition: transform 0.3s ease;
+  }
+
+  .btn:hover i {
+    transform: scale(1.1);
+  }
+
+  /* Style pour le bouton de marquage de leçon */
+  .mark-lesson-btn {
+    position: relative;
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    color: #e0e0e0 !important;
+  }
+
+  /* Style pour les boutons terminés et de succès */
+  .mark-lesson-btn.completed, 
+  .btn-success,
+  .btn.solid,
+  .btn.submit {
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    border-color: #00a4ff !important;
+    color: #fff !important;
+    box-shadow: 0 4px 16px rgba(0, 114, 206, 0.4);
+  }
+
+  .mark-lesson-btn.completed:hover, 
+  .btn-success:hover,
+  .btn.solid:hover,
+  .btn.submit:hover {
+    background: linear-gradient(135deg, #0072ce, #00439c);
+    box-shadow: 0 6px 20px rgba(0, 136, 255, 0.5);
+    border-color: #00a4ff !important;
+  }
+
+  /* Style pour les boutons secondaires (ghost) */
+  .btn.ghost {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    color: #000000 !important;
+    transition: all 0.2s ease;
+  }
+  
+  .btn.ghost:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
+  }
+
+  /* Style pour le bouton de téléchargement */
+  .btn .bi-download {
+    color: #4CAF50;
+  }
+
+  /* Style pour le bouton de commentaire */
+  .btn #btn-open-comment .bi-chat-left-text {
+    color: #FFC107;
+  }
+
+  /* Style pour le bouton d'ajout de vidéo */
+  .btn .bi-plus-circle {
+    color: #9C27B0;
+  }
+
+  /* Style pour les boutons de navigation */
+  .ld-navigation .btn {
+    min-width: 180px;
+    text-align: center;
+  }
+
+  /* Style pour le bouton d'évaluation */
+  .btn.solid {
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    border: 1px solid #00a4ff;
+    color: #00a4ff !important;
+  }
+
+  .btn.solid:hover {
+    background: linear-gradient(135deg, #0072ce, #00439c);
+    color: #fff !important;
+  }
+
+  /* Style pour le bouton d'annulation du formulaire */
+  .btn.cancel {
+    background: transparent;
+    border: 1px solid #ff4d4f;
+    color: #ff4d4f !important;
+    transition: all 0.3s ease;
+  }
+
+  .btn.cancel:hover {
+    background: rgba(255, 77, 79, 0.1);
+    border-color: #ff7875;
+    color: #ff7875 !important;
+  }
+
+  /* Style pour le bouton de soumission du formulaire (Publier) */
+  .btn.submit {
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    border: 1px solid #00a4ff;
+    color: #00a4ff !important;
+    margin-left: 10px;
+  }
+
+  .btn.submit:hover {
+    background: linear-gradient(135deg, #0072ce, #00439c);
+    color: #fff !important;
+    border-color: #00a4ff;
   }
 
   .mark-lesson-btn i {
@@ -395,13 +481,29 @@
   }
   
   .btn.solid {
-    background: #2563eb;
-    color: #fff;
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    color: #e0e0e0 !important;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 10px 20px;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+    font-size: 0.9rem;
+    text-transform: none;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    cursor: pointer;
+    align-items: center;
+    border: 1px solid #dee2e6;
   }
   
   .btn.solid:hover {
+    background-color: rgba(25, 135, 84, 0.1);
     background: #1d4ed8;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);

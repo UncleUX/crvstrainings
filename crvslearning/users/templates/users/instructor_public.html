@@ -1,6 +1,20 @@
 {% extends "base.html" %}
 {% block title %}{{ trainer.username }} - Chaîne{% endblock %}
 {% block content %}
+<!-- Fond flou bleuté -->
+<div style="
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.1) 0%, rgba(0, 183, 255, 0.15) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: -1;
+  pointer-events: none;
+"></div>
+
 <style>
   :root{ --cover-h: 220px; }
   .chan-cover{position:relative;height:var(--cover-h);background:#0b0d17;border-radius:14px;overflow:hidden;margin-bottom:0}
@@ -9,17 +23,184 @@
   .chan-name{font-weight:900;font-size:1.4rem}
   .chan-meta{color:#6b7280;font-size:.9rem}
   .chan-actions{margin-left:auto;display:flex;gap:8px}
-  .chan-tabs{display:flex;gap:18px;border-bottom:1px solid #e5e7eb;margin-top:6px}
-  .chan-tab{display:inline-block;padding:10px 2px;color:#111827;text-decoration:none;font-weight:700}
-  .chan-tab.active{border-bottom:2px solid #111827}
+  /* Style pour les onglets de navigation */
+  .chan-tabs {
+    display: flex;
+    gap: 8px;
+    border: none;
+    margin: 6px 0 14px 0;
+    padding: 0;
+    background: rgba(26, 26, 26, 0.1);
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .chan-tab {
+    display: inline-block;
+    padding: 10px 20px;
+    color: #e0e0e0;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    border: 1px solid #3a3a3a;
+  }
+
+  .chan-tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: 0.5s;
+  }
+
+  .chan-tab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    color: #fff;
+  }
+
+  .chan-tab:hover::before {
+    left: 100%;
+  }
+
+  .chan-tab.active {
+    background: linear-gradient(135deg, #0072ce, #00439c);
+    color: #fff;
+    border-color: #00a4ff;
+    box-shadow: 0 4px 16px rgba(0, 114, 206, 0.4);
+  }
+
+  .chan-tab.active:hover {
+    background: linear-gradient(135deg, #0088ff, #0055cc);
+    box-shadow: 0 6px 20px rgba(0, 136, 255, 0.5);
+  }
   .grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
   .card-link{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fff;text-decoration:none;color:inherit}
   .card-media{position:relative;height:150px;background:#0b1220}
   .card-fallback{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:42px}
   .chan-avatar .card-fallback{font-size:28px}
   .badge-muted{font-size:12px;color:#6b7280;margin-bottom:4px}
-  .btn-subscribe{transition:all .2s}
-  .btn-subscribe:hover{transform:translateY(-1px)}
+  /* Styles de base pour tous les boutons */
+  .btn {
+    position: relative;
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    color: #e0e0e0 !important;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: none;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* Effet de vague au survol */
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: 0.5s;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    color: #fff !important;
+  }
+
+  .btn:hover::before {
+    left: 100%;
+  }
+
+  .btn i {
+    margin-right: 8px;
+    transition: transform 0.3s ease;
+  }
+
+  .btn:hover i {
+    transform: scale(1.1);
+  }
+
+  /* Style pour les boutons primaires */
+  .btn-primary {
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d) !important;
+    border: 1px solid #00a4ff !important;
+    color: #00a4ff !important;
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #0072ce, #00439c) !important;
+    color: #fff !important;
+    border-color: #00a4ff !important;
+  }
+
+  /* Style pour le bouton d'abonnement */
+  .btn-subscribe {
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    border: 1px solid #00a4ff;
+    color: #00a4ff;
+    transform: translateY(-2px) !important;
+  }
+
+  /* Style pour le bouton d'abonnement actif */
+  .btn-outline-danger {
+    background: transparent !important;
+    border: 1px solid #ff4d4f !important;
+    color: #ff4d4f !important;
+  }
+
+  .btn-outline-danger:hover {
+    background: rgba(255, 77, 79, 0.1) !important;
+    color: #ff7875 !important;
+    border-color: #ff7875 !important;
+  }
+
+  /* Style pour les boutons outline dark */
+  .btn-outline-dark {
+    background: transparent !important;
+    border: 1px solid #6c757d !important;
+    color: #6c757d !important;
+  }
+
+  .btn-outline-dark:hover {
+    background: rgba(108, 117, 125, 0.1) !important;
+    color: #adb5bd !important;
+    border-color: #adb5bd !important;
+  }
+
+  /* Style pour le bouton secondaire */
+  .btn-outline-secondary {
+    background: transparent !important;
+    border: 1px solid #6c757d !important;
+    color: #6c757d !important;
+  }
+
+  .btn-outline-secondary:hover {
+    background: rgba(108, 117, 125, 0.1) !important;
+    color: #adb5bd !important;
+    border-color: #adb5bd !important;
+  }
   .live-badge{display:inline-block;background:#ef4444;color:#fff;font-weight:900;border-radius:999px;padding:2px 8px;font-size:11px}
   .rating{display:inline-flex;align-items:center;gap:6px;margin-top:4px}
   .stars{color:#f59e0b;font-size:14px;letter-spacing:1px}
@@ -29,30 +210,110 @@
   .cover-edit .btn{backdrop-filter:saturate(140%) blur(2px)}
   .avatar-edit{position:absolute;right:-6px;bottom:-6px;background:#0b5ed7;color:#fff;border-radius:999px;border:2px solid #fff;width:22px;height:22px;display:grid;place-items:center;font-size:12px;box-shadow:0 6px 12px rgba(0,0,0,.25)}
   
-  /* Styles pour le bouton FAB */
+  /* Styles pour le bouton FAB - Thème Gaming */
   .fab-button {
     position: fixed;
     right: 22px;
     top: 80px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+    width: 60px;
+    height: 60px;
     border: none;
-    background: #0b5ed7;
-    color: #fff;
-    font-size: 24px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #0a0a1a, #1a1a2e);
+    color: #00f7ff;
+    font-size: 30px;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 
+      0 0 15px rgba(0, 247, 255, 0.3),
+      0 0 30px rgba(0, 0, 0, 0.5),
+      inset 0 2px 3px rgba(255, 255, 255, 0.1);
     z-index: 1001;
-    transition: transform 0.2s ease, background-color 0.2s ease;
     cursor: pointer;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    perspective: 500px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-shadow: 0 0 10px rgba(0, 247, 255, 0.7);
+  }
+  
+  .fab-button::before,
+  .fab-button::after {
+    content: '';
+    position: absolute;
+    border-radius: 8px;
+    transition: all 0.4s ease;
+  }
+  
+  /* Effet de bordure néon */
+  .fab-button::before {
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #00f7ff, #0066ff, #00f7ff);
+    background-size: 200% 200%;
+    z-index: -2;
+    animation: borderGlow 3s linear infinite;
+  }
+  
+  /* Effet de surbrillance intérieure */
+  .fab-button::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    background: linear-gradient(145deg, #0a0a1a, #1a1a2e);
+    z-index: -1;
+    border-radius: 8px;
+  }
+  
+  .fab-button i {
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
   }
   
   .fab-button:hover {
-    transform: scale(1.1);
-    background: #0a58ca;
+    transform: translateY(-5px) scale(1.1) rotateX(10deg);
+    box-shadow: 
+      0 5px 25px rgba(0, 247, 255, 0.5),
+      0 0 40px rgba(0, 0, 0, 0.8),
+      inset 0 2px 3px rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    text-shadow: 0 0 15px #00f7ff, 0 0 30px #00f7ff;
+  }
+  
+  .fab-button:hover i {
+    transform: scale(1.2) rotate(90deg);
+  }
+  
+  .fab-button:active {
+    transform: translateY(0) scale(0.95);
+    box-shadow: 
+      0 2px 10px rgba(0, 247, 255, 0.3),
+      0 0 20px rgba(0, 0, 0, 0.5),
+      inset 0 2px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Animation de la bordure néon */
+  @keyframes borderGlow {
+    0% {
+      background-position: 0% 50%;
+      opacity: 0.8;
+    }
+    50% {
+      background-position: 100% 50%;
+      opacity: 1;
+    }
+    100% {
+      background-position: 0% 50%;
+      opacity: 0.8;
+    }
   }
   
   /* Styles pour la modal FAB */
@@ -94,7 +355,7 @@
     opacity: 1;
     top: 0%;
     left: -0%;
-    z-index: 999;
+    z-index: 10;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -127,16 +388,16 @@
     {% endif %}
     {% if request.user.is_authenticated and request.user.id == trainer.id or request.user.is_authenticated and request.user.is_superuser %}
       <div class="cover-edit">
-        <form id="cover-form" method="post" action="{% url 'users:upload_cover' %}" enctype="multipart/form-data" style="display:inline-block;">
+        <form id="cover-form" method="post" action="{% url 'users:upload_cover' %}" enctype="multipart/form-data" style="display:inline-block;" onsubmit="return false;">
           {% csrf_token %}
           <input id="cover-input" type="file" name="cover" accept="image/*" style="display:none;">
-          <button id="cover-btn" type="button" class="btn btn-sm btn-light">Modifier la couverture</button>
+          <button id="cover-btn" type="button" class="btn btn-sm btn-light" style="z-index: 1;">Modifier la couverture</button>
         </form>
       </div>
     {% endif %}
   </section>
   <section class="chan-head container">
-    <div class="chan-avatar">
+    <div class="chan-avatar" style="position:relative;width:150px;height:150px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
       {% with avatar_display=trainer.get_avatar_display %}
         {% if avatar_display.type == 'image' %}
           <img src="{{ avatar_display.url }}" alt="{{ avatar_display.alt }}" style="width:100%;height:100%;object-fit:cover;">
@@ -147,7 +408,7 @@
         {% endif %}
       {% endwith %}
       {% if request.user.is_authenticated and request.user.id == trainer.id or request.user.is_authenticated and request.user.is_superuser %}
-        <form id="avatar-form" method="post" action="{% url 'users:upload_avatar' %}" enctype="multipart/form-data" style="display:none;">
+        <form id="avatar-form" method="post" action="{% url 'users:upload_avatar' %}" enctype="multipart/form-data" style="display:none;" onsubmit="return false;">
           {% csrf_token %}
           <input id="avatar-input" type="file" name="avatar" accept="image/*">
         </form>
@@ -209,33 +470,33 @@
   </div> -->
   {% endif %}
   
-  <ul class="nav nav-tabs container" role="tablist" style="margin:6px 0 14px 0; font-size:0; line-height:0">
-    <li class="nav-item" role="presentation">
-      <a class="nav-link active" data-bs-toggle="tab" href="#accueil" role="tab" aria-controls="accueil" aria-selected="true" style="font-size:1rem; line-height:1.25">Accueil</a>
-    </li>
-    <li class="nav-item" role="presentation">
-      <a class="nav-link" data-bs-toggle="tab" href="#videos" role="tab" aria-controls="videos" aria-selected="false" style="font-size:1rem; line-height:1.25">Vidéos</a>
-    </li>
-    <li class="nav-item" role="presentation">
-      <a class="nav-link" data-bs-toggle="tab" href="#lives" role="tab" aria-controls="lives" aria-selected="false" style="font-size:1rem; line-height:1.25">Lives</a>
-    </li>
-    <li class="nav-item" role="presentation">
-      <a class="nav-link" data-bs-toggle="tab" href="#about" role="tab" aria-controls="about" aria-selected="false" style="font-size:1rem; line-height:1.25">À propos</a>
-    </li>
+  <div class="chan-tabs" role="tablist">
+    <a class="chan-tab active" data-bs-toggle="tab" href="#accueil" role="tab" aria-controls="accueil" aria-selected="true">
+      <i class="bi bi-house-door"></i> Accueil
+    </a>
+    <a class="chan-tab" data-bs-toggle="tab" href="#videos" role="tab" aria-selected="false">
+      <i class="bi bi-camera-video"></i> Vidéos
+    </a>
+    <a class="chan-tab" data-bs-toggle="tab" href="#lives" role="tab" aria-selected="false">
+      <i class="bi bi-camera-web"></i> Lives
+    </a>
+    <a class="chan-tab" data-bs-toggle="tab" href="#about" role="tab" aria-selected="false">
+      <i class="bi bi-info-circle"></i> À propos
+    </a>
     {% if request.user == trainer %}
-    <li class="nav-item ms-auto d-flex align-items-center" role="presentation">
-      <a href="{% url 'interactions:inbox' %}" class="nav-link position-relative" style="font-size:1rem; line-height:1.25">
+    <!-- <div class="ms-auto d-flex align-items-center">
+      <a href="{% url 'interactions:inbox' %}" class="chan-tab position-relative">
         <i class="fas fa-envelope me-1"></i> Messages
         {% if unread_count %}
-          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem">
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="background: linear-gradient(135deg, #ff4d4f, #cf1322); font-size:0.6rem; padding: 0.25em 0.5em; min-width: 1.5em">
             {{ unread_count }}
             <span class="visually-hidden">messages non lus</span>
           </span>
         {% endif %}
       </a>
-    </li>
+    </div> -->
     {% endif %}
-  </ul>
+  </div>
 
   <div class="tab-content">
   <section id="accueil" class="container tab-pane fade show active" style="padding-top:12px">
@@ -342,6 +603,7 @@
                     <i class="fas fa-play-circle" style="font-size: 3rem; color: rgba(255,255,255,0.9);"></i>
                   </div>
                 {% else %}
+                  <body class="bg-light" style="position: relative;">
                   <div class="bg-light d-flex align-items-center justify-content-center" style="height: 100%;">
                     <i class="fas fa-play-circle" style="font-size: 3rem; color: #6c757d;"></i>
                   </div>
@@ -396,7 +658,9 @@
   </section>
 
   {% if request.user.is_authenticated and request.user.id == trainer.id or request.user.is_authenticated and request.user.is_superuser %}
-  <button id="fab-plus" class="fab-button" aria-label="Créer" title="Créer">+</button>
+  <button id="fab-plus" class="fab-button" aria-label="Créer" title="Créer du contenu" style="z-index: 1;">
+    <i class="bi bi-plus-lg"></i>
+  </button>
   <div id="fab-modal" class="fab-modal">
     <div style="background:#fff;border-radius:12px;width:36vw;padding:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
@@ -1315,15 +1579,87 @@
       // Charger les cours au chargement de la page
       loadCoursesForExercise();
     });
-    // Gestion du téléchargement de l'avatar et de la couverture
+  </script>
+  
+  <style>
+    /* Styles pour les notifications toast */
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    .toast-alert {
+      animation: slideIn 0.3s ease-out;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1100;
+      min-width: 250px;
+    }
+    
+    .toast-alert.hide {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+  </style>
+  
+  <script>
+    // Fonction utilitaire pour afficher des notifications toast
+    function showToast(message, type = 'success') {
+      // Créer le conteneur s'il n'existe pas
+      let container = document.getElementById('toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.position = 'fixed';
+        container.style.top = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = '1100';
+        document.body.appendChild(container);
+      }
+      
+      // Créer le toast
+      const toast = document.createElement('div');
+      toast.className = `alert alert-${type} alert-dismissible fade show toast-alert`;
+      toast.role = 'alert';
+      toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+      toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Supprimer le toast après 5 secondes
+      setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+      }, 5000);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       // Gestion du bouton de modification de la couverture
       const coverBtn = document.getElementById('cover-btn');
       const coverInput = document.getElementById('cover-input');
       const coverForm = document.getElementById('cover-form');
       
-      // Gestion du clic sur le bouton de couverture
-      if (coverBtn && coverInput) {
+      if (coverBtn && coverInput && coverForm) {
+        // Supprimer complètement l'action du formulaire pour être sûr qu'il ne se soumette pas
+        coverForm.action = 'javascript:void(0);';
+        
+        // Empêcher la soumission normale du formulaire
+        coverForm.addEventListener('submit', function(e) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+          }
+          return false;
+        }, true); // Utiliser la capture pour intercepter tôt l'événement
+        
+        // Gestion du clic sur le bouton de couverture
         coverBtn.addEventListener('click', function(e) {
           e.preventDefault();
           coverInput.click(); // Déclenche le clic sur l'input file
@@ -1335,31 +1671,67 @@
         coverInput.addEventListener('change', function() {
           if (this.files && this.files[0]) {
             const formData = new FormData(coverForm);
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
             
-            fetch(coverForm.action, {
+            if (!csrfToken) {
+              console.error('CSRF token non trouvé');
+              showToast('Erreur de sécurité. Veuillez recharger la page et réessayer.', 'danger');
+              return;
+            }
+
+            // Afficher un indicateur de chargement
+            const originalText = coverBtn.innerHTML;
+            coverBtn.disabled = true;
+            coverBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Envoi en cours...';
+
+            // URL complète pour éviter tout problème de chemin relatif
+            const uploadUrl = window.location.origin + '/users/profile/upload/cover/';
+            
+            fetch(uploadUrl, {
               method: 'POST',
               body: formData,
               headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-              }
+                'X-CSRFToken': csrfToken
+              },
+              // S'assurer que les cookies sont inclus pour l'authentification
+              credentials: 'same-origin'
             })
             .then(response => {
-              if (response.ok) {
-                return response.json();
+              if (!response.ok) {
+                return response.json().then(err => {
+                  throw new Error(err.message || 'Erreur lors du téléchargement de la couverture');
+                });
               }
-              throw new Error('Erreur lors du téléchargement de la couverture');
+              return response.json();
             })
             .then(data => {
-              if (data.success) {
-                window.location.reload();
+              // Vérifier si la réponse est valide
+              if (typeof data === 'object' && data !== null) {
+                if (data.success) {
+                  // Mettre à jour l'image de couverture sans recharger la page
+                  const coverImg = document.querySelector('.chan-cover img');
+                  if (coverImg && data.cover_url) {
+                    coverImg.src = data.cover_url + '?t=' + new Date().getTime();
+                  }
+                  showToast('Couverture mise à jour avec succès', 'success');
+                } else {
+                  throw new Error(data.message || 'Impossible de mettre à jour la couverture');
+                }
               } else {
-                alert('Erreur: ' + (data.message || 'Impossible de mettre à jour la couverture'));
+                throw new Error('Réponse du serveur invalide');
               }
             })
             .catch(error => {
               console.error('Erreur:', error);
-              alert('Une erreur est survenue lors du téléchargement de la couverture');
+              showToast('Erreur: ' + (error.message || 'Une erreur est survenue'), 'danger');
+            })
+            .finally(() => {
+              // Réinitialiser le bouton
+              coverBtn.disabled = false;
+              coverBtn.innerHTML = originalText;
+              // Réinitialiser l'input file
+              this.value = '';
             });
           }
         });
@@ -1370,35 +1742,88 @@
       const avatarForm = document.getElementById('avatar-form');
       
       if (avatarInput && avatarForm) {
-        avatarInput.addEventListener('change', function() {
+        // Supprimer complètement l'action du formulaire pour être sûr qu'il ne se soumette pas
+        avatarForm.action = 'javascript:void(0);';
+        
+        // Empêcher la soumission normale du formulaire
+        avatarForm.addEventListener('submit', function(e) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+          }
+          return false;
+        }, true); // Utiliser la capture pour intercepter tôt l'événement
+        
+        // Gérer le changement de fichier
+        avatarInput.addEventListener('change', function(e) {
           if (this.files && this.files[0]) {
             const formData = new FormData(avatarForm);
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            const avatarContainer = document.querySelector('.chan-avatar');
             
-            fetch(avatarForm.action, {
+            if (!csrfToken) {
+              console.error('CSRF token non trouvé');
+              showToast('Erreur de sécurité. Veuillez recharger la page et réessayer.', 'danger');
+              return;
+            }
+
+            // Afficher un indicateur de chargement
+            const originalHTML = avatarContainer.innerHTML;
+            avatarContainer.innerHTML = '<div class="d-flex justify-content-center align-items-center w-100 h-100"><div class="spinner-border text-light" role="status"></div></div>';
+
+            // URL complète pour éviter tout problème de chemin relatif
+            const uploadUrl = window.location.origin + '/users/profile/upload/avatar/';
+            
+            fetch(uploadUrl, {
               method: 'POST',
               body: formData,
               headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-              }
+                'X-CSRFToken': csrfToken
+              },
+              // S'assurer que les cookies sont inclus pour l'authentification
+              credentials: 'same-origin'
             })
             .then(response => {
-              if (response.ok) {
-                return response.json();
+              if (!response.ok) {
+                return response.json().then(err => {
+                  throw new Error(err.message || 'Erreur lors du téléchargement de l\'avatar');
+                });
               }
-              throw new Error('Erreur lors du téléchargement de l\'avatar');
+              return response.json();
             })
             .then(data => {
-              if (data.success) {
-                // Recharger la page pour afficher le nouvel avatar
-                window.location.reload();
+              // Vérifier si la réponse est valide
+              if (typeof data === 'object' && data !== null) {
+                if (data.success) {
+                  // Mettre à jour l'avatar sans recharger la page
+                  const avatarImg = document.querySelector('.chan-avatar img');
+                  if (avatarImg && data.avatar_url) {
+                    avatarImg.src = data.avatar_url + '?t=' + new Date().getTime();
+                  } else if (avatarContainer && data.avatar_url) {
+                    // Si c'est un nouvel avatar (pas d'image précédente)
+                    avatarContainer.innerHTML = `<img src="${data.avatar_url}?t=${new Date().getTime()}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                  }
+                  showToast('Photo de profil mise à jour avec succès', 'success');
+                } else {
+                  throw new Error(data.message || 'Impossible de mettre à jour l\'avatar');
+                }
               } else {
-                alert('Erreur: ' + (data.message || 'Impossible de mettre à jour l\'avatar'));
+                throw new Error('Réponse du serveur invalide');
               }
             })
             .catch(error => {
               console.error('Erreur:', error);
-              alert('Une erreur est survenue lors du téléchargement de l\'avatar');
+              showToast('Erreur: ' + (error.message || 'Une erreur est survenue'), 'danger');
+              // Restaurer l'état précédent en cas d'erreur
+              if (avatarContainer) {
+                avatarContainer.innerHTML = originalHTML;
+              }
+            })
+            .finally(() => {
+              // Réinitialiser l'input file
+              this.value = '';
             });
           }
         });
@@ -1465,12 +1890,7 @@
       y: -100,
       ease: Expo.easeInOut
     })
-      TweenMax.from("Header", 1, {
-      delay: 3.4,
-      opacity: 0,
-      y: -100,
-      ease: Expo.easeInOut
-    })
+  
      TweenMax.staggerFrom(".fw-semibold", 1, {
       delay: 3.2,
       opacity: 0,

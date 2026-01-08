@@ -126,147 +126,147 @@
     </div>
 {% endif %}
 {% if levels_progress %}
-<section class="levels">
-  <h3>Par niveau</h3>
-  <div class="level-grid">
-    {% for lvl in levels_progress %}
-    <div class="level-card">
-      <div class="level-head"><span class="chip">{{ lvl.label }}</span><span class="mini">{{ lvl.done }}/{{ lvl.total }}</span></div>
-      <div class="level-bar"><div class="fill" style="width: {{ lvl.percent }}%"></div></div>
-      <div class="level-actions">
-        {% if lvl.cert %}
-          <button type="button" class="btn tiny solid" data-bs-toggle="modal" data-bs-target="#certModal" data-cert-url="{{ lvl.cert.pdf.url }}">Visualiser</button>
-        {% elif lvl.completed and lvl.evaluation %}
-          <a href="{% url 'evaluations:start_level_evaluation' course.id lvl.key %}" class="btn tiny solid">Évaluation ({{ lvl.label }})</a>
-        {% elif not lvl.completed %}
-          <button class="btn tiny ghost" disabled>Complétez les leçons</button>
-        {% else %}
-          <button class="btn tiny ghost" disabled>Évaluation indisponible</button>
-        {% endif %}
+    <section class="levels">
+      <h3>Par niveau</h3>
+      <div class="level-grid">
+        {% for lvl in levels_progress %}
+        <div class="level-card">
+          <div class="level-head"><span class="chip">{{ lvl.label }}</span><span class="mini">{{ lvl.done }}/{{ lvl.total }}</span></div>
+          <div class="level-bar"><div class="fill" style="width: {{ lvl.percent }}%"></div></div>
+          <div class="level-actions">
+            {% if lvl.cert %}
+              <button type="button" class="btn tiny solid" data-bs-toggle="modal" data-bs-target="#certModal" data-cert-url="{{ lvl.cert.pdf.url }}">Visualiser</button>
+            {% elif lvl.completed and lvl.evaluation %}
+              <a href="{% url 'evaluations:start_level_evaluation' course.id lvl.key %}" class="btn tiny solid">Évaluation ({{ lvl.label }})</a>
+            {% elif not lvl.completed %}
+              <button class="btn tiny ghost" disabled>Complétez les leçons</button>
+            {% else %}
+              <button class="btn tiny ghost" disabled>Évaluation indisponible</button>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
       </div>
-    </div>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
+    </section>
+  {% endif %}
 {% endif %}
 </div>
 
-        <div class="col-md-8 text-white p-3">
-<section class="ld-tabs">
-  <ul class="nav nav-tabs" role="tablist">
-    <li class="nav-item" role="presentation"><a class="nav-link active" data-bs-toggle="tab" href="#tab-curr">Curriculum</a></li>
-    <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#tab-desc">Description</a></li>
-    <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#tab-res">Ressources</a></li>
-  </ul>
-  <div class="tab-content">
-    <div id="tab-curr" class="tab-pane fade show active">
-      <div class="accordion" id="modulesAcc">
-        {% for module in modules %}
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="mod-h-{{ module.id }}">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#mod-c-{{ module.id }}" aria-expanded="true" aria-controls="mod-c-{{ module.id }}">
-              {{ module.title }} <span class="acc-count ms-2">({{ module.lessons.count }} leçon{{ module.lessons.count|pluralize }})</span>
-            </button>
-          </h2>
-          <div id="mod-c-{{ module.id }}" class="accordion-collapse collapse show" aria-labelledby="mod-h-{{ module.id }}" data-bs-parent="#modulesAcc">
-            <div class="accordion-body">
-              {% if is_enrolled and module.lessons.count %}
-              <form method="post" action="{% url 'courses:mark_module_completed' course.id module.id %}" class="mb-2">
-                {% csrf_token %}
-                <button class="btn ghost btn-sm" type="submit">Marquer ce module terminé</button>
-              </form>
-              {% endif %}
-              <div class="accordion" id="lessonsAcc-{{ module.id }}">
-                {% for lesson in module.lessons.all %}
+    <div class="col-md-8 text-white p-3">
+        <section class="ld-tabs">
+          <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation"><a class="nav-link active" data-bs-toggle="tab" href="#tab-curr">Curriculum</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#tab-desc">Description</a></li>
+            <li class="nav-item" role="presentation"><a class="nav-link" data-bs-toggle="tab" href="#tab-res">Ressources</a></li>
+          </ul>
+          <div class="tab-content">
+            <div id="tab-curr" class="tab-pane fade show active">
+              <div class="accordion" id="modulesAcc">
+                {% for module in modules %}
                 <div class="accordion-item">
-                  <h2 class="accordion-header" id="les-h-{{ lesson.id }}">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#les-c-{{ lesson.id }}" aria-expanded="true" aria-controls="les-c-{{ lesson.id }}">
-                      {% if is_enrolled or forloop.first and forloop.parentloop.first %}
-                        <a href="{% url 'courses:lesson_detail' lesson.id %}" class="stretched-link text-decoration-none">{% if is_enrolled %}📺{% else %}📺{% endif %} {{ lesson.title }}
-                          {% if completed_lesson_ids and lesson.id in completed_lesson_ids %}<span class="pill" style="margin-left:8px;">Lu</span>{% endif %}
-                        </a>
-                      {% else %}
-                        <span class="locked">🔒 {{ lesson.title }}</span>
-                      {% endif %}
+                  <h2 class="accordion-header" id="mod-h-{{ module.id }}">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#mod-c-{{ module.id }}" aria-expanded="true" aria-controls="mod-c-{{ module.id }}">
+                      {{ module.title }} <span class="acc-count ms-2">({{ module.lessons.count }} leçon{{ module.lessons.count|pluralize }})</span>
                     </button>
                   </h2>
-                  <div id="les-c-{{ lesson.id }}" class="accordion-collapse collapse show" aria-labelledby="les-h-{{ lesson.id }}" data-bs-parent="#lessonsAcc-{{ module.id }}">
+                  <div id="mod-c-{{ module.id }}" class="accordion-collapse collapse show" aria-labelledby="mod-h-{{ module.id }}" data-bs-parent="#modulesAcc">
                     <div class="accordion-body">
-                      {% if lesson.videos.all %}
-                        <ul class="video-list">
-                          {% for v in lesson.videos.all %}
-                            {% if v.video_file %}
-                            <li class="video-item d-flex justify-content-between">
-                              {% if is_enrolled or forloop.parentloop.parentloop.first and forloop.parentloop.parentloop.parentloop.first %}
-                                <a href="{% url 'courses:lesson_detail' lesson.id %}" class="v-title text-decoration-none">📺 {{ v.title|default:lesson.title }}</a>
-                              {% else %}
-                                <span class="locked">🔒 {{ v.title|default:lesson.title }}</span>
-                              {% endif %}
-                              {% if v.duration %}<span class="v-dur">{{ v.duration }}</span>{% endif %}
-                            </li>
-                            {% endif %}
-                          {% endfor %}
-                        </ul>
-                      {% elif lesson.video_file %}
-                        <ul class="video-list">
-                          <li class="video-item d-flex justify-content-between">
-                            {% if is_enrolled or forloop.first and forloop.parentloop.first %}
-                              <a href="{% url 'courses:lesson_detail' lesson.id %}" class="v-title text-decoration-none">📺 {{ lesson.title }}</a>
-                            {% else %}
-                              <span class="locked">🔒 {{ lesson.title }}</span>
-                            {% endif %}
-                            {% if lesson.duration %}<span class="v-dur">{{ lesson.duration }}</span>{% endif %}
-                          </li>
-                        </ul>
-                      {% else %}
-                        <div class="muted">Aucune vidéo listée.</div>
+                      {% if is_enrolled and module.lessons.count %}
+                      <form method="post" action="{% url 'courses:mark_module_completed' course.id module.id %}" class="mb-2">
+                        {% csrf_token %}
+                        <button class="btn ghost btn-sm" type="submit">Marquer ce module terminé</button>
+                      </form>
                       {% endif %}
+                      <div class="accordion" id="lessonsAcc-{{ module.id }}">
+                        {% for lesson in module.lessons.all %}
+                        <div class="accordion-item">
+                          <h2 class="accordion-header" id="les-h-{{ lesson.id }}">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#les-c-{{ lesson.id }}" aria-expanded="true" aria-controls="les-c-{{ lesson.id }}">
+                              {% if is_enrolled or forloop.first and forloop.parentloop.first %}
+                                <a href="{% url 'courses:lesson_detail' lesson.id %}" class="stretched-link text-decoration-none">{% if is_enrolled %}📺{% else %}📺{% endif %} {{ lesson.title }}
+                                  {% if completed_lesson_ids and lesson.id in completed_lesson_ids %}<span class="pill" style="margin-left:8px;">Lu</span>{% endif %}
+                                </a>
+                              {% else %}
+                                <span class="locked">🔒 {{ lesson.title }}</span>
+                              {% endif %}
+                            </button>
+                          </h2>
+                          <div id="les-c-{{ lesson.id }}" class="accordion-collapse collapse show" aria-labelledby="les-h-{{ lesson.id }}" data-bs-parent="#lessonsAcc-{{ module.id }}">
+                            <div class="accordion-body">
+                              {% if lesson.videos.all %}
+                                <ul class="video-list">
+                                  {% for v in lesson.videos.all %}
+                                    {% if v.video_file %}
+                                    <li class="video-item d-flex justify-content-between">
+                                      {% if is_enrolled or forloop.parentloop.parentloop.first and forloop.parentloop.parentloop.parentloop.first %}
+                                        <a href="{% url 'courses:lesson_detail' lesson.id %}" class="v-title text-decoration-none">📺 {{ v.title|default:lesson.title }}</a>
+                                      {% else %}
+                                        <span class="locked">🔒 {{ v.title|default:lesson.title }}</span>
+                                      {% endif %}
+                                      {% if v.duration %}<span class="v-dur">{{ v.duration }}</span>{% endif %}
+                                    </li>
+                                    {% endif %}
+                                  {% endfor %}
+                                </ul>
+                              {% elif lesson.video_file %}
+                                <ul class="video-list">
+                                  <li class="video-item d-flex justify-content-between">
+                                    {% if is_enrolled or forloop.first and forloop.parentloop.first %}
+                                      <a href="{% url 'courses:lesson_detail' lesson.id %}" class="v-title text-decoration-none">📺 {{ lesson.title }}</a>
+                                    {% else %}
+                                      <span class="locked">🔒 {{ lesson.title }}</span>
+                                    {% endif %}
+                                    {% if lesson.duration %}<span class="v-dur">{{ lesson.duration }}</span>{% endif %}
+                                  </li>
+                                </ul>
+                              {% else %}
+                                <div class="muted">Aucune vidéo listée.</div>
+                              {% endif %}
+                            </div>
+                          </div>
+                        </div>
+                        {% empty %}
+                        <div class="muted">Aucune leçon dans ce module.</div>
+                        {% endfor %}
+                      </div>
                     </div>
                   </div>
                 </div>
                 {% empty %}
-                <div class="muted">Aucune leçon dans ce module.</div>
+                <p class="muted">Aucun module disponible.</p>
                 {% endfor %}
               </div>
             </div>
+            <div id="tab-desc" class="tab-pane fade">
+              <p>{{ course.description }}</p>
+            </div>
+            <div id="tab-res" class="tab-pane fade">
+              <div class="rating-block">
+                <div class="rb-head">Note du cours: <strong>{% if avg_rating %}{{ avg_rating }}/5{% else %}N/A{% endif %}</strong> · <span class="like-count">❤ {{ like_count }}</span></div>
+                {% if user.is_authenticated %}
+                <div class="rb-row">
+                  <form method="post" action="{% url 'courses:rate_course' course.id %}" class="rating-stars">
+                    {% csrf_token %}
+                    <input type="radio" name="rating" id="star5" value="5" {% if user_rating_value == 5 %}checked{% endif %}><label for="star5">★</label>
+                    <input type="radio" name="rating" id="star4" value="4" {% if user_rating_value == 4 %}checked{% endif %}><label for="star4">★</label>
+                    <input type="radio" name="rating" id="star3" value="3" {% if user_rating_value == 3 %}checked{% endif %}><label for="star3">★</label>
+                    <input type="radio" name="rating" id="star2" value="2" {% if user_rating_value == 2 %}checked{% endif %}><label for="star2">★</label>
+                    <input type="radio" name="rating" id="star1" value="1" {% if user_rating_value == 1 %}checked{% endif %}><label for="star1">★</label>
+                    <button class="btn ghost" type="submit">Noter</button>
+                  </form>
+                  <form method="post" action="{% url 'courses:toggle_like' course.id %}" class="like-form">
+                    {% csrf_token %}
+                    <button class="btn {% if user_liked %}solid{% else %}ghost{% endif %}" type="submit">{% if user_liked %}❤ Je n'aime plus{% else %}❤ J'aime{% endif %}</button>
+                  </form>
+                </div>
+                {% else %}
+                <p class="muted">Connectez-vous pour noter et aimer ce cours.</p>
+                {% endif %}
+              </div>
+            </div>
           </div>
-        </div>
-        {% empty %}
-        <p class="muted">Aucun module disponible.</p>
-        {% endfor %}
-      </div>
+        </section>
     </div>
-    <div id="tab-desc" class="tab-pane fade">
-      <p>{{ course.description }}</p>
-    </div>
-    <div id="tab-res" class="tab-pane fade">
-      <div class="rating-block">
-        <div class="rb-head">Note du cours: <strong>{% if avg_rating %}{{ avg_rating }}/5{% else %}N/A{% endif %}</strong> · <span class="like-count">❤ {{ like_count }}</span></div>
-        {% if user.is_authenticated %}
-        <div class="rb-row">
-          <form method="post" action="{% url 'courses:rate_course' course.id %}" class="rating-stars">
-            {% csrf_token %}
-            <input type="radio" name="rating" id="star5" value="5" {% if user_rating_value == 5 %}checked{% endif %}><label for="star5">★</label>
-            <input type="radio" name="rating" id="star4" value="4" {% if user_rating_value == 4 %}checked{% endif %}><label for="star4">★</label>
-            <input type="radio" name="rating" id="star3" value="3" {% if user_rating_value == 3 %}checked{% endif %}><label for="star3">★</label>
-            <input type="radio" name="rating" id="star2" value="2" {% if user_rating_value == 2 %}checked{% endif %}><label for="star2">★</label>
-            <input type="radio" name="rating" id="star1" value="1" {% if user_rating_value == 1 %}checked{% endif %}><label for="star1">★</label>
-            <button class="btn ghost" type="submit">Noter</button>
-          </form>
-          <form method="post" action="{% url 'courses:toggle_like' course.id %}" class="like-form">
-            {% csrf_token %}
-            <button class="btn {% if user_liked %}solid{% else %}ghost{% endif %}" type="submit">{% if user_liked %}❤ Je n'aime plus{% else %}❤ J'aime{% endif %}</button>
-          </form>
-        </div>
-        {% else %}
-        <p class="muted">Connectez-vous pour noter et aimer ce cours.</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</section>
-        </div>
 
     </div>
 </div>
@@ -275,12 +275,12 @@
 
 
 <style>
-  .course-hero{position:relative;border-radius:16px;background:#0f172a;color:#fff;padding:18px;margin-bottom:14px;min-height:140px;overflow:hidden}
+  .course-hero{position:relative;border-radius:16px;background:#0f172a;color:#fff;padding:18px;margin-bottom:14px;min-height:140px;overflow:hidden;}
   .hero-media{position:absolute;inset:0;background-position:center;background-size:cover;filter:brightness(0.65) saturate(1.1);pointer-events:none}
-  .hero-overlay{position:absolute;inset:0;background:radial-gradient(1200px 400px at 10% 120%, rgba(59,130,246,0.25), transparent),radial-gradient(1200px 400px at 90% -20%, rgba(236,72,153,0.2), transparent);mix-blend-mode:screen;pointer-events:none}
+  .hero-overlay{position:absolute;inset:0;background:radial-gradient(1200px 400px at 10% 120%, rgba(59,130,246,0.25), transparent),radial-gradient(1200px 400px at 90% -20%, rgba(236,72,153,0.2), transparent);mix-blend-mode:screen;pointer-events:none; z-index: -1;}
   .title{margin:0 0 6px 0}
   .desc{opacity:.9;margin:0 0 8px 0}
-  .badge{display:inline-block;background:#111827;color:#fff;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;margin-right:6px}
+  .badge{display:inline-block;background:#111827;color:#fff;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;margin-right:6px; z-index: 999;}
   .hero-media.no-thumb{background-color:#0f172a}
   .hero-overlay{position:absolute;inset:0;background:radial-gradient(1200px 400px at 10% 120%, rgba(59,130,246,0.25), transparent),radial-gradient(1200px 400px at 90% -20%, rgba(236,72,153,0.2), transparent)}
   .hero-inner{position:relative;z-index:1;color:#fff;padding:38px;max-width:980px}

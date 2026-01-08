@@ -32,6 +32,8 @@ class Course(models.Model):
         related_name='courses'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    is_published = models.BooleanField('Publié', default=False, 
+        help_text='Cocher pour publier le cours et le rendre visible aux utilisateurs')
 
     def __str__(self):
         return self.title

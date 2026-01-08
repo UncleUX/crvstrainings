@@ -30,10 +30,11 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <img src="{{ subscription.subscriber.avatar.url|default:'/static/images/default-avatar.png' }}" 
+                                    <img src="{% if subscription.subscriber.avatar %}{{ subscription.subscriber.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
                                          class="rounded-circle me-3" 
                                          alt="{{ subscription.subscriber.get_full_name }}"
-                                         width="40" height="40">
+                                         width="40" height="40"
+                                         onerror="this.onerror=null; this.src='{% static 'images/default-avatar.png' %}'">
                                     <div>
                                         <h6 class="mb-0">{{ subscription.subscriber.get_full_name|default:subscription.subscriber.username }}</h6>
                                         <small class="text-muted">

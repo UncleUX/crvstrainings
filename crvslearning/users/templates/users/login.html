@@ -3,99 +3,290 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Login</title>
+  <title>Connexion - E-learning</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <!-- Font Awesome pour les icônes -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --win11-bg: #f3f3f3;
+      --win11-accent: #0078d4;
+      --win11-accent-hover: #106ebe;
+      --win11-text: #323130;
+      --win11-text-secondary: #605e5c;
+      --win11-surface: rgba(255, 255, 255, 0.8);
+      --win11-border: rgba(0, 0, 0, 0.1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+    
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: 'Roboto', Arial, sans-serif;
-      background-image: url("{% static 'img/google.png' %}");
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: cover;
-      background-attachment: fixed;
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: url("{% static 'img/google.png' %}") center/cover fixed no-repeat;
       display: flex;
       align-items: center;
       justify-content: center;
+      color: var(--win11-text);
+      overflow: hidden;
+      position: relative;
     }
-
-    .login-box {
+    
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(0, 120, 212, 0.7), rgba(33, 150, 243, 0.7), rgba(0, 120, 212, 0.7));
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      z-index: 0;
+    }
+    
+    body::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1;
+    }
+    
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .login-container {
+      position: relative;
       width: 100%;
-      max-width: 360px;
-      padding: 40px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      max-width: 400px;
+      padding: 2.5rem;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      border: 1px solid #0072ce;
+      transform: translateY(0);
+      transition: 
+        opacity 1.2s cubic-bezier(0.25, 0.1, 0.1, 1.1),
+        transform 1.2s cubic-bezier(0.25, 0.1, 0.1, 1.1);
+      overflow: hidden;
+      z-index: 2;
+      opacity: 0;
+      transform: translateY(40px) scale(0.95);
+      will-change: transform, opacity;
+    }
+    
+    .login-container::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      transform: rotate(45deg);
+      animation: shine 3s infinite;
+    }
+    
+    @keyframes shine {
+      0% { transform: translateX(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) rotate(45deg); }
+    }
+    
+    .login-box {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
     }
 
     h1 {
-      font-weight: 400;
-      font-size: 1.5rem;
-      margin-bottom: 30px;
-      color: #202124;
+      font-weight: 500;
+      font-size: 2rem;
+      margin: 0 0 2.5rem 0;
+      color: var(--win11-text);
+      position: relative;
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+    
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 50%;
+      height: 3px;
+      background: var(--win11-accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+    
+    .login-box:hover h1::after {
+      transform: scaleX(1);
     }
 
     label {
       display: block;
-      margin-bottom: 8px;
-      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
       font-weight: 500;
-      color: #3c4043;
+      color: var(--win11-text);
       text-align: left;
+      transform: translateY(0);
+      transition: transform 0.2s ease, color 0.2s ease;
     }
 
-    input {
-      width: 96%;
-      padding: 14px 7px;
-      border: 1.5px solid #dadce0;
-      border-radius: 6px;
-      margin-bottom: 22px;
-      font-size: 1rem;
-      color: #202124;
-      transition: border-color 0.25s, box-shadow 0.25s;
-    }
-
-    input:focus {
-      border-color: #1a73e8;
-      box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
-      outline: none;
-    }
-
-    button {
+    .input-group {
+      position: relative;
+      margin-bottom: 1.5rem;
       width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #0d642eec);
-      color: #fff;
-      border: none;
+      max-width: 100%;
+    }
+    
+    input {
+      width: 100%;
+      padding: 0.9rem 1rem;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1.5px solid var(--win11-border);
       border-radius: 6px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 6px 14px rgba(26, 115, 232, 0.35);
-      transition: transform 0.15s, box-shadow 0.15s;
+      font-size: 0.95rem;
+      color: var(--win11-text);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
-
-    button:hover {
+    
+    input:focus {
+      border-color: var(--win11-accent);
+      box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.2);
+      outline: none;
+      background: white;
       transform: translateY(-1px);
-      box-shadow: 0 10px 22px rgba(26, 115, 232, 0.45);
+    }
+    
+    input:focus + label,
+    input:not(:placeholder-shown) + label {
+      transform: translateY(-2rem) scale(0.9);
+      color: var(--win11-accent);
+    }
+    
+    .input-highlight {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      width: 0;
+      background: var(--win11-accent);
+      transition: width 0.3s ease;
+    }
+    
+
+    .login-form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 1rem;
     }
 
-    .logout-btn {
-      margin-top: 14px;
-      background: #fff;
-      color: #d93025;
-      border: 1.5px solid #dadce0;
-      box-shadow: none;
+    .btn {
+      position: relative;
+      background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+      color: #e0e0e0 !important;
+      border: 1px solid #3a3a3a;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      min-width: 240px;
+      text-align: center;
+      border: none;
+      outline: none;
+      margin-top: 1rem;
     }
-
-    .logout-btn:hover {
-      background: #fce8e6;
-      border-color: #d93025;
-      color: #d93025;
-      transform: none;
+  
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: 0.5s;
+    }
+  
+    .btn:hover::before {
+      left: 100%;
+    }
+  
+    .btn i {
+      font-size: 1.1em;
+      margin-right: 8px;
+      color: #fff;
+    }
+  
+    .btn:hover {
+      background: linear-gradient(135deg, #2a2a2a, #3d3d3d);
+      border-color: #0072ce;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+  
+    .btn:active {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    }
+  
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid #3a3a3a;
+      color: #e0e0e0 !important;
+      margin-top: 1rem;
+    }
+  
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: #0072ce;
+      color: #fff !important;
+      transform: translateY(-3px);
     }
 
     .error {
@@ -123,37 +314,68 @@
       font-size: 0.75rem;
       color: #5f6368;
     }
+    
+    .doc-link {
+      position: fixed;
+      right: 2vw;
+      bottom: 2vh;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: white !important;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+    
+    .doc-link i {
+      font-size: 4vw;
+      min-width: 60px;
+      color: white;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      margin-bottom: 5px;
+    }
+    
+    .doc-link:hover {
+      transform: translateY(-3px);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 
 <body>
+  <div class="login-container">
+    <div class="login-box">
+      <h1>Se connecter</h1>
 
-  <div class="login-box">
-
-    <h1>Se connecter</h1>
-
-    {% if messages %}
-      {% for message in messages %}
-        <div class="error">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
+    <!-- Les messages seront affichés via SweetAlert2 -->
+    <div id="messages" style="display: none;">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="message" data-type="{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    </div>
 
     {% if not user.is_authenticated %}
       <!-- FORMULAIRE DE CONNEXION -->
-      <form method="post" action="{% url 'users:login' %}">
+      <form method="post" action="{% url 'users:login' %}" class="login-form">
         {% csrf_token %}
-
-        {% if next %}
-          <input type="hidden" name="next" value="{{ next }}">
-        {% endif %}
-
-        <label for="id_username">Adresse e-mail ou nom d'utilisateur</label>
-        <input type="text" name="username" id="id_username" required>
-
-        <label for="id_password">Mot de passe</label>
-        <input type="password" name="password" id="id_password" required>
-
-        <button type="submit">Suivant</button>
+        <div class="input-group">
+          <input type="text" id="username" name="username" placeholder=" " required>
+          <label for="username">Nom d'utilisateur</label>
+          <span class="input-highlight"></span>
+        </div>
+        <div class="input-group">
+          <input type="password" id="password" name="password" placeholder=" " required>
+          <label for="password">Mot de passe</label>
+          <span class="input-highlight"></span>
+        </div>
+        <button type="submit" class="btn"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
       </form>
     {% endif %}
 
@@ -175,8 +397,96 @@
     <p class="small-text">
       Utilisez votre compte E-learning pour vous connecter
     </p>
-
   </div>
+</div>
 
+<a href="{% url 'documentation:index' %}" class="doc-link" title="Accéder à la documentation">
+  <i class="fas fa-book"></i>
+  <span>Documentation</span>
+</a>
+
+  <!-- SweetAlert2 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Afficher les messages d'erreur/succès
+    const messages = document.querySelectorAll('.message');
+    
+    messages.forEach(message => {
+      const type = message.dataset.type || 'error';
+      const title = type === 'error' ? 'Erreur' : 'Succès';
+      const icon = type === 'error' ? 'error' : 'success';
+      
+      Swal.fire({
+        title: title,
+        html: message.textContent,
+        icon: icon,
+        confirmButtonColor: type === 'error' ? '#d33' : '#28a745',
+        confirmButtonText: 'OK',
+        allowOutsideClick: false
+      });
+    });
+
+    // Gestion de la soumission du formulaire
+    const loginForm = document.querySelector('form[action*="login"]');
+    if (loginForm) {
+      loginForm.addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion en cours...';
+        }
+      });
+    }
+
+    // Gestion du clic sur le bouton de déconnexion
+    const logoutBtn = document.querySelector('.logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        Swal.fire({
+          title: 'Déconnexion',
+          text: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'Oui, se déconnecter',
+          cancelButtonText: 'Annuler',
+          reverseButtons: true
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.closest('form').submit();
+          }
+        });
+      });
+    }
+  });
+  </script>
+  
+  <script>
+    // Animation d'entrée avec speed ramp
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.querySelector('.login-container');
+      
+      // Démarrer l'animation après un court délai
+      setTimeout(() => {
+        // Reset des propriétés avant l'animation
+        container.style.transition = 'none';
+        container.style.opacity = '0';
+        container.style.transform = 'translateY(40px) scale(0.95)';
+        
+        // Forcer le recalcul des styles
+        container.offsetHeight;
+        
+        // Appliquer la transition et démarrer l'animation
+        container.style.transition = 'opacity 1.2s cubic-bezier(0.25, 0.1, 0.1, 1.1), transform 1.2s cubic-bezier(0.25, 0.1, 0.1, 1.1)';
+        container.style.opacity = '1';
+        container.style.transform = 'translateY(0) scale(1)';
+      }, 100);
+    });
+  </script>
 </body>
 </html>

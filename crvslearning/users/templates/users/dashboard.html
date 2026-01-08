@@ -179,32 +179,42 @@
       font-family:  'Montserrat', sans-serif;
     }
     .overlay {
-    position: absolute;
-    font-weight: 800;
-    width: 100% !important;
-    height: 100%;
-    background: #ffffff;
-    opacity: 1;
-    top: 0%;
-    left: -0%;
-    z-index: 999;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.98);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      animation: fadeOut 0.5s ease-out 1.5s forwards;
+    }
+
+    @keyframes fadeOut {
+      to {
+        opacity: 0;
+        visibility: hidden;
+      }
     }
 
     .overlay h1 {
-    font-size: 100px;
-    letter-spacing: 20px;
-    font-size: 150px;
-    font-weight: 800;
+      font-size: clamp(40px, 10vw, 150px);
+      letter-spacing: 5px;
+      font-weight: 800;
+      margin: 0;
+      color: #333;
+      text-align: center;
     }
 
     .overlay span {
-    letter-spacing: 5px;
-    font-size: 70px;
-    font-weight: 600;
+      letter-spacing: 3px;
+      font-size: clamp(20px, 4vw, 50px);
+      font-weight: 600;
+      color: #330aec;
+      margin-top: 1rem;
     }
 
     .page{
@@ -338,13 +348,123 @@
       box-shadow: #333;
     }
 .filters { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 18px 0; }
-  .category-list { list-style: none; padding: 0; margin: 20px 28px; display: flex; gap: 10px; flex-wrap: wrap; }
-  .pill {
-    display: inline-block; padding: 28px 32px; border-radius: 10px; text-decoration: none; color: #111;
-    background: #f3f4f6; border: 1px solid #e5e7eb; font-weight: 600; font-size: 0.95rem;
+  .category-list { 
+    list-style: none; 
+    padding: 0; 
+    margin: 20px 28px; 
+    display: flex; 
+    gap: 12px; 
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
   }
-  .pill:hover { background: #e5e7eb; scale: 1.3; z-index: 2; box-shadow: #333;background: #111827;color: #fff; border: none;}
-  .pill.active { background: #111827; color: #fff; border-color: #111827; }
+  
+  .pill {
+    display: inline-block; 
+    padding: 12px 24px; 
+    border-radius: 8px; 
+    text-decoration: none; 
+    color: #00f7ff;
+    background: linear-gradient(145deg, #0a0a1a, #1a1a2e);
+    border: none;
+    font-weight: 600; 
+    font-size: 0.95rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 
+      0 0 10px rgba(0, 247, 255, 0.3),
+      0 0 20px rgba(0, 0, 0, 0.3),
+      inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    text-shadow: 0 0 5px rgba(0, 247, 255, 0.7);
+    transform-style: preserve-3d;
+    perspective: 500px;
+  }
+  
+  .pill::before,
+  .pill::after {
+    content: '';
+    position: absolute;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+  
+  /* Effet de bordure néon */
+  .pill::before {
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: linear-gradient(45deg, #00f7ff, #0066ff, #00f7ff);
+    background-size: 200% 200%;
+    z-index: -2;
+    animation: borderGlow 3s linear infinite;
+    opacity: 0;
+  }
+  
+  .pill:hover::before {
+    opacity: 1;
+  }
+  
+  /* Effet de surbrillance intérieure */
+  .pill::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    right: 1px;
+    bottom: 1px;
+    background: linear-gradient(145deg, #0a0a1a, #1a1a2e);
+    z-index: -1;
+    border-radius: 6px;
+  }
+  
+  .pill:hover {
+    transform: translateY(-3px) scale(1.03) rotateX(5deg);
+    color: #ffffff;
+    text-shadow: 0 0 10px #00f7ff, 0 0 20px #00f7ff;
+    box-shadow: 
+      0 5px 15px rgba(0, 247, 255, 0.4),
+      0 0 30px rgba(0, 0, 0, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  }
+  
+  .pill:active {
+    transform: translateY(1px) scale(0.98);
+    box-shadow: 
+      0 2px 8px rgba(0, 247, 255, 0.3),
+      0 0 15px rgba(0, 0, 0, 0.4),
+      inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .pill.active {
+    background: linear-gradient(135deg, #0072ce, #00439c);
+    color: #ffffff;
+    border: 1px solid #00a4ff;
+    box-shadow: 
+      0 0 15px rgba(0, 247, 255, 0.5),
+      0 0 25px rgba(0, 0, 0, 0.6),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 10px #00f7ff, 0 0 20px #00f7ff;
+  }
+  
+  .pill.active::before {
+    opacity: 1;
+  }
+  
+  /* Animation de la bordure néon */
+  @keyframes borderGlow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
   .clear-filter { text-decoration: none; color: #6b7280; font-weight: 600; }
 
   .courses-container {
@@ -377,17 +497,62 @@
     width: 110%;
     height: 75%;
     border-radius: 16px;
-    background: #fff;
+    background: linear-gradient(145deg, #0a0a1a, #1a1a2e);
     text-decoration: none;
-    color: inherit;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    color: #e0e0e0;
+    box-shadow: 
+      0 0 15px rgba(0, 247, 255, 0.3),
+      0 0 30px rgba(0, 0, 0, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.05);
+    border: none;
+    transform-style: preserve-3d;
+    perspective: 1000px;
   }
-  .course-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(0,0,0,0.28); }
+  
+  .course-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #00f7ff, #0066ff, #00f7ff);
+    background-size: 200% 200%;
+    z-index: -1;
+    border-radius: 18px;
+    opacity: 0;
+    transition: all 0.5s ease;
+    animation: borderGlow 3s linear infinite;
+  }
+  
+  .course-card:hover::before {
+    opacity: 0.8;
+  }
+  
+  .course-card:hover {
+    transform: translateY(-10px) scale(1.03) rotateX(5deg) !important;
+    box-shadow: 
+      0 20px 40px rgba(0, 247, 255, 0.4),
+      0 0 50px rgba(0, 0, 0, 0.6) !important;
+    background: linear-gradient(
+      145deg,
+      #121226 0%,
+      #1e1e3a 100%
+    ) !important;
+    color: #ffffff;
+  }
+  
+  .course-card:active {
+    transform: translateY(-5px) scale(0.99) !important;
+    box-shadow: 
+      0 10px 25px rgba(0, 247, 255, 0.3),
+      0 0 30px rgba(0, 0, 0, 0.5) !important;
+  }
+  
   .course-media {
     position: relative;
     height: 200px;
@@ -396,12 +561,17 @@
     border-top-left-radius: 16px;
     border-top-right-radius: 16px;
   }
+  
   .course-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  
   .course-fallback { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; font-size: 48px; color: #fff;
     background: linear-gradient(135deg, #111827, #1f2937);
   }
+  
   .media-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0.1)); }
+  
   .media-badge { position: absolute; left: 12px; bottom: 7px; background: rgba(17,24,39,0.85); color: #fff; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  
   .course-meta {
     padding: 20px;
     flex: 1;
@@ -409,14 +579,22 @@
     flex-direction: column;
     position: relative;
     z-index: 1;
-    background: #fff;
+    background: rgba(26, 26, 46, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-bottom-left-radius: 16px;
     border-bottom-right-radius: 16px;
+    transition: all 0.3s ease;
   }
+  
+  .course-card:hover .course-meta {
+    background: rgba(18, 18, 38, 0.9);
+  }
+  
   .course-title {
     margin: 0 0 12px 0;
     font-size: 1.1rem;
-    color: #1f2937;
+    color: #ffffff;
     font-weight: 700;
     line-height: 1.4;
     min-height: 3.2em; /* 2 lignes de texte */
@@ -426,10 +604,18 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-shadow: 0 0 10px rgba(0, 247, 255, 0.5);
+    transition: all 0.3s ease;
   }
+  
+  .course-card:hover .course-title {
+    color: #00f7ff;
+    text-shadow: 0 0 15px rgba(0, 247, 255, 0.8);
+  }
+  
   .course-desc {
     margin: 0 0 16px 0;
-    color: #6b7280;
+    color: #b0b0c0;
     font-size: 0.9rem;
     line-height: 1.5;
     display: -webkit-box;
@@ -440,6 +626,11 @@
     text-overflow: ellipsis;
     min-height: 4.5em; /* 3 lignes de texte */
     flex-grow: 1;
+    transition: all 0.3s ease;
+  }
+  
+  .course-card:hover .course-desc {
+    color: #e0e0e0;
   }
 
   /* Navigation du slider */
@@ -702,7 +893,61 @@
         <img class="cursor" src="{% static '/img/crayon.png' %}" alt="cursor">
     </div>
 
-<section id="course-category" class="mb-5" style="background-color: #fff;">
+<section id="course-category" class="mt-2" style="
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  overflow-x: hidden;
+  position: relative;
+  background: linear-gradient(
+    135deg, 
+    rgba(79, 70, 229, 0.05) 0%, 
+    rgba(99, 102, 241, 0.1) 50%, 
+    rgba(168, 85, 247, 0.05) 100%
+  );
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backpack-filter: blur(12px) saturate(180%);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px 0 rgba(31, 38, 135, 0.15),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+  padding: 2rem 0;
+  margin-top: 2rem;
+  margin-bottom: 4rem;
+  z-index: 1;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  animation: ps5Reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+  transform-origin: center top;
+  will-change: transform, opacity;
+">
+  <!-- Effet de lumière dynamique -->
+  <div class="glass-overlay"></div>
+  <div id="particles-js-courses" style="
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    cursor: none;
+    background: transparent;
+    opacity: 0.3;
+  "></div>
+  <div style="
+    max-width: 90%;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+    z-index: 2;
+  ">
 
   <!-- Intro -->
   <!-- <div class="inText d-flex align-items-center justify-content-between mt-5">
@@ -735,9 +980,9 @@
   </div> -->
   <!-- /Intro -->
 
-<div class="row" style="margin-top: 60px !important;">
+<div class="row" style="margin-top: 20px !important;">
     <!-- Categories -->
-  <ul class="category-list mt-5">
+  <ul class="category-list mt-2">
     <li>
       <a href="{% url 'users:dashboard' %}"
          class="pill {% if not selected_category %}active{% endif %}">
@@ -768,12 +1013,12 @@
   <!-- Courses -->
 <div class="row">
   <div class="col-md-9">
-      <div class="courses-container mt-5 position-relative">
+      <div class="courses-container position-relative">
     <div class="slider-wrapper">
-      <div class="courses-slider mt-4" id="courses-slider">
+      <div class="courses-slider " id="courses-slider">
     {% for course in courses %}
       <div class="course-card-wrapper">
-        <a class="course-card mt-5"
+        <a class="course-card mt-3"
            href="{% url 'courses:course_detail' course.id %}"
            data-category="{{ course.category.slug|default:'all' }}">
 
@@ -816,7 +1061,7 @@
       </div>
       
       <!-- Dots navigation -->
-      <div class="slider-dots" id="slider-dots" style="position: absolute; bottom: -1px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; padding: 10px 0;">
+      <div class="slider-dots" id="slider-dots" style="position: absolute; bottom: 50px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; padding: 10px 0;">
         <!-- Les points seront ajoutés dynamiquement par JavaScript -->
       </div>
     </div>
@@ -1038,6 +1283,20 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Animation de révélation style PS5 */
+@keyframes ps5Reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.98);
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
 /* Animations pour le bouton de défilement */
 @keyframes outerPulse {
   0% { transform: translateX(-50%) scale(1); opacity: 0.8; }
@@ -1118,34 +1377,32 @@ document.addEventListener('DOMContentLoaded', function() {
 .slider-dots {
   display: flex;
   justify-content: center;
-  margin: 10px 0 25px;
-  gap: 12px;
-  padding: 5px 0;
-  position: relative;
-  z-index: 2;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0 25px;
 }
 
 .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: rgba(79, 70, 229, 0.3);
+  width: 30px;
+  height: 4px;
+  border: none;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid transparent;
-  transform: scale(0.9);
+  padding: 0;
+  margin: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .dot.active {
-  background-color: #4f46e5;
-  transform: scale(1.2);
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+  background: rgba(79, 70, 229, 0.8);
 }
 
 .dot:hover {
-  background-color: #4f46e5;
-  transform: scale(1.1);
-  opacity: 0.8;
+  background: rgba(79, 70, 229, 0.5);
 }
 
 .courses-slider {
@@ -1275,19 +1532,56 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Créer les dots
         for (let i = 0; i < dotsCount; i++) {
-            const dot = document.createElement('div');
+            const dot = document.createElement('button');
             dot.className = `dot ${i === 0 ? 'active' : ''}`;
             dot.dataset.index = i;
+            
+            // Style des dots
+            dot.style.cssText = `
+                width: 30px;
+                height: 4px;
+                border: none;
+                border-radius: 2px;
+                background: ${i === 0 ? 'rgba(79, 70, 229, 0.8)' : 'rgba(0, 0, 0, 0.1)'};
+                cursor: pointer;
+                padding: 0;
+                margin: 0;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                outline: none;
+                position: relative;
+                overflow: hidden;
+            `;
             
             // Animation au clic
             dot.addEventListener('click', (e) => {
                 e.preventDefault();
                 goToSlide(i);
-                // Feedback visuel
-                dot.style.transform = 'scale(0.8)';
-                setTimeout(() => {
-                    dot.style.transform = 'scale(1.2)';
-                }, 100);
+                
+                // Animation de rebond
+                dot.animate(
+                    [
+                        { transform: 'scaleX(1)' },
+                        { transform: 'scaleX(1.5)' },
+                        { transform: 'scaleX(1)' }
+                    ],
+                    {
+                        duration: 300,
+                        easing: 'ease-out'
+                    }
+                );
+            });
+            
+            // Effet de survol
+            dot.addEventListener('mouseenter', () => {
+                if (i !== currentSlide) {
+                    dot.style.background = 'rgba(79, 70, 229, 0.5)';
+                }
+            });
+            
+            dot.addEventListener('mouseleave', () => {
+                if (i !== currentSlide) {
+                    dot.style.background = 'rgba(0, 0, 0, 0.1)';
+                }
             });
             
             dotsContainer.appendChild(dot);
@@ -1343,10 +1637,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mettre à jour l'état des dots
     function updateDots() {
         dots.forEach((dot, index) => {
-            if (index === currentSlide) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
+            const isActive = index === currentSlide;
+            dot.classList.toggle('active', isActive);
+            dot.style.background = isActive 
+                ? 'rgba(79, 70, 229, 0.8)' 
+                : 'rgba(0, 0, 0, 0.1)';
+                
+            // Animation du point actif
+            if (isActive) {
+                dot.animate(
+                    [
+                        { transform: 'scaleX(1)' },
+                        { transform: 'scaleX(1.3)' },
+                        { transform: 'scaleX(1)' }
+                    ],
+                    {
+                        duration: 300,
+                        easing: 'ease-out'
+                    }
+                );
             }
         });
     }
@@ -1581,5 +1890,115 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<!-- Particules.js pour la section cours -->
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+// Configuration des particules pour la section cours
+document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier si le conteneur de particules existe
+    const particlesContainer = document.getElementById('particles-js-courses');
+    if (particlesContainer) {
+        // Ajuster la taille du conteneur pour qu'il corresponde à la section parente
+        const section = document.getElementById('course-category');
+        if (section) {
+            const updateParticlesSize = () => {
+                particlesContainer.style.width = '100%';
+                particlesContainer.style.height = section.offsetHeight + 'px';
+            };
+            
+            // Mettre à jour la taille initiale
+            updateParticlesSize();
+            
+            // Mettre à jour la taille lors du redimensionnement
+            window.addEventListener('resize', updateParticlesSize);
+        }
+        particlesJS('particles-js-courses', {
+            particles: {
+                number: { 
+                    value: 80,
+                    density: { 
+                        enable: true, 
+                        value_area: 300 
+                    } 
+                },
+                color: { 
+                    value: '#4f46e5' 
+                },
+                shape: { 
+                    type: 'circle' 
+                },
+                opacity: {
+                    value: 0.8,
+                    random: true,
+                    anim: { 
+                        enable: true, 
+                        speed: 1, 
+                        opacity_min: 0.4, 
+                        sync: false 
+                    }
+                },
+                size: {
+                    value: 5,
+                    random: true,
+                    anim: { 
+                        enable: true, 
+                        speed: 2, 
+                        size_min: 2, 
+                        sync: false 
+                    }
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 100,
+                    color: '#4f46e5',
+                    opacity: 0.5,
+                    width: 1.5
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: 'none',
+                    random: true,
+                    straight: false,
+                    out_mode: 'bounce',
+                    bounce: true,
+                    attract: { 
+                        enable: true, 
+                        rotateX: 600, 
+                        rotateY: 1200 
+                    }
+                }
+            },
+            interactivity: {
+                detect_on: 'window',
+                events: {
+                    onhover: { 
+                        enable: true, 
+                        mode: 'grab' 
+                    },
+                    onclick: { 
+                        enable: true, 
+                        mode: 'push' 
+                    },
+                    resize: true
+                },
+                modes: {
+                    grab: { 
+                        distance: 150, 
+                        line_linked: { 
+                            opacity: 1 
+                        } 
+                    },
+                    push: { 
+                        particles_nb: 8 
+                    }
+                }
+            },
+            retina_detect: true
+        });
+    }
+});
+</script>
+
 </body>
-{% endblock %}2
+{% endblock %}

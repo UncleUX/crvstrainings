@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRVSlearning Documentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --primary: #0072ce;
+    --primary-hover: #005ba1;
+    --secondary: #2d2d2d;
+    --dark: #121212;
+    --light: #f5f5f5;
+    --border: #2d2d2d;
+    --code-bg: #1a1a1a;
+    --code-text: #e5e7eb;
+    --card-bg: #1f1f1f;
+    --text: #e5e5e5;
+    --text-muted: #a0a0a0;
+    --success: #00c853;
+    --warning: #ffab00;
+    --danger: #ff3d00;
+    --max-width: 1800px;
+    --header-height: 70px;
+    --sidebar-width: 320px;
+    --content-padding: 50px;
+    --border-radius: 8px;
+    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: #000000;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    padding-top: 0;
+    margin: 0;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #b3141a;
+}
+
+a[data-page].active {
+    color: #ffffff !important;
+    font-weight: 600;
+    position: relative;
+    background: rgba(0, 114, 206, 0.2);
+    border-left: 3px solid var(--primary);
+}
+
+a[data-page].active:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--primary);
+    border-radius: 0 3px 3px 0;
+}
+
+/* Header */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.header-inner {
+    width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-height);
+}
+
+.logo {
+    font-weight: 900;
+    font-size: 1.3rem;
+    color: #ffffff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo:before {
+    content: '📚';
+    font-size: 1.5rem;
+}
+
+.search {
+    flex: 1;
+    max-width: 500px;
+    display: flex;
+    align-items: center;
+    margin: 0 10px;
+    position: relative;
+}
+
+.search input {
+    flex: 1;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px 0 0 6px;
+    outline: none;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.search input:focus {
+    border-color: #0072ce;
+    box-shadow: 0 0 0 2px rgba(0, 114, 206, 0.2);
+}
+
+.search button {
+    padding: 0 16px;
+    height: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search button:hover { 
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.search input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Particles Container */
+#particles-js {
+    position: fixed;
+    width: var(--sidebar-width);
+    height: 100vh;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Main Layout */
+.layout {
+    display: flex;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    width: 100%;
+    flex: 1;
+    min-height: calc(100vh - var(--header-height));
+}
+
+/* Sidebar */
+aside {
+    width: var(--sidebar-width);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 30px 20px;
+    background: rgba(10, 10, 10, 0.2);
+    backdrop-filter: blur(5px) saturate(180%);
+    -webkit-backdrop-filter: blur(5px) saturate(180%);
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 90;
+    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+}
+
+aside::-webkit-scrollbar {
+    width: 6px;
+}
+
+aside::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+aside::-webkit-scrollbar-thumb {
+    background-color: var(--primary);
+    border-radius: 3px;
+}
+
+aside h4 {
+    margin: 35px 0 15px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #6b7280;
+    cursor: pointer;
+    letter-spacing: 1px;
+    font-weight: 700;
+    padding: 0 15px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+aside h4:after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin-left: 15px;
+}
+
+aside ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+aside li {
+    margin: 8px 0;
+    position: relative;
+}
+
+aside a {
+    color: #b0b0b0;
+    font-size: 15px;
+    font-weight: 500;
+    display: block;
+    padding: 10px 15px;
+    border-radius: 6px;
+    transition: var(--transition);
+    margin: 2px 0;
+}
+
+aside a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    text-decoration: none;
+    transform: translateX(3px);
+}
+
+/* Main Content */
+main {
+    flex: 1;
+    padding: 40px 50px;
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    overflow-y: auto;
+    background: rgba(0, 30, 60, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+    z-index: 1;
+    margin-top: var(--header-height);
+    min-height: calc(100vh - var(--header-height));
+}
+
+main::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 60, 120, 0.2) 0%, rgba(0, 30, 60, 0.4) 100%);
+    z-index: -1;
+}
+
+main h1 {
+    font-size: 42px;
+    margin: 0 0 25px 0;
+    color: #ffffff;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+main h1:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 80px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+main h2 {
+    margin: 60px 0 25px;
+    padding-bottom: 15px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 32px;
+    position: relative;
+    letter-spacing: -0.3px;
+}
+
+main h2:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 50px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+main h3 {
+    margin: 45px 0 20px;
+    font-size: 24px;
+    font-weight: 600;
+    color: #ffffff;
+    position: relative;
+    padding-left: 15px;
+}
+
+main h3:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+main p, main li {
+    color: #e0e0e0;
+    line-height: 1.8;
+    margin-bottom: 1.2em;
+    font-weight: 400;
+    font-size: 16px;
+}
+
+.meta {
+    color: #6b7280;
+    font-size: 15px;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border);
+}
+
+.note {
+    border-left: 4px solid var(--primary);
+    background: rgba(0, 114, 206, 0.1);
+    padding: 20px;
+    margin: 30px 0;
+    font-size: 15px;
+    border-radius: 0 8px 8px 0;
+    color: #e0e0e0;
+    position: relative;
+    overflow: hidden;
+}
+
+.note:before {
+    content: 'ℹ️';
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-size: 20px;
+    opacity: 0.3;
+}
+
+.note p {
+    margin-left: 30px;
+}
+
+pre {
+    background: #0a0a0a;
+    color: #e0e0e0;
+    padding: 20px;
+    overflow-x: auto;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 30px 0;
+    font-family: 'Fira Code', 'Consolas', 'Monaco', 'Andale Mono', monospace;
+    border-left: 4px solid var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+code {
+    font-family: 'Fira Code', 'Consolas', 'Monaco', 'Andale Mono', monospace;
+    background: rgba(0, 114, 206, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #5db0ff;
+    border: 1px solid rgba(0, 114, 206, 0.3);
+}
+
+/* Footer */
+footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 25px 20px;
+    font-size: 14px;
+    color: #6b7280;
+    text-align: center;
+    margin-top: auto;
+    background: rgba(18, 18, 18, 0.95);
+    backdrop-filter: blur(10px);
+}
+
+/* Responsive Design */
+@media (max-width: 1440px) {
+    :root {
+        --max-width: 100%;
+        --content-padding: 30px;
+    }
+    
+    .header-inner,
+    .layout {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+}
+
+@media (max-width: 1200px) {
+    :root {
+        --sidebar-width: 260px;
+    }
+    
+    main {
+        padding: 30px;
+    }
+}
+
+@media (max-width: 992px) {
+    :root {
+        --sidebar-width: 280px;
+    }
+    
+    .search input {
+        width: 200px;
+    }
+    
+    main {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    aside {
+        position: fixed;
+        left: 0;
+        top: var(--header-height);
+        height: calc(100vh - var(--header-height));
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 90;
+        background: #fff;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    aside.visible {
+        transform: translateX(0);
+    }
+    
+    .header-inner {
+        padding: 12px 20px;
+    }
+    
+    .search {
+        display: none;
+    }
+    
+    main {
+        padding: 25px 20px;
+        margin-left: 0;
+    }
+    
+    .overlay {
+        display: none;
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 80;
+    }
+    
+    .overlay.visible {
+        display: block;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --header-height: 56px;
+    }
+    
+    .header-inner {
+        padding: 10px 15px;
+    }
+    
+    .logo {
+        font-size: 18px;
+    }
+    
+    main {
+        padding: 20px 15px;
+    }
+    
+    main h1 {
+        font-size: 28px;
+    }
+    
+    main h2 {
+        font-size: 24px;
+    }
+    
+    pre {
+        padding: 15px;
+        font-size: 13px;
+    }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="header-inner">
+    <div class="logo">CRVSlearning Documentation</div>
+    <div class="search">
+        <input type="text" placeholder="Rechercher dans la documentation…" />
+        <button type="button" aria-label="Rechercher">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3C5.91 3 3 5.91 3 9.5C3 13.09 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5C5 7.01 7.01 5 9.5 5C11.99 5 14 7.01 14 9.5C14 11.99 11.99 14 9.5 14Z" fill="currentColor"/>
+            </svg>
+        </button>
+    </div>
+</div>
+</header>
+<div class="overlay" id="overlay"></div>
+<div id="particles-js"></div>
+<div class="layout">
+<aside id="sidebar">
+<h4>Getting Started</h4>
+<ul>
+<li><a href="#" data-page="overview">Overview</a></li>
+<li><a href="#" data-page="requirements">System Requirements</a></li>
+<li><a href="#" data-page="installation">Installation</a></li>
+</ul>
+<h4 id="pm-toggle">Prise en main ▸</h4>
+<ul id="pmenu" style="display:none; padding-left:15px;">
+<li><a href="#" data-page="course">Création des cours</a></li>
+<li><a href="#" data-page="module">Création d'un module</a></li>
+<li><a href="#" data-page="lesson">Création d'une lesson</a></li>
+<li><a href="#" data-page="video">Ajout de vidéos à une lesson</a></li>
+</ul>
+<h4>Gestion du compte</h4>
+<ul>
+<li><a href="#" data-page="profile">Modifier le profil</a></li>
+<li><a href="#" data-page="password">Changer le mot de passe</a></li>
+</ul>
+<h4>Reference</h4>
+<ul>
+<li><a href="#" data-page="cli">CLI Commands</a></li>
+<li><a href="#" data-page="troubleshooting">Troubleshooting</a></li>
+</ul>
+</aside>
+<main id="content">
+</main>
+</div>
+<footer>
+© 2026 CRVSlearning. All rights reserved.
+</footer>
+<!-- Particules.js -->
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+// Initialisation des particules
+particlesJS('particles-js', {
+    particles: {
+        number: { 
+            value: 80, 
+            density: { 
+                enable: true, 
+                value_area: 400 
+            } 
+        },
+        color: { 
+            value: '#0072ce' 
+        },
+        shape: { 
+            type: 'circle' 
+        },
+        opacity: {
+            value: 0.8,
+            random: true,
+            anim: { 
+                enable: true, 
+                speed: 1, 
+                opacity_min: 0.2, 
+                sync: false 
+            }
+        },
+        size: {
+            value: 4,
+            random: true,
+            anim: { 
+                enable: true, 
+                speed: 2, 
+                size_min: 1, 
+                sync: false 
+            }
+        },
+        line_linked: {
+            enable: true,
+            distance: 100,
+            color: '#0072ce',
+            opacity: 0.4,
+            width: 1.5
+        },
+        move: {
+            enable: true,
+            speed: 2,
+            direction: 'none',
+            random: true,
+            straight: false,
+            out_mode: 'bounce',
+            bounce: true,
+            attract: { 
+                enable: true, 
+                rotateX: 600, 
+                rotateY: 1200 
+            }
+        }
+    },
+    interactivity: {
+        detect_on: 'window',
+        events: {
+            onhover: { 
+                enable: true, 
+                mode: 'grab' 
+            },
+            onclick: { 
+                enable: true, 
+                mode: 'push' 
+            },
+            resize: true
+        },
+        modes: {
+            grab: { 
+                distance: 200, 
+                line_linked: { 
+                    opacity: 1 
+                } 
+            },
+            push: { 
+                particles_nb: 6 
+            }
+        }
+    },
+    retina_detect: true,
+    config_demo: {
+        hide_card: false,
+        background_color: '#000000',
+        background_image: '',
+        background_position: '50% 50%',
+        background_repeat: 'no-repeat',
+        background_size: 'cover'
+    }
+});
+
+// Gestion du redimensionnement de la fenêtre
+window.addEventListener('resize', () => {
+    // Code de redimensionnement si nécessaire
+});
+
+const pages = {};
+
+pages.overview = `
+<h1>Overview</h1>
+<p>CRVSlearning est une plateforme e-learning destinée au renforcement des capacités des acteurs de l'État civil. Elle propose deux modes d'apprentissage : <strong>asynchrone</strong> et <strong>synchrone</strong>.</p>
+<p>La plateforme est conçue pour faciliter la formation progressive, interactive et certifiante des utilisateurs.</p>
+`;
+
+pages.requirements = `
+<h1>System Requirements</h1>
+<ul>
+<li>RAM minimum : 8 GB</li>
+<li>Stockage minimum : 200 GB</li>
+<li>Systèmes supportés : Windows, Linux, macOS</li>
+<li>Python installé</li>
+<li>Docker & Docker Compose installés</li>
+<li>Git installé</li>
+</ul>
+`;
+
+pages.installation = `
+<h1>Installation</h1>
+<ol>
+<li>Sur votre VM, exécutez :<br><pre>curl -fsSL https://raw.githubusercontent.com/UncleUX/crvstrainings/main/crvslearning/deploy/deploy.sh | sh</pre></li>
+<li>Après le déploiement, vérifiez les containers :<br><pre>docker ps
+
+docker images</pre></li>
+<li>Astuce : Pour s'assurer que tous les services sont en exécution, utilisez :<br><pre>docker stats --all</pre></li>
+<li>Si vous déployez sur un host avec un domaine, assurez-vous que les certificats SSL sont générés pour le reverse proxy Nginx (via Docker ou apt avec certbot).</li>
+<div class="note">Tip : Pour la génération SSL avec Docker :<br><pre>docker run --rm -v /etc/letsencrypt:/etc/letsencrypt certbot/certbot certonly ...</pre><br>Via apt : <pre>sudo apt install certbot python3-certbot-nginx</pre></div>
+</ol>
+`;
+
+pages.course = `
+<h1>Guide de Création d'un Cours sur la Plateforme</h1>
+<div class="meta">Dernière mise à jour : 05/01/2026</div>
+<h2>1. Accès à l'Interface d'Administration</h2>
+<ol>
+<li>Connectez-vous à votre compte</li>
+<li>Accédez au tableau de bord administrateur ou votre chaîne de formateur</li>
+</ol>
+<h2>2. Création d'un Nouveau Cours</h2>
+<ol>
+<li>Cliquez sur le bouton "Ajouter un cours"</li>
+<li>Remplissez le formulaire :</li>
+<ul>
+<li><strong>Titre du cours</strong> : Nom clair et descriptif</li>
+<li><strong>Slug</strong> : Version URL-friendly</li>
+<li><strong>Description</strong> : Présentation détaillée</li>
+<li><strong>Objectifs d'apprentissage</strong></li>
+<li><strong>Public cible</strong></li>
+<li><strong>Niveau de difficulté</strong></li>
+<li><strong>Image de couverture</strong></li>
+</ul>
+</ol>
+<h2>3. Configuration du Cours</h2>
+<ol>
+<li><strong>Catégories</strong></li>
+<li><strong>Prérequis</strong></li>
+<li><strong>Durée estimée</strong></li>
+<li><strong>Langue</strong></li>
+<li><strong>Options de publication</strong>
+<ul>
+<li>Statut</li>
+<li>Date de publication</li>
+<li>Accès</li>
+</ul>
+</li>
+</ol>
+<h2>4. Structure du Cours</h2>
+<ol>
+<li><strong>Sections</strong>
+<ul>
+<li>Cliquez sur "Ajouter une section"</li>
+<li>Donnez un titre à chaque section</li>
+<li>Ordonnez par glisser-déposer</li>
+</ul>
+</li>
+<li><strong>Leçons</strong>
+<ul>
+<li>Cliquez sur "Ajouter une leçon"</li>
+<li>Type de contenu : texte, vidéo, quiz, fichiers, lien</li>
+</ul>
+</li>
+</ol>
+<h2>5. Paramètres Avancés</h2>
+<ol>
+<li>Certification</li>
+<li>Évaluation</li>
+<li>Commentaires</li>
+<li>Inscription</li>
+</ol>
+<h2>6. Sauvegarde et Publication</h2>
+<ol>
+<li>Enregistrer comme brouillon</li>
+<li>Aperçu pour tester</li>
+<li>Changer le statut en "En ligne"</li>
+<li>Publier</li>
+</ol>
+<h2>Bonnes Pratiques</h2>
+<ul>
+<li>Structurer le contenu progressivement</li>
+<li>Utiliser médias variés</li>
+<li>Vérifier liens et contenu</li>
+<li>Tester sur différents appareils</li>
+<li>Mise à jour régulière</li>
+</ul>
+<h2>Support</h2>
+<p>Contacter l'équipe support pour toute question</p>
+<h2>Images explicatives</h2>
+<div style="border:1px dashed #ccc; padding:20px; margin:10px 0; text-align:center; color:#6b7280;">Capture étape 1 ici</div>
+<div style="border:1px dashed #ccc; padding:20px; margin:10px 0; text-align:center; color:#6b7280;">Capture étape 2 ici</div>
+<div style="border:1px dashed #ccc; padding:20px; margin:10px 0; text-align:center; color:#6b7280;">Capture étape 3 ici</div>
+`;
+
+const content = document.getElementById('content');
+const links = document.querySelectorAll('aside a[data-page]');
+
+document.addEventListener('DOMContentLoaded', function() {
+    content.innerHTML = pages.overview;
+    
+    // Marquer le lien comme actif
+    const defaultLink = document.querySelector('a[data-page="overview"]');
+    if (defaultLink) {
+        defaultLink.classList.add('active');
+    }
+    
+    // Gestion des clics sur les liens
+    links.forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            const page = link.dataset.page;
+            if(pages[page]){
+                content.innerHTML = pages[page];
+                // Mettre à jour la classe active
+                links.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            }
+        });
+    });
+    
+    // Gestion du menu déroulant
+    document.getElementById('pm-toggle').addEventListener('click', () => {
+        const menu = document.getElementById('pmenu');
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    });
+});
+</script>
+</body>
+</html>

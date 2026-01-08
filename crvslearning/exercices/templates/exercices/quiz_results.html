@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header {% if score >= 70 %}bg-success{% else %}bg-warning{% endif %} text-white">
+                    <h2 class="h4 mb-0">Résultats du Quiz</h2>
+                    <p class="mb-0">{{ course.title }} - {{ lesson.title }}</p>
+                </div>
+                
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="display-4 fw-bold {% if score >= 70 %}text-success{% else %}text-warning{% endif %}">
+                            {{ score }}%
+                        </div>
+                        <p class="lead">
+                            Vous avez répondu correctement à <strong>{{ correct_answers }}</strong> sur <strong>{{ total_questions }}</strong> questions.
+                        </p>
+                        
+                        {% if score >= 70 %}
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                Félicitations ! Vous avez réussi le quiz.
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Vous n'avez pas atteint le score de passage (70%). Essayez à nouveau !
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h4 class="h5 mb-3">Détail des réponses :</h4>
+                    
+                    {% for result in results %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Question {{ forloop.counter }}</h5>
+                                <p class="card-text">{{ result.exercise.question }}</p>
+                                
+                                <div class="ms-3">
+                                    <p class="mb-1">
+                                        <strong>Votre réponse :</strong>
+                                        <span class="{% if result.is_correct %}text-success{% else %}text-danger{% endif %}">
+                                            {{ result.selected_choice.text }}
+                                            {% if result.is_correct %}
+                                                <i class="bi bi-check-circle-fill ms-1"></i>
+                                            {% else %}
+                                                <i class="bi bi-x-circle-fill ms-1"></i>
+                                            {% endif %}
+                                        </span>
+                                    </p>
+                                    
+                                    {% if not result.is_correct %}
+                                        <p class="mb-1">
+                                            <strong>Réponse correcte :</strong>
+                                            <span class="text-success">
+                                                {% for choice in result.exercise.choices.all %}
+                                                    {% if choice.is_correct %}
+                                                        {{ choice.text }}
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <i class="bi bi-check-circle-fill ms-1"></i>
+                                            </span>
+                                        </p>
+                                    {% endif %}
+                                    
+                                    {% if result.explanation %}
+                                        <div class="alert alert-light mt-2 mb-0">
+                                            <i class="bi bi-info-circle-fill text-primary me-2"></i>
+                                            {{ result.explanation }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'courses:lesson_detail' lesson.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Retour à la leçon
+                        </a>
+                        
+                        {% if score < 70 %}
+                            <a href="{% url 'exercises:lesson_quiz' lesson.id %}" class="btn btn-primary">
+                                <i class="bi bi-arrow-repeat me-2"></i>Réessayer
+                            </a>
+                        {% else %}
+                            {% if next_lesson %}
+                                <a href="{% url 'courses:lesson_detail' next_lesson.id %}" class="btn btn-success">
+                                    Leçon suivante <i class="bi bi-arrow-right ms-2"></i>
+                                </a>
+                            {% else %}
+                                <a href="{% url 'courses:course_detail' course.id %}" class="btn btn-success">
+                                    <i class="bi bi-check-circle me-2"></i>Terminer le cours
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

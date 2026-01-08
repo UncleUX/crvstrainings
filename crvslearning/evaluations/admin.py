@@ -43,3 +43,12 @@ class AttemptAdmin(admin.ModelAdmin):
     inlines = [AttemptAnswerInline]
 
 
+@admin.register(EvaluationChoice)
+class EvaluationChoiceAdmin(admin.ModelAdmin):
+    list_display = ("question", "text", "is_correct")
+    list_filter = ("is_correct", "question__evaluation")
+    search_fields = ("text", "question__text")
+    list_editable = ("is_correct",)
+    list_per_page = 20
+
+

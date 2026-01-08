@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load i18n admin_urls static crispy_forms_tags %}
+
+{% block extra_head %}
+{{ block.super }}
+<!-- SweetAlert2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">{{ title }}</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{% url 'users:admin_model_list' app_label=opts.app_label model_name=opts.model_name %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="_method" value="POST">
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        {{ form|crispy }}
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0">Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Enregistrer
+                                    </button>
+                                    <button type="submit" name="_continue" class="btn btn-outline-primary">
+                                        <i class="fas fa-save"></i> Enregistrer et continuer les modifications
+                                    </button>
+                                    <button type="submit" name="_addanother" class="btn btn-outline-secondary">
+                                        <i class="fas fa-plus-circle"></i> Enregistrer et en ajouter un autre
+                                    </button>
+                                    <a href="{% url 'users:admin_model_list' app_label=opts.app_label model_name=opts.model_name %}" 
+                                       class="btn btn-outline-danger">
+                                        <i class="fas fa-times"></i> Annuler
+                                    </a>
+                                </div>
+                                
+                                {% if change and has_delete_permission %}
+                                <hr>
+                                <div class="d-grid">
+                                    <a href="{% url 'users:admin_model_delete' app_label=opts.app_label model_name=opts.model_name object_id=original.pk %}" 
+                                       class="btn btn-outline-danger delete-object"
+                                       data-object-name="{{ original }}">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if change and model_admin %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Informations</h5>
+                            </div>
+                            <div class="card-body">
+                                <dl class="mb-0">
+                                    {% if original.pk %}
+                                    <dt>Date de création</dt>
+                                    <dd>{{ original.created_at|default:"Non spécifiée" }}</dd>
+                                    
+                                    <dt>Dernière modification</dt>
+                                    <dd>{{ original.updated_at|default:"Jamais" }}</dd>
+                                    
+                                    {% if original.created_by %}
+                                    <dt>Créé par</dt>
+                                    <dd>{{ original.created_by.get_full_name|default:original.created_by.username }}</dd>
+                                    {% endif %}
+                                    {% endif %}
+                                </dl>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{{ form.media }}
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des confirmations de suppression
+    const deleteLinks = document.querySelectorAll('.delete-object');
+    
+    deleteLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const objectName = this.dataset.objectName || 'cet objet';
+            const deleteUrl = this.href;
+            
+            Swal.fire({
+                title: 'Confirmer la suppression',
+                html: `Êtes-vous sûr de vouloir supprimer <strong>${objectName}</strong> ?<br><small class="text-danger">Cette action est irréversible.</small>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true,
+                allowOutsideClick: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = deleteUrl;
+                }
+            });
+        });
+    });
+
+    // Gestion des messages de formulaire
+    const errorMessages = document.querySelectorAll('.alert.alert-danger');
+    const successMessages = document.querySelectorAll('.alert.alert-success');
+    
+    function showAlert(message, type = 'error') {
+        Swal.fire({
+            title: type === 'error' ? 'Erreur' : 'Succès',
+            html: message,
+            icon: type,
+            confirmButtonText: 'OK',
+            confirmButtonColor: type === 'error' ? '#d33' : '#3085d6'
+        });
+    }
+
+    // Afficher les messages d'erreur
+    errorMessages.forEach(alert => {
+        showAlert(alert.innerHTML, 'error');
+        alert.style.display = 'none'; // Cacher l'alerte originale
+    });
+
+    // Afficher les messages de succès
+    successMessages.forEach(alert => {
+        showAlert(alert.innerHTML, 'success');
+        alert.style.display = 'none'; // Cacher l'alerte originale
+    });
+
+    // Gestion de la soumission du formulaire
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const submitButton = this.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

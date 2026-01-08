@@ -1,0 +1,118 @@
+<div class="modal fade" id="createCourseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Créer un nouveau cours</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'users:admin_dashboard' %}" id="createCourseForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="create_course" value="1">
+                <div class="modal-body">
+                    <div id="form-errors" class="alert alert-danger d-none"></div>
+                    
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label">Titre du cours</label>
+                        <input type="text" name="title" class="form-control" id="id_title" required>
+                        <div class="invalid-feedback">Veuillez saisir un titre pour le cours.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">Description</label>
+                        <textarea name="description" class="form-control" id="id_description" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="courseCategorySelect" class="form-label">Catégorie</label>
+                        <select name="category" class="form-select" id="courseCategorySelect" required>
+                            <option value="" disabled selected>Sélectionnez une catégorie</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback">Veuillez sélectionner une catégorie.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_thumbnail" class="form-label">Miniature (optionnel)</label>
+                        <input type="file" name="thumbnail" class="form-control" id="id_thumbnail" accept="image/*">
+                        <div class="form-text">Format recommandé : 1280x720 pixels</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_language" class="form-label">Langue du cours</label>
+                        <select name="language" class="form-select" id="id_language">
+                            <option value="fr" selected>Français</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Créer le cours</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Gestion de la soumission du formulaire en AJAX
+document.getElementById('createCourseForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    
+    // Désactiver le bouton et afficher un indicateur de chargement
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Création en cours...';
+    
+    // Cacher les erreurs précédentes
+    const errorDiv = document.getElementById('form-errors');
+    errorDiv.classList.add('d-none');
+    errorDiv.innerHTML = '';
+    
+    // Envoyer la requête AJAX
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Rediriger vers la page du cours créé
+            window.location.href = data.redirect_url;
+        } else {
+            // Afficher les erreurs de validation
+            let errorHtml = '<ul class="mb-0">';
+            for (const field in data.form_errors) {
+                errorHtml += `<li>${data.form_errors[field]}</li>`;
+            }
+            errorHtml += '</ul>';
+            
+            errorDiv.innerHTML = errorHtml;
+            errorDiv.classList.remove('d-none');
+            
+            // Faire défiler jusqu'aux erreurs
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        errorDiv.innerHTML = 'Une erreur est survenue lors de la création du cours.';
+        errorDiv.classList.remove('d-none');
+    })
+    .finally(() => {
+        // Réactiver le bouton
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+    });
+});
+</script>

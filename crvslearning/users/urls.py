@@ -3,7 +3,14 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from . import views
 from .views_learner_tracking import learner_dashboard, course_progress, update_learning_time
-from .admin_views import admin_dashboard
+from .admin_crud_views import (
+    admin_dashboard,
+    model_list,
+    model_add,
+    model_edit,
+    model_delete
+)
+from .views import activity_logs_api
 
 app_name = 'users'  # Pense à définir un namespace pour tes URLs
 
@@ -26,6 +33,13 @@ urlpatterns = [
     
     # URLs pour l'administration
     path('admin/dashboard/', admin_dashboard, name='admin_dashboard'),
+    path('admin/activity-logs/', activity_logs_api, name='admin_activity_logs_api'),
+    
+    # URLs pour le CRUD générique
+    path('admin/<str:app_label>/<str:model_name>/', model_list, name='admin_model_list'),
+    path('admin/<str:app_label>/<str:model_name>/add/', model_add, name='admin_model_add'),
+    path('admin/<str:app_label>/<str:model_name>/<int:object_id>/', model_edit, name='admin_model_edit'),
+    path('admin/<str:app_label>/<str:model_name>/<int:object_id>/delete/', model_delete, name='admin_model_delete'),
     
     # URLs pour le suivi des apprenants
     path('tracking/', learner_dashboard, name='learner_tracking'),

@@ -72,36 +72,144 @@ body{
   font-size:14px;
 }
 
-.app{
-  max-width:1400px;
-  margin:16px auto;
-  display:grid;
-  grid-template-columns:70px 1fr 300px;
-  gap:16px;
+.app {
+  max-width: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 80px 1fr 300px;
+  gap: 16px;
+  width: 100%;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+/* Ajustements pour les écrans 1366px et plus */
+@media (min-width: 1366px) {
+  .app {
+    max-width: 110%;
+    padding: 0 24px;
+  }
+}
+
+/* Ajustements pour les très grands écrans */
+@media (min-width: 1920px) {
+  .app {
+    max-width: 95%;
+  }
+}
+
+/* Ajustements pour les tablettes */
+@media (max-width: 1199px) {
+  .app {
+    grid-template-columns: 70px 1fr;
+  }
+  
+  .panel {
+    grid-column: span 2;
+  }
+}
+
+/* Ajustements pour les mobiles */
+@media (max-width: 767px) {
+  .app {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .sidebar {
+    flex-direction: row;
+    justify-content: center;
+    width: 100%;
+    height: auto;
+    padding: 12px;
+  }
+  
+  .panel {
+    grid-column: auto;
+  }
 }
 
 /* Sidebar */
-.sidebar{
-  background:#fff;
-  border-radius:10px;
-  height: 300px;
-  padding:9px 0;
-  display:flex;
-  width: 60px;
-  flex-direction:column;
-  align-items:center;
-  gap:12px;
-  box-shadow:0 8px 20px rgba(0,0,0,.08);
+.sidebar {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  height: fit-content;
+  padding: 16px 8px;
+  display: flex;
+  width: 70px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-.sidebar .icon{
-  width:36px;height:36px;border-radius:10px;
-  display:grid;place-items:center;
-  color:#64748b;cursor:pointer;
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(26, 26, 26, 0.1), rgba(45, 45, 45, 0.2));
+  z-index: -1;
+  border-radius: 12px;
 }
 
-.sidebar .icon.active{
-  background:#6366f1;color:#fff;
+.sidebar .icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #e0e0e0;
+  cursor: pointer;
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar .icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: 0.5s;
+}
+
+.sidebar .icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  color: #fff;
+}
+
+.sidebar .icon:hover::before {
+  left: 100%;
+}
+
+.sidebar .icon.active {
+  background: linear-gradient(135deg, #0072ce, #00439c);
+  color: #fff;
+  border-color: #00a4ff;
+  box-shadow: 0 4px 16px rgba(0, 114, 206, 0.4);
+}
+
+.sidebar .icon i {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.sidebar .icon:hover i {
+  transform: scale(1.1);
 }
 
 /* Header */
@@ -188,33 +296,69 @@ body{
 /* =========================
    TABS DESIGN (LD-TABS)
 ========================= */
-.ld-tabs {margin-top:1rem;}
+.ld-tabs {margin-top:1.5rem;}
 
 .ld-tabs .nav-tabs {
-  border:none;gap:8px;
-  background:#f4f6fb;
-  padding:6px;
-  border-radius:16px;
-  width:fit-content;
+  border: none;
+  gap: 8px;
+  background: rgba(26, 26, 26, 0.1);
+  padding: 6px;
+  border-radius: 10px;
+  width: fit-content;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .ld-tabs .nav-tabs .nav-link {
-  border:none;border-radius:999px;
-  padding:6px 16px;font-weight:600;font-size:0.85rem;color:#475569;
-  background:transparent;transition:all 0.25s ease;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #e0e0e0;
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.ld-tabs .nav-tabs .nav-link:hover{
-  background:rgba(99,102,241,.12);
-  color:#4338ca;
+.ld-tabs .nav-tabs .nav-link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: 0.5s;
 }
 
-.ld-tabs .nav-tabs .nav-link.active{
-  background:linear-gradient(135deg,#6366f1,#4f46e5);
-  color:#fff;box-shadow:0 8px 18px rgba(99,102,241,.35);
+.ld-tabs .nav-tabs .nav-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  color: #fff;
 }
 
-.ld-tabs .tab-content {margin-top:16px;}
+.ld-tabs .nav-tabs .nav-link:hover::before {
+  left: 100%;
+}
+
+.ld-tabs .nav-tabs .nav-link.active {
+  background: linear-gradient(135deg, #0072ce, #00439c);
+  border-color: #00a4ff;
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(0, 114, 206, 0.4);
+  transform: translateY(-2px);
+}
+
+.ld-tabs .nav-tabs .nav-link.active:hover {
+  background: linear-gradient(135deg, #0088ff, #0055cc);
+  box-shadow: 0 8px 25px rgba(0, 136, 255, 0.5);
+}
+
+.ld-tabs .tab-content {
+  margin-top: 20px;
+  padding: 20px 0;
+}
 
 /* =========================
    ACCORDION STYLE
@@ -359,19 +503,151 @@ body{
 .pill{display:inline-block;background:#e0f2fe;color:#0369a1;border-radius:999px;padding:2px 6px;font-size:11px;font-weight:700}
 .locked{color:#9ca3af}
 .muted{color:#6b7280}
+
+/* Styles des boutons d'état du cours - Version ajustée */
+.btn-enrolled {
+  position: relative;
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+  color: #fff !important;
+  border: 1px solid #2a5d8a;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.25s ease;
+  cursor: not-allowed;
+  width: auto;
+  min-width: auto;
+  overflow: hidden;
+  height: auto;
+  line-height: 1.2;
+  backdrop-filter: blur(5px);
+}
+
+.btn-enrolled::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  transition: 0.5s;
+}
+
+.btn-enrolled i {
+  font-size: 1.3em;
+  margin-right: 10px;
+  color: #0072ce;
+  transition: all 0.3s ease;
+}
+
+.btn-mark-completed {
+  position: relative;
+  background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+  color: #e0e0e0 !important;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  width: auto;
+  min-width: auto;
+  overflow: hidden;
+  height: auto;
+  line-height: 1.2;
+  backdrop-filter: blur(5px);
+  margin: 0 0 0 10px;
+}
+
+.btn-mark-completed:hover {
+  border-color: #0072ce;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn-mark-completed::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: 0.5s;
+}
+
+.btn-mark-completed:hover::before {
+  left: 100%;
+}
+
+.btn-mark-completed.completed {
+  background: linear-gradient(135deg, #0072ce, #00439c);
+  border-color: #00a4ff;
+  color: #fff !important;
+  box-shadow: 0 6px 20px rgba(0, 114, 206, 0.4);
+}
+
+.btn-mark-completed.completed:hover {
+  background: linear-gradient(135deg, #0088ff, #0055cc);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 136, 255, 0.5);
+}
+
+.btn-mark-completed i {
+  font-size: 1.3em;
+  margin-right: 10px;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+/* Animation de survol pour les deux boutons */
+.cta .btn {
+  position: relative;
+  z-index: 1;
+}
+
+.cta .btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  transform: translateX(-100%);
+  transition: 0.6s;
+  z-index: -1;
+}
+
+.cta .btn:hover::after {
+  transform: translateX(100%);
+}
+
 .modal-backdrop { z-index: 1990 !important; }
 .modal { z-index: 2000 !important; }
 
 </style>
 
-<div class="app">
-
+<div class="container-fluid px-4 px-xl-5">
+  <div class="app mx-auto">
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="icon active" title="Contenu du cours"><i class="bi bi-paperclip"></i></div>
     <a href="{% url 'users:dashboard' %}" class="icon" title="Tableau de bord"><i class="bi bi-grid"></i></a>
     <a href="{% url 'users:profile' %}" class="icon" title="Mon profil"><i class="bi bi-person"></i></a>
-    <a href="#" class="icon" id="calendar-btn" title="Calendrier"><i class="bi bi-calendar"></i></a>
     <a href="#" class="icon" id="settings-btn" title="Paramètres"><i class="bi bi-gear"></i></a>
   </div>
 
@@ -419,44 +695,45 @@ body{
 
     <div class="video-card">
       <section class="course-hero">
-        <div class="hero-media{% if not course.thumbnail %} no-thumb{% endif %}"{% if course.thumbnail %} style="background-image: url('{{ course.thumbnail.url }}');"{% endif %}>
+        <div class="hero-media{% if not course.thumbnail %} no-thumb{% endif %}"{% if course.thumbnail %} style="background-image: url('{{ course.thumbnail.url }}');"{% endif %}></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-inner" style="position: relative;">
           {% if has_passed_evaluation %}
-          <div class="passed-badge" style="position: absolute; top: 20px; right: 20px; background: #28a745; color: white; padding: 8px 12px; border-radius: 20px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-            <i class="bi bi-award-fill"></i>
-            <span>Expert</span>
+          <div class="badge alt" style="font-size: 3.1em; padding: 10px 16px; background: linear-gradient(135deg, #1a1a1a, #2d2d2d); border: 1px solid #3a3a3a; position: absolute; top: 20px; right: 20px;">
+            <i class="bi bi-award-fill me-1" style="color: #ffd700;"></i>
+            <!-- <span>Expert</span> -->
           </div>
           {% endif %}
-        </div>
-        <div class="hero-overlay"></div>
-        <div class="hero-inner">
             <h1 class="title">{{ course.title }}</h1>
             <p class="desc">{{ course.description|truncatechars:180 }}</p>
-            <div class="meta">
-            <span class="badge">{{ nombre_inscrits }} inscrits</span>
-            {% if course.category %}<span class="badge alt">{{ course.category.name }}</span>{% endif %}
-            <span class="badge alt">{{ modules|length }} modules</span>
-            </div>
-            <div class="cta d-flex flex-column gap-2 col-md-4">
+            <div class="meta d-flex align-items-center flex-wrap" style="gap: 8px;">
             {% if is_enrolled %}
-                <button class="btn solid" disabled>✅ Vous êtes inscrit(e)</button>
-                <form method="post" action="{% url 'courses:mark_course_completed' course.id %}" id="mark-course-completed-form">
-                    {% csrf_token %}
-                    <button type="button" 
-                            class="btn {% if is_course_completed %}btn-success{% else %}btn-outline-secondary{% endif %} w-100"
-                            id="mark-course-completed-btn"
-                            data-completed="{% if is_course_completed %}true{% else %}false{% endif %}">
-                        <i class="bi {% if is_course_completed %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-2"></i>
-                        <span>{% if is_course_completed %}Cours terminé{% else %}Marquer le cours comme terminé{% endif %}</span>
-                    </button>
-                </form>
+              <button class="btn btn-enrolled" disabled>
+                  <i class="bi bi-check-circle-fill me-1"></i>
+                  <span>Inscrit(e)</span>
+              </button>
+              <form method="post" action="{% url 'courses:mark_course_completed' course.id %}" id="mark-course-completed-form">
+                  {% csrf_token %}
+                  <button type="button" 
+                          class="btn btn-mark-completed {% if is_course_completed %}completed{% endif %}"
+                          id="mark-course-completed-btn"
+                          data-completed="{% if is_course_completed %}true{% else %}false{% endif %}">
+                      <i class="bi {% if is_course_completed %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-1"></i>
+                      <span>{% if is_course_completed %}Terminé{% else %}Marquer terminé{% endif %}</span>
+                  </button>
+              </form>
             {% else %}
-                <form method="post" action="{% url 'courses:enroll_course' course.id %}">
-                    {% csrf_token %}
-                    <button class="btn solid w-100">S'inscrire au cours</button>
-                </form>
+              <form method="post" action="{% url 'courses:enroll_course' course.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-mark-completed" type="submit">
+                    <i class="bi bi-person-plus me-1"></i>
+                    <span>S'inscrire</span>
+                  </button>
+              </form>
             {% endif %}
-            <!-- <button type="button" class="btn btn-outline-light ms-2" data-bs-toggle="modal" data-bs-target="#testModal">Ouvrir le modal test</button> -->
             </div>
+            <!-- Les boutons ont été déplacés dans la div .meta -->
+            <div class="cta d-none"></div>
         </div>
     </section>
       
@@ -491,7 +768,10 @@ body{
               {% if is_enrolled and module.lessons.all %}
               <form method="post" action="{% url 'courses:mark_module_completed' course.id module.id %}" class="mb-2">
                 {% csrf_token %}
-                <button class="btn ghost btn-sm" type="submit">Marquer ce module terminé</button>
+                <button class="btn-mark-completed" type="submit" style="margin: 0;">
+                  <i class="bi bi-check-circle me-1"></i>
+                  <span>Marquer ce module terminé</span>
+                </button>
               </form>
               {% endif %}
               <div class="accordion" id="lessonsAcc-{{ module.id }}">
@@ -544,6 +824,21 @@ body{
                               </ul>
                             {% else %}
                               <div class="muted">Aucune vidéo listée.</div>
+                            {% endif %}
+                            {% if is_enrolled and lesson.exercises.exists %}
+                              <div class="mt-3">
+                                <button 
+                                  onclick="confirmQuizStart({{ lesson.id }}, {{ lesson.exercises.count }}, '{{ lesson.title|escapejs }}'); return false;"
+                                  class="btn-mark-completed {% if request.user in lesson.exercices_completed_by.all %}completed{% endif %}"
+                                  style="margin: 0;"
+                                >
+                                  <i class="bi {% if request.user in lesson.exercices_completed.all %}bi-check-circle-fill{% else %}bi-question-circle{% endif %} me-1"></i>
+                                  <span>{% if request.user in lesson.exercices_completed_by.all %}Quiz réussi{% else %}Passer le quiz{% endif %}</span>
+                                  {% if request.user in lesson.exercices_completed_by.all %}
+                                    <span class="badge bg-transparent ms-1">✓</span>
+                                  {% endif %}
+                                </button>
+                              </div>
                             {% endif %}
                           </div>
                         </div>
@@ -649,25 +944,194 @@ body{
     </div>
 
     <div class="meeting-card purple">
-      <small>Nexxus Project</small>
-      <h6 class="mt-2">Upcoming Meeting</h6>
+      <small>Nexxus Project</small> <br>
+       <span class="badge">{{ nombre_inscrits }} inscrits</span> <br>
+        {% if course.category %}<span class="badge alt">Categorie: {{ course.category.name }}</span>{% endif %} <br>
+        <span class="badge alt">Module: {{ modules|length }} modules</span>
       <div class="meeting-time mt-3"><i class="bi bi-clock"></i> 9:00 am</div>
     </div>
 
     <div class="meeting-card gray">
-      <small>Lumina Leap</small>
-      <h6 class="mt-2">Upcoming Meeting</h6>
-      <div class="meeting-time mt-3"><i class="bi bi-clock"></i> 11:00 am</div>
+      <div class="d-flex flex-column h-100">
+        {% if quiz_score %}
+          <small>Résultat du Quiz</small>
+          <h6 class="mt-2">Votre score</h6>
+          <div class="d-flex flex-column align-items-center justify-content-center flex-grow-1">
+            {% with score=quiz_score.score|default:0|floatformat:0 %}
+            <div class="circular-progress mb-2" 
+                 data-percent="{{ score }}" 
+                 style="--progress-color: {% if score >= 70 %}#28a745{% else %}#ffc107{% endif %}">
+              <div class="progress-value">{{ score }}%</div>
+            </div>
+            <div class="text-center">
+              <p class="mb-1">
+                <i class="bi {% if score >= 70 %}bi-check-circle-fill text-success{% else %}bi-exclamation-circle-fill text-warning{% endif %} me-1"></i>
+                {% if score >= 70 %}
+                  Félicitations !
+                {% else %}
+                  Continuez à vous entraîner
+                {% endif %}
+              </p>
+              <div class="mb-1">
+                <span class="badge bg-{% if score >= 70 %}success{% else %}warning{% endif %} text-dark">
+                  {{ quiz_score.correct_answers }}/{{ quiz_score.total_questions }} exercices réussis
+                </span>
+              </div>
+              <small class="text-muted">Dernière tentative: {{ quiz_score.last_attempt|date:"d/m/Y H:i" }}</small>
+              <div class="text-warning small mt-1">
+                <i class="bi bi-exclamation-triangle-fill"></i> Score minimum: 70%
+              </div>
+            </div>
+            {% endwith %}
+          </div>
+        {% else %}
+          <small>Quiz</small>
+          <h6 class="mt-2">Aucun résultat</h6>
+          <div class="d-flex flex-column align-items-center justify-content-center flex-grow-1">
+            <div class="text-center py-3">
+              <i class="bi bi-clipboard-data fs-1 text-muted mb-2"></i>
+              <p class="mb-0">Passez le quiz pour voir votre score</p>
+            </div>
+          </div>
+        {% endif %}
+      </div>
     </div>
+
   </div>
 
 </div>
 
 {% endblock content %}
 
+{% block extra_css %}
+<style>
+/* Style pour le cercle de progression */
+.circular-progress {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--progress-color, #28a745) calc(var(--progress, 0) * 1%),
+    #e9ecef 0
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.circular-progress::before {
+  content: '';
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background-color: white;
+}
+
+.progress-value {
+  position: relative;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Animation du cercle */
+@keyframes progress {
+  0% { --progress: 0; }
+  100% { --progress: var(--progress-value); }
+}
+
+.circular-progress {
+  animation: progress 1.5s ease-in-out forwards;
+  --progress-value: 0;
+}
+
+/* Support pour les navigateurs qui ne supportent pas @property */
+@supports not (background: paint(something)) {
+  .circular-progress {
+    background: conic-gradient(
+      var(--progress-color, #28a745) calc(0 * 1%),
+      #e9ecef 0
+    );
+    transition: background 1.5s ease-in-out;
+  }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
+// Fonction de confirmation pour le démarrage du quiz avec SweetAlert2
+function confirmQuizStart(lessonId, questionCount, lessonTitle) {
+    const plural = questionCount > 1 ? 's' : '';
+    
+    Swal.fire({
+        title: `${lessonTitle}`,
+        html: `<div class="text-start">
+                 <p>Cette leçon contient ${questionCount} question${plural}.</p>
+                 <p class="mb-0">Voulez-vous commencer maintenant ?</p>
+              </div>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Commencer',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#0d6efd',
+        cancelButtonColor: '#6c757d',
+        reverseButtons: true,
+        customClass: {
+            confirmButton: 'btn btn-primary',
+            cancelButton: 'btn btn-outline-secondary me-2'
+        },
+        buttonsStyling: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/exercices/lesson/${lessonId}/quiz/`;
+        }
+    });
+}
+
+// Fonction pour animer le cercle de progression
+function animateCircularProgress() {
+    const progressElements = document.querySelectorAll('.circular-progress');
+    
+    progressElements.forEach(progress => {
+        const percent = progress.getAttribute('data-percent');
+        const progressValue = progress.querySelector('.progress-value');
+        
+        // Mettre à jour la variable CSS avec la valeur du pourcentage
+        progress.style.setProperty('--progress-value', percent);
+        
+        // Pour les navigateurs qui ne supportent pas @property
+        if (!CSS.supports('background', 'paint(something)')) {
+            progress.style.background = `conic-gradient(
+                ${progress.style.getPropertyValue('--progress-color') || '#28a745'} ${percent}%,
+                #e9ecef 0
+            )`;
+        }
+        
+        // Animation du compteur
+        let startValue = 0;
+        const duration = 1500; // 1.5 secondes
+        const increment = percent / (duration / 16); // 60fps
+        
+        const timer = setInterval(() => {
+            startValue += increment;
+            if (startValue >= percent) {
+                startValue = percent;
+                clearInterval(timer);
+            }
+            progressValue.textContent = `${Math.round(startValue)}%`;
+        }, 16);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Animer les cercles de progression
+    if (document.querySelector('.circular-progress')) {
+        animateCircularProgress();
+    }
     // Gestion de la sidebar
     document.querySelectorAll('.sidebar a').forEach(link => {
         link.addEventListener('click', function(e) {
@@ -690,10 +1154,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!iconClass) return;
                 
                 // Actions spécifiques pour chaque icône
-                if (iconClass === 'bi-calendar') {
-                    // Afficher un message pour la fonctionnalité à venir
-                    showToast('Calendrier', 'Cette fonctionnalité sera bientôt disponible !', 'info');
-                } else if (iconClass === 'bi-gear') {
+                if (iconClass === 'bi-gear') {
                     // Afficher un message pour les paramètres
                     showToast('Paramètres', 'Accès aux paramètres du compte', 'info');
                 }

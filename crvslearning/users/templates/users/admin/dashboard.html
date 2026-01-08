@@ -1,93 +1,393 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load i18n static %}
 
-{% block title %}Tableau de bord administrateur{% endblock %}
+{% block title %}Tableau de bord administrateur | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Style pour le défilement automatique */
+    .online-users-scroll {
+        transition: transform 0.5s ease-out;
+        font-family: 'Courier New', monospace;
+        background-color: #1e1e1e;
+        color: #33ff33;
+        padding: 10px;
+        border-radius: 4px;
+        max-height: 300px;
+        overflow: hidden;
+    }
+    
+    .online-users-container {
+        position: relative;
+        background-color: #1e1e1e;
+        border-radius: 4px;
+        border: 1px solid #33ff33;
+        box-shadow: 0 0 10px rgba(51, 255, 51, 0.3);
+    }
+    
+    .online-users-container::before {
+        content: 'users-online-terminal';
+        display: block;
+        background-color: #33ff33;
+        color: #1e1e1e;
+        padding: 5px 10px;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        font-size: 0.9em;
+    }
+    
+    .online-users-container::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 30px;
+        background: linear-gradient(to bottom, rgba(30, 30, 30, 0) 0%, #1e1e1e 100%);
+        pointer-events: none;
+        border-radius: 0 0 4px 4px;
+    }
+    
+    .app-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .app-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    .app-card .card-header {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+    .app-card .card-body {
+        padding: 0;
+    }
+    .model-item {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        transition: background-color 0.2s;
+    }
+    .model-item:last-child {
+        border-bottom: none;
+    }
+    .model-item:hover {
+        background-color: #f8f9fa;
+    }
+    .quick-actions .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        margin-bottom: 1.5rem;
+    }
+    .quick-actions .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+    }
+    .quick-actions .list-group-item {
+        border-left: none;
+        border-right: none;
+        padding: 0.75rem 1.25rem;
+    }
+    .quick-actions .list-group-item i {
+        width: 20px;
+        text-align: center;
+        margin-right: 10px;
+    }
+    .app-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        color: white;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    }
+    .app-title {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+    }
+    .model-actions .btn {
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+    .model-actions .btn:hover {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h2 mb-0">Tableau de bord administrateur</h1>
-                    <p class="text-muted mb-0">Gérez l'ensemble du contenu du site</p>
-                </div>
-                <a href="{% url 'admin:index' %}" class="btn btn-outline-primary">
-                    <i class="bi bi-speedometer2 me-2"></i>Admin Django
-                </a>
-            </div>
-            <hr class="mt-3">
+    <!-- En-tête avec titre et statistiques -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-2">Tableau de bord administrateur</h1>
+            <p class="text-muted mb-0">Gérez l'ensemble de votre plateforme depuis cet espace</p>
+        </div>
+        <div class="d-flex">
+            <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-cog me-2"></i> Administration avancée
+            </a>
         </div>
     </div>
 
     <div class="row">
-        {% for app in app_list %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom-0">
-                    <h5 class="card-title mb-0 text-primary">
-                        <i class="bi bi-grid me-2"></i>{{ app.name }}
-                    </h5>
+        <!-- Barre latérale -->
+        <div class="col-lg-3">
+            <!-- Carte des actions rapides -->
+            <div class="card quick-actions mb-4">
+                <div class="card-header">
+                    <i class="fas fa-bolt me-2"></i> Actions rapides
                 </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        {% for model in app.models %}
-                        <div class="list-group-item border-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <a href="{{ model.admin_url }}" class="text-decoration-none text-dark">
-                                    <i class="bi bi-box me-2"></i>{{ model.name }}
-                                </a>
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ model.add_url }}" class="btn btn-sm btn-outline-success" 
-                                       data-bs-toggle="tooltip" title="Ajouter">
-                                        <i class="bi bi-plus-lg"></i>
-                                    </a>
-                                    <a href="{{ model.admin_url }}" class="btn btn-sm btn-outline-primary"
-                                       data-bs-toggle="tooltip" title="Voir la liste">
-                                        <i class="bi bi-list-ul"></i>
-                                    </a>
-                                </div>
-                            </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'users:admin_model_add' app_label='courses' model_name='course' %}" 
+                       class="list-group-item list-group-item-action">
+                        <i class="fas fa-book"></i> Nouveau cours
+                    </a>
+                    <a href="{% url 'users:admin_model_add' app_label='users' model_name='user' %}" 
+                       class="list-group-item list-group-item-action">
+                        <i class="fas fa-user-plus"></i> Nouvel utilisateur
+                    </a>
+                    <a href="{% url 'users:admin_model_add' app_label='courses' model_name='category' %}" 
+                       class="list-group-item list-group-item-action">
+                        <i class="fas fa-tags"></i> Nouvelle catégorie
+                    </a>
+                    <a href="{% url 'users:admin_model_list' app_label='courses' model_name='enrollment' %}" 
+                       class="list-group-item list-group-item-action">
+                        <i class="fas fa-user-graduate"></i> Voir les inscriptions
+                    </a>
+                </div>
+            </div>
+
+            <!-- Carte des statistiques -->
+            <div class="card quick-actions mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-2"></i> Vue d'ensemble
+                </div>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-users me-2"></i> Utilisateurs</span>
+                            <span class="badge bg-primary rounded-pill">{{ stats.total_users|default:'0' }}</span>
                         </div>
-                        {% endfor %}
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-book me-2"></i> Cours</span>
+                            <span class="badge bg-success rounded-pill">{{ stats.total_courses|default:'0' }}</span>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-user-graduate me-2"></i> Étudiants actifs</span>
+                            <span class="badge bg-info rounded-pill">{{ stats.active_users|default:'0' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carte des utilisateurs en ligne -->
+            <div class="terminal-card mb-4">
+                <div class="online-users-container">
+                    <div class="online-users-scroll">
+                        {% if online_users %}
+                            {% for user in online_users %}
+                            <div class="terminal-line">
+                                <span class="terminal-prompt">></span>
+                                <span class="terminal-username">{{ user.get_username|upper }}</span>
+                                <span class="terminal-text">est connecté(e) depuis</span>
+                                <span class="terminal-time">{% now "H:i:s" %}</span>
+                                <span class="terminal-cursor">_</span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="terminal-line">
+                                <span class="terminal-prompt">></span>
+                                <span class="terminal-text">Aucun utilisateur en ligne</span>
+                                <span class="terminal-cursor">_</span>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-        {% endfor %}
+
+        <!-- Contenu principal -->
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-th-large me-2"></i> Applications</h5>
+                    <div class="input-group" style="max-width: 300px;">
+                        <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Rechercher..." id="searchInput">
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if app_list %}
+                        {% for app in app_list %}
+                        <div class="app-card card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div class="app-title">
+                                    <div class="app-icon">
+                                        <i class="fas fa-folder"></i>
+                                    </div>
+                                    {{ app.name }}
+                                </div>
+                                <a href="{{ app.app_url }}" class="btn btn-sm btn-light">
+                                    <i class="fas fa-arrow-right me-1"></i> Voir tout
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                {% for model in app.models %}
+                                <div class="model-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-table text-muted me-3" style="width: 20px;"></i>
+                                        <div>
+                                            <h6 class="mb-0">
+                                                {% if model.admin_url %}
+                                                    <a href="{{ model.admin_url }}" class="text-dark">{{ model.name }}</a>
+                                                {% else %}
+                                                    {{ model.name }}
+                                                {% endif %}
+                                            </h6>
+                                            <small class="text-muted">{{ model.description|default:"Gérez les éléments de cette catégorie" }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="model-actions">
+                                        {% if model.add_url %}
+                                        <a href="{{ model.add_url }}" class="btn btn-sm btn-outline-success" 
+                                           data-bs-toggle="tooltip" title="Ajouter">
+                                            <i class="fas fa-plus"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if model.admin_url %}
+                                        <a href="{{ model.admin_url }}" class="btn btn-sm btn-outline-primary ms-1" 
+                                           data-bs-toggle="tooltip" title="Voir la liste">
+                                            <i class="fas fa-list"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="fas fa-inbox fa-3x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">Aucune application trouvée</h5>
+                        <p class="text-muted">Commencez par ajouter des modèles dans l'administration Django</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 // Activer les tooltips
-document.addEventListener('DOMContentLoaded', function() {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+
+// Fonction pour le défilement automatique avec style terminal
+function setupAutoScroll(containerSelector, scrollSpeed = 1) {
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
+    
+    const content = container.querySelector('> div');
+    if (!content) return;
+    
+    // Ajouter un effet de clignotement du curseur
+    const cursor = content.querySelectorAll('.terminal-cursor');
+    if (cursor.length > 0) {
+        setInterval(() => {
+            cursor.forEach(c => {
+                c.style.visibility = c.style.visibility === 'hidden' ? 'visible' : 'hidden';
+            });
+        }, 500);
+    }
+    
+    // Vérifier si le contenu dépasse la hauteur du conteneur
+    if (content.scrollHeight <= container.clientHeight) {
+        return; // Pas besoin de défilement si tout est visible
+    }
+    
+    let scrollPosition = 0;
+    const scrollHeight = content.scrollHeight - container.clientHeight;
+    let isScrolling = true;
+    let scrollInterval;
+    
+    function startScrolling() {
+        scrollInterval = setInterval(() => {
+            if (!isScrolling) return;
+            
+            if (scrollPosition >= scrollHeight) {
+                // Revenir en haut avec un effet de défilement fluide
+                scrollPosition = 0;
+                content.style.transition = 'transform 0.8s ease-in-out';
+                content.style.transform = 'translateY(0)';
+                
+                // Réinitialiser la transition après l'animation
+                setTimeout(() => {
+                    content.style.transition = 'transform 0.1s linear';
+                }, 800);
+            } else {
+                scrollPosition += scrollSpeed;
+                content.style.transform = `translateY(-${scrollPosition}px)`;
+            }
+        }, 50);
+    }
+    
+    // Démarrer le défilement
+    startScrolling();
+    
+    // Arrêter le défilement au survol
+    container.addEventListener('mouseenter', () => {
+        isScrolling = false;
+        clearInterval(scrollInterval);
     });
+    
+    // Reprendre le défilement quand la souris quitte
+    container.addEventListener('mouseleave', () => {
+        isScrolling = true;
+        startScrolling();
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser le défilement automatique
+    setupAutoScroll('.online-users-container');
+    
+    // Script de recherche
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const appCards = document.querySelectorAll('.app-card');
+            
+            appCards.forEach(card => {
+                const cardText = card.textContent.toLowerCase();
+                card.style.display = cardText.includes(searchTerm) ? 'block' : 'none';
+            });
+        });
+    }
 });
 </script>
-
-<style>
-.card {
-    transition: transform 0.2s ease-in-out;
-    border-radius: 10px;
-    overflow: hidden;
-}
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-.list-group-item {
-    padding: 1rem 1.25rem;
-    border-left: 0;
-    border-right: 0;
-}
-.list-group-item:first-child {
-    border-top: 0;
-}
-.list-group-item:last-child {
-    border-bottom: 0;
-}
-</style>
 {% endblock %}

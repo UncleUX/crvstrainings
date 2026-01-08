@@ -4,9 +4,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 from .models import CustomUser
 from subscriptions.models import Subscription
 from .forms import CustomUserCreationForm
@@ -135,6 +137,14 @@ def user_login(request):
         if user is not None:
             login(request, user)
             
+            # Enregistrer l'activité de connexion
+            if hasattr(request, '_activity_tracking_middleware'):
+                request._activity_tracking_middleware.log_activity(
+                    user=user,
+                    action='login',
+                    request=request
+                )
+            
             # Vérifier s'il y a une URL de redirection valide
             if next_url and next_url != 'None' and not next_url.startswith('/admin/'):
                 return redirect(next_url)
@@ -157,6 +167,15 @@ def user_login(request):
 
 @login_required
 def user_logout(request):
+    # Enregistrer l'activité de déconnexion avant de déconnecter l'utilisateur
+    if hasattr(request, '_activity_tracking_middleware'):
+        request._activity_tracking_middleware.log_activity(
+            user=request.user,
+            action='logout',
+            request=request
+        )
+    
+    # Déconnecter l'utilisateur
     logout(request)
     return redirect('users:login')
 
@@ -359,11 +378,14 @@ def upload_avatar(request):
         try:
             request.user.avatar = request.FILES['avatar']
             request.user.save(update_fields=['avatar'])
-            return JsonResponse({
+            response_data = {
                 'success': True,
                 'message': 'Photo de profil mise à jour avec succès.',
                 'avatar_url': request.user.avatar.url if request.user.avatar else None
-            })
+            }
+            response = JsonResponse(response_data)
+            response['Content-Type'] = 'application/json'
+            return response
         except Exception as e:
             return JsonResponse({
                 'success': False,
@@ -380,11 +402,14 @@ def upload_cover(request):
         try:
             request.user.cover = request.FILES['cover']
             request.user.save(update_fields=['cover'])
-            return JsonResponse({
+            response_data = {
                 'success': True,
                 'message': 'Image de couverture mise à jour avec succès.',
                 'cover_url': request.user.cover.url if request.user.cover else None
-            })
+            }
+            response = JsonResponse(response_data)
+            response['Content-Type'] = 'application/json'
+            return response
         except Exception as e:
             return JsonResponse({
                 'success': False,
@@ -443,3 +468,77 @@ def search_trainers(request):
     return JsonResponse({'trainers': results})
 
 # Les vues de gestion des abonnements ont été déplacées vers l'application 'subscriptions'
+
+import logging
+logger = logging.getLogger(__name__)
+
+from django.views.decorators.cache import never_cache
+
+@never_cache
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@require_http_methods(["GET"])
+def activity_logs_api(request):
+    """
+    API pour récupérer les logs d'activité récents.
+    """
+    try:
+        from tracking.models import ActivityLog
+        from django.utils import timezone
+        
+        last_id = request.GET.get('last_id', 0)
+        
+        # Récupérer les logs récents (connexions/déconnexions)
+        logs = ActivityLog.objects.filter(
+            action__in=['login', 'logout']
+        ).select_related('user').order_by('-timestamp')
+        
+        # Filtrer par ID si spécifié
+        if last_id and last_id.isdigit():
+            logs = logs.filter(id__gt=int(last_id))
+        
+        # Si pas de last_id, on prend les 20 derniers logs
+        if not last_id or not last_id.isdigit():
+            logs = logs[:20]
+        
+        # Préparer les données pour la réponse JSON
+        logs_data = []
+        for log in logs:
+            try:
+                logs_data.append({
+                    'id': log.id,
+                    'action': log.action,
+                    'action_display': log.get_action_display(),
+                    'timestamp': log.timestamp.isoformat(),
+                    'time_ago': timezone.now() - log.timestamp,
+                    'ip_address': log.ip_address or '',
+                    'user_agent': log.user_agent or '',
+                    'user': {
+                        'id': log.user.id,
+                        'username': log.user.username,
+                        'email': log.user.email,
+                        'first_name': log.user.first_name or '',
+                        'last_name': log.user.last_name or '',
+                        'avatar': log.user.avatar.url if hasattr(log.user, 'avatar') and log.user.avatar else None,
+                    }
+                })
+            except Exception as user_error:
+                logger.error(f"Error processing log {log.id}: {str(user_error)}")
+                continue
+    
+        logger.info(f"Returning {len(logs_data)} logs")
+        return JsonResponse({
+            'status': 'success',
+            'logs': logs_data,
+            'debug': {
+                'total_logs': logs.count(),
+                'returned_logs': len(logs_data)
+            }
+        })
+    
+    except Exception as e:
+        logger.error(f"Error in activity_logs_api: {str(e)}")
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)

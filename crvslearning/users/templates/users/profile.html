@@ -8,13 +8,186 @@
   .chan-avatar{position:relative;width:90px;height:90px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.2);background:#111827;margin-top:-36px}
   .chan-name{font-weight:900;font-size:1.3rem}
   .chan-meta{color:#6b7280;font-size:.9rem}
-  .grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-  .card-link{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;background:#fff;text-decoration:none;color:inherit}
-  .card-media{position:relative;height:150px;background:#0b1220}
-  .card-fallback{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:42px}
-  .cover-edit{position:absolute;right:10px;bottom:10px;z-index:2}
-  .cover-edit .btn{backdrop-filter:saturate(140%) blur(2px)}
-  .avatar-edit{position:absolute;right:-6px;bottom:-6px;background:#0b5ed7;color:#fff;border-radius:999px;border:2px solid #fff;width:22px;height:22px;display:grid;place-items:center;font-size:12px;box-shadow:0 6px 12px rgba(0,0,0,.25)}
+  /* Style des cartes de catégorie */
+  .grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+  }
+  
+  .card-link {
+    position: relative;
+    display: block;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-link:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+  
+  .card-media {
+    position: relative;
+    height: 160px;
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    overflow: hidden;
+  }
+  
+  .card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .card-link:hover .card-media img {
+    transform: scale(1.05);
+  }
+  
+  .card-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 42px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  }
+  
+  .card-content {
+    padding: 16px;
+  }
+  
+  .card-content h6 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  
+  .card-content small {
+    font-size: 14px;
+    color: #6b7280;
+  }
+  
+  .cover-edit {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
+  }
+  
+  .cover-edit .btn {
+    backdrop-filter: saturate(140%) blur(2px);
+  }
+  
+  .avatar-edit {
+    position: absolute;
+    right: -6px;
+    bottom: -6px;
+    background: #4f46e5;
+    color: #fff;
+    border-radius: 999px;
+    border: 2px solid #fff;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease;
+  }
+  
+  .avatar-edit:hover {
+    background: #4338ca;
+    transform: scale(1.1);
+  }
+  
+  /* Style des boutons */
+  .btn {
+    position: relative;
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    color: #000000 !important;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: none;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    color: white !important;
+    border: none;
+  }
+  
+  .btn-outline-primary {
+    background: transparent;
+    color: #0d6efd !important;
+    border: 1px solid #0d6efd;
+  }
+  
+  .btn-outline-secondary {
+    background: transparent;
+    color: #6c757d !important;
+    border: 1px solid #6c757d;
+  }
+  
+  .btn-outline-info {
+    background: transparent;
+    color: #0dcaf0 !important;
+    border: 1px solid #0dcaf0;
+  }
+  
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #0a58ca, #084298);
+  }
+  
+  .btn-outline-primary:hover {
+    background: rgba(13, 110, 253, 0.1);
+  }
+  
+  .btn-outline-secondary:hover {
+    background: rgba(108, 117, 125, 0.1);
+  }
+  
+  .btn-outline-info:hover {
+    background: rgba(13, 202, 240, 0.1);
+  }
+  
+  .btn i {
+    margin-right: 6px;
+  }
 </style>
 
 <div class="container px-0">
@@ -25,7 +198,7 @@
       <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0f172a,#1f2937);"></div>
     {% endif %}
     <div class="cover-edit">
-      <form id="cover-form" method="post" action="{% url 'users:upload_cover' %}" enctype="multipart/form-data" style="display:inline-block;">
+      <form id="cover-form" method="post" action="{% url 'users:upload_cover' %}" enctype="multipart/form-data" style="display:inline-block;" onsubmit="return false;">
         {% csrf_token %}
         <input id="cover-input" type="file" name="cover" accept="image/*" style="display:none;">
         <button id="cover-btn" type="button" class="btn btn-sm btn-light">Modifier la couverture</button>
@@ -34,17 +207,21 @@
   </section>
 
   <section class="chan-head container">
-    <div class="chan-avatar">
+    <div class="chan-avatar" style="position:relative;width:150px;height:150px;border-radius:50%;overflow:hidden;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
       {% if me.avatar %}
         <img src="{{ me.avatar.url }}" alt="{{ me.username }}" style="width:100%;height:100%;object-fit:cover;">
       {% else %}
-        <div class="card-fallback">{{ me.username|first|upper }}</div>
+        <div class="card-fallback" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#6c757d;color:#fff;font-size:48px;font-weight:bold;">
+          {{ me.username|first|upper }}
+        </div>
       {% endif %}
-      <button id="avatar-edit-btn" type="button" class="avatar-edit" title="Changer l'avatar">✎</button>
       <form id="avatar-form" method="post" action="{% url 'users:upload_avatar' %}" enctype="multipart/form-data" style="display:none;">
         {% csrf_token %}
         <input id="avatar-input" type="file" name="avatar" accept="image/*">
       </form>
+      <label for="avatar-input" class="avatar-edit" style="position:absolute;bottom:10px;right:10px;background:#4a6cf7;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+        <i class="bi bi-camera"></i>
+      </label>
     </div>
     <div class="flex-grow-1">
       <div class="chan-name">{{ me.get_full_name|default:me.username }}</div>
@@ -58,31 +235,31 @@
       {% if me.bio %}
         <p class="mt-2 mb-0">{{ me.bio|linebreaks }}</p>
       {% endif %}
-      <div class="mt-3 d-flex flex-wrap gap-2">
+      <div class="mt-3 d-flex flex-wrap gap-3">
         {% if request.user == me %}
-          <a href="{% url 'users:edit_profile' %}" class="btn btn-sm btn-outline-primary">
-            <i class="fas fa-user-edit me-1"></i> Modifier le profil
+          <a href="{% url 'users:edit_profile' %}" class="btn btn-outline-primary">
+            <i class="fas fa-user-edit"></i> Modifier le profil
           </a>
-          <a href="{% url 'users:change_password' %}" class="btn btn-sm btn-outline-secondary">
-            <i class="fas fa-key me-1"></i> Mot de passe
+          <a href="{% url 'users:change_password' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-key"></i> Mot de passe
           </a>
-          <a href="{% url 'interactions:inbox' %}" class="btn btn-sm btn-outline-info position-relative">
-            <i class="fas fa-inbox me-1"></i> Boîte de réception
+          <a href="{% url 'interactions:inbox' %}" class="btn btn-outline-info position-relative">
+            <i class="fas fa-inbox"></i> Boîte de réception
             {% if unread_count %}
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem; padding: 0.25em 0.5em;">
                 {{ unread_count }}
                 <span class="visually-hidden">messages non lus</span>
               </span>
             {% endif %}
           </a>
         {% else %}
-          <a href="{% url 'interactions:compose' %}?to={{ me.id }}" class="btn btn-sm btn-primary">
-            <i class="fas fa-paper-plane me-1"></i> Envoyer un message
+          <a href="{% url 'interactions:compose' %}?to={{ me.id }}" class="btn btn-primary">
+            <i class="fas fa-paper-plane"></i> Envoyer un message
           </a>
-          <a href="{% url 'interactions:inbox' %}" class="btn btn-sm btn-outline-info position-relative">
-            <i class="fas fa-inbox me-1"></i> Ma messagerie
+          <a href="{% url 'interactions:inbox' %}" class="btn btn-outline-info position-relative">
+            <i class="fas fa-inbox"></i> Ma messagerie
             {% if unread_count %}
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem; padding: 0.25em 0.5em;">
                 {{ unread_count }}
                 <span class="visually-hidden">messages non lus</span>
               </span>
@@ -96,120 +273,219 @@
   <section class="container mt-4">
     <div class="row">
       <div class="col-md-4">
-         <div class="card p-3 mb-3">
-          <h5 class="mb-2">Mes cours créés</h5>
-          <div class="grid-cards">
-            {% for course in created_courses %}
-              <a href="{% url 'courses:course_detail' course.id %}" class="card-link">
-                <div class="card-media">
-                  {% if course.thumbnail %}
-                    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" style="width:100%;height:100%;object-fit:cover;">
-                  {% else %}
-                    <div class="card-fallback">{{ course.title|first|upper }}</div>
-                  {% endif %}
-                </div>
-                <div class="p-3">
-                  <h6 class="mb-1">{{ course.title }}</h6>
-                  <small class="text-muted">{{ course.category.name|default:"Non catégorisé" }}</small>
-                </div>
-              </a>
-            {% empty %}
-              <p class="text-muted">Aucun cours créé.</p>
-            {% endfor %}
-          </div>
+        <!-- Section Mes cours créés -->
+        <div class="card p-4 mb-4" style="border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid rgba(0, 0, 0, 0.05);">
+          <h5 class="mb-3" style="font-weight: 700; color: #1f2937; font-size: 1.1rem; display: flex; align-items: center;">
+            <i class="fas fa-book me-2" style="color: #4f46e5;"></i> Mes cours créés
+          </h5>
+          {% if created_courses %}
+            <div class="grid-cards">
+              {% for course in created_courses %}
+                <a href="{% url 'courses:course_detail' course.id %}" class="card-link">
+                  <div class="card-media">
+                    {% if course.thumbnail %}
+                      <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">
+                    {% else %}
+                      <div class="card-fallback">{{ course.title|first|upper }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="card-content">
+                    <h6 class="mb-1">{{ course.title|truncatechars:30 }}</h6>
+                    <small class="text-muted">{{ course.category.name|default:"Non catégorisé" }}</small>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="fas fa-book-open text-muted mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
+              <p class="text-muted mb-0">Aucun cours créé pour le moment</p>
+            </div>
+          {% endif %}
         </div>
-        <div class="card p-3 mb-3">
-          <h5 class="mb-2">Mes likes</h5>
-          <ul class="list-unstyled mb-0">
-            {% for lk in likes %}
-              <li><a href="{% url 'courses:course_detail' lk.course.id %}">{{ lk.course.title }}</a></li>
-            {% empty %}
-              <li class="text-muted">Aucun like.</li>
-            {% endfor %}
-          </ul>
+
+        <!-- Section Mes likes -->
+        <div class="card p-4 mb-4" style="border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid rgba(0, 0, 0, 0.05);">
+          <h5 class="mb-3" style="font-weight: 700; color: #1f2937; font-size: 1.1rem; display: flex; align-items: center;">
+            <i class="fas fa-heart me-2" style="color: #ec4899;"></i> Mes likes
+          </h5>
+          {% if likes %}
+            <ul class="list-unstyled mb-0">
+              {% for lk in likes %}
+                <li class="mb-2">
+                  <a href="{% url 'courses:course_detail' lk.course.id %}" class="d-flex align-items-center p-2 rounded" style="color: #4b5563; text-decoration: none; transition: all 0.2s ease;">
+                    <i class="fas fa-bookmark text-primary me-2"></i>
+                    <span>{{ lk.course.title|truncatechars:30 }}</span>
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="text-center py-3">
+              <i class="fas fa-heart text-muted mb-2" style="font-size: 1.5rem; opacity: 0.5;"></i>
+              <p class="text-muted mb-0">Aucun cours aimé pour le moment</p>
+            </div>
+          {% endif %}
         </div>
-        <div class="card p-3">
-          <h5 class="mb-2">Mes notes</h5>
-          <ul class="list-unstyled mb-0">
-            {% for rt in ratings %}
-              <li>{{ rt.course.title }} — {{ rt.rating }}/5</li>
-            {% empty %}
-              <li class="text-muted">Aucune note.</li>
-            {% endfor %}
-          </ul>
+
+        <!-- Section Mes notes -->
+        <div class="card p-4" style="border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid rgba(0, 0, 0, 0.05);">
+          <h5 class="mb-3" style="font-weight: 700; color: #1f2937; font-size: 1.1rem; display: flex; align-items: center;">
+            <i class="fas fa-star me-2" style="color: #f59e0b;"></i> Mes notes
+          </h5>
+          {% if ratings %}
+            <ul class="list-unstyled mb-0">
+              {% for rt in ratings %}
+                <li class="mb-2">
+                  <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background-color: #f9fafb;">
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-book text-amber-500 me-2"></i>
+                      <span style="font-weight: 500;">{{ rt.course.title|truncatechars:25 }}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                      {% with ''|center:rt.rating as range %}
+                        {% for _ in range %}
+                          <i class="fas fa-star text-amber-400" style="font-size: 0.8rem;"></i>
+                        {% endfor %}
+                      {% endwith %}
+                      <span class="ms-1 text-sm text-gray-500">{{ rt.rating }}/5</span>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="text-center py-3">
+              <i class="fas fa-star text-muted mb-2" style="font-size: 1.5rem; opacity: 0.5;"></i>
+              <p class="text-muted mb-0">Aucune note attribuée</p>
+            </div>
+          {% endif %}
         </div>
       </div>
       <div class="col-md-8">
-       
-
-        <div class="card p-3 mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Mes certifications</h5>
-            <a href="{% url 'certifications:achievements' %}" class="btn btn-sm btn-outline-primary">
-              <i class="fas fa-trophy me-1"></i> Voir toutes mes réalisations
+        <!-- Section Mes certifications -->
+        <div class="card p-4 mb-4" style="border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid rgba(0, 0, 0, 0.05);">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0" style="font-weight: 700; color: #1f2937; font-size: 1.1rem; display: flex; align-items: center;">
+              <i class="fas fa-trophy me-2" style="color: #f59e0b;"></i> Mes certifications
+            </h5>
+            <a href="{% url 'certifications:achievements' %}" class="btn btn-outline-primary btn-sm" style="font-size: 0.8rem;">
+              <i class="fas fa-trophy me-1"></i> Toutes mes réalisations
             </a>
           </div>
-          <div class="row g-3">
-            {% for cert in certifications|slice:":4" %}
-            <div class="col-md-5">
-              <div class="card h-100">
-                <div class="card-body">
-                  <div class="d-flex align-items-start">
-                    <div class="me-3">
-                      <div class="bg-{% if cert.level == 'beginner' %}info{% elif cert.level == 'intermediate' %}warning{% else %}danger{% endif %} text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                        <i class="fas fa-award fa-lg"></i>
+          
+          {% if certifications %}
+            <div class="row g-4">
+              {% for cert in certifications|slice:":4" %}
+                <div class="col-md-6">
+                  <div class="certification-card" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
+                    <div class="p-4">
+                      <div class="d-flex align-items-start">
+                        <div class="me-3">
+                          <div class="d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, {% if cert.level == 'beginner' %}#0dcaf0{% elif cert.level == 'intermediate' %}#ffc107{% else %}#dc3545{% endif %}, {% if cert.level == 'beginner' %}#0aa2c0{% elif cert.level == 'intermediate' %}#e0a800{% else %}#b02a37{% endif %});">
+                            <i class="fas fa-award text-white" style="font-size: 1.5rem;"></i>
+                          </div>
+                        </div>
+                        <div class="flex-grow-1">
+                          <h6 class="mb-1" style="font-weight: 600; color: #1f2937;">{{ cert.course.title|truncatechars:30 }}</h6>
+                          <span class="badge mb-2" style="background: {% if cert.level == 'beginner' %}#e6f7ff{% elif cert.level == 'intermediate' %}#fff8e6{% else %}#ffebee{% endif %}; color: {% if cert.level == 'beginner' %}#0369a1{% elif cert.level == 'intermediate' %}#b45309{% else %}#b91c1c{% endif %}; font-weight: 500; font-size: 0.75rem; padding: 0.35em 0.65em; border-radius: 6px;">
+                            Niveau : {{ cert.get_level_display }}
+                          </span>
+                          <p class="mb-0" style="font-size: 0.8rem; color: #6b7280;">
+                            <i class="far fa-calendar-alt me-1"></i> Délivré le {{ cert.issued_at|date:"d/m/Y" }}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <div class="flex-grow-1">
-                      <h6 class="mb-1">{{ cert.course.title }}</h6>
-                      <p class="mb-1">
-                        <span class="badge bg-{% if cert.level == 'beginner' %}info{% elif cert.level == 'intermediate' %}warning{% else %}danger{% endif %}">
-                          Niveau : {{ cert.get_level_display }}
-                        </span>
-                      </p>
-                      <small class="text-muted">Délivré le {{ cert.issued_at|date:"d/m/Y" }}</small>
+                    <div class="p-3" style="background-color: #f9fafb; border-top: 1px solid #f1f5f9;">
+                      <a href="{{ cert.pdf.url }}" class="btn btn-sm w-100 d-flex align-items-center justify-content-center" target="_blank" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-weight: 500; transition: all 0.2s ease;">
+                        <i class="fas fa-download me-2"></i> Télécharger le certificat
+                      </a>
                     </div>
                   </div>
                 </div>
-                <div class="card-footer bg-white border-top-0 pt-0">
-                  <a href="{{ cert.pdf.url }}" class="btn btn-sm btn-outline-primary w-100" target="_blank">
-                    <i class="fas fa-download me-1"></i> Télécharger
-                  </a>
-                </div>
-              </div>
+              {% endfor %}
             </div>
-            {% empty %}
-            <div class="col-12">
-              <div class="alert alert-info mb-0">
-                <i class="fas fa-info-circle me-2"></i>
-                Vous n'avez pas encore de certification. Continuez à apprendre pour obtenir vos premiers badges !
+            
+            {% if certifications|length > 4 %}
+              <div class="text-center mt-3">
+                <a href="{% url 'certifications:achievements' %}" class="btn btn-link text-primary" style="text-decoration: none; font-size: 0.85rem;">
+                  <i class="fas fa-arrow-right me-1"></i> Voir toutes mes certifications ({{ certifications|length }})
+                </a>
               </div>
+            {% endif %}
+            
+          {% else %}
+            <div class="text-center py-4">
+              <div class="mb-3" style="width: 80px; height: 80px; margin: 0 auto; background: #f0f9ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-award" style="font-size: 2rem; color: #0ea5e9;"></i>
+              </div>
+              <h6 style="font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;">Aucune certification</h6>
+              <p class="text-muted" style="font-size: 0.9rem; max-width: 400px; margin: 0 auto;">
+                Vous n'avez pas encore de certification. Complétez des cours pour obtenir vos premiers badges !
+              </p>
+              <a href="{% url 'courses:course_list' %}" class="btn btn-primary mt-3" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-weight: 500;">
+                <i class="fas fa-book-open me-2"></i> Explorer les cours
+              </a>
             </div>
-            {% endfor %}
-          </div>
+          {% endif %}
         </div>
 
-        <div class="card p-3 mb-3">
-          <h5 class="mb-2">Mes inscriptions</h5>
-          <div class="grid-cards">
-            {% for enrollment in enrollments %}
-              <a href="{% url 'courses:course_detail' enrollment.course.id %}" class="card-link">
-                <div class="card-media">
-                  {% if enrollment.course.thumbnail %}
-                    <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}" style="width:100%;height:100%;object-fit:cover;">
-                  {% else %}
-                    <div class="card-fallback">{{ enrollment.course.title|first|upper }}</div>
-                  {% endif %}
-                </div>
-                <div class="p-3">
-                  <h6 class="mb-1">{{ enrollment.course.title }}</h6>
-                  <small class="text-muted">Inscrit le {{ enrollment.enrolled_at|date:"d/m/Y" }}</small>
-                </div>
-              </a>
-            {% empty %}
-              <p class="text-muted">Aucune inscription.</p>
-            {% endfor %}
+        <!-- Section Mes inscriptions -->
+        <div class="card p-4" style="border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid rgba(0, 0, 0, 0.05);">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0" style="font-weight: 700; color: #1f2937; font-size: 1.1rem; display: flex; align-items: center;">
+              <i class="fas fa-bookmark me-2" style="color: #8b5cf6;"></i> Mes inscriptions
+            </h5>
+            <span class="badge" style="background: #eef2ff; color: #4f46e5; font-weight: 600; font-size: 0.75rem; padding: 0.35em 0.75em; border-radius: 9999px;">
+              {{ enrollments|length }} cours
+            </span>
           </div>
+          
+          {% if enrollments %}
+            <div class="grid-cards">
+              {% for enrollment in enrollments %}
+                <a href="{% url 'courses:course_detail' enrollment.course.id %}" class="card-link">
+                  <div class="card-media">
+                    {% if enrollment.course.thumbnail %}
+                      <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}">
+                    {% else %}
+                      <div class="card-fallback">{{ enrollment.course.title|first|upper }}</div>
+                    {% endif %}
+                    {% if enrollment.completed_lessons.count > 0 %}
+                      <div class="progress" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: rgba(0, 0, 0, 0.1); border-radius: 0;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ enrollment.progress_percentage }}%; background: linear-gradient(90deg, #4f46e5, #8b5cf6);" aria-valuenow="{{ enrollment.progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="card-content">
+                    <h6 class="mb-1">{{ enrollment.course.title|truncatechars:40 }}</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-muted">Inscrit le {{ enrollment.enrolled_at|date:"d/m/Y" }}</small>
+                      {% if enrollment.completed_lessons.count > 0 %}
+                        <span class="badge" style="background: #eef2ff; color: #4f46e5; font-weight: 500; font-size: 0.7rem; padding: 0.25em 0.5em; border-radius: 4px;">
+                          {{ enrollment.progress_percentage|floatformat:0 }}% complété
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <div class="mb-3" style="width: 80px; height: 80px; margin: 0 auto; background: #f5f3ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-book" style="font-size: 2rem; color: #8b5cf6;"></i>
+              </div>
+              <h6 style="font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;">Aucune inscription</h6>
+              <p class="text-muted" style="font-size: 0.9rem; max-width: 400px; margin: 0 auto 1.5rem;">
+                Vous n'êtes inscrit à aucun cours pour le moment. Parcourez notre catalogue pour trouver des formations qui vous intéressent.
+              </p>
+              <a href="{% url 'courses:course_list' %}" class="btn btn-primary" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none; border-radius: 8px; padding: 0.5rem 1.5rem; font-weight: 500;">
+                <i class="fas fa-search me-2"></i> Découvrir les cours
+              </a>
+            </div>
+          {% endif %}
         </div>
       </div>
 
@@ -218,21 +494,260 @@
   </section>
 </div>
 <script>
-  (function(){
-    const btnA = document.getElementById('avatar-edit-btn');
-    const inpA = document.getElementById('avatar-input');
-    if(btnA && inpA){
-      btnA.addEventListener('click', ()=> inpA.click());
-      inpA.addEventListener('change', ()=>{ if(inpA.files.length){ document.getElementById('avatar-form').submit(); }});
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page de profil chargée');
+    
+    // Gestion de l'avatar
+    const avatarInput = document.getElementById('avatar-input');
+    const avatarForm = document.getElementById('avatar-form');
+    const avatarContainer = document.querySelector('.chan-avatar');
+    
+    // Vérifier que tous les éléments nécessaires sont présents
+    if (!avatarInput || !avatarForm || !avatarContainer) {
+      console.error('Éléments manquants pour la gestion de l\'avatar');
+      return;
     }
-    const btnC = document.getElementById('cover-btn');
-    const inpC = document.getElementById('cover-input');
-    if(btnC && inpC){
-      btnC.addEventListener('click', ()=> inpC.click());
-      inpC.addEventListener('change', ()=>{ if(inpC.files.length){ document.getElementById('cover-form').submit(); }});
+    
+    console.log('Tous les éléments nécessaires sont présents');
+    
+    // Gestion du changement de fichier
+    avatarInput.addEventListener('change', function() {
+      console.log('Fichier sélectionné');
+      
+      if (!this.files || !this.files[0]) {
+        console.log('Aucun fichier sélectionné');
+        return;
+      }
+      
+      // Afficher un indicateur de chargement
+      const originalContent = avatarContainer.innerHTML;
+      avatarContainer.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:rgba(0,0,0,0.5);">
+          <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Chargement...</span>
+          </div>
+        </div>
+      `;
+      
+      // Préparer les données du formulaire
+      const formData = new FormData(avatarForm);
+      
+      // Envoyer la requête
+      fetch(avatarForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Réponse du serveur:', data);
+        
+        if (data.success) {
+          // Mettre à jour l'image de l'avatar
+          if (data.avatar_url) {
+            avatarContainer.innerHTML = `
+              <img src="${data.avatar_url}?t=${new Date().getTime()}" alt="${data.username || 'Avatar'}" style="width:100%;height:100%;object-fit:cover;">
+              <label for="avatar-input" class="avatar-edit" style="position:absolute;bottom:10px;right:10px;background:#4a6cf7;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+                <i class="bi bi-camera"></i>
+              </label>
+            `;
+          }
+          
+          // Afficher un message de succès
+          showToast('Succès', 'Photo de profil mise à jour avec succès', 'success');
+        } else {
+          // Afficher un message d'erreur
+          showToast('Erreur', data.message || 'Une erreur est survenue', 'danger');
+          // Restaurer le contenu original
+          avatarContainer.innerHTML = originalContent;
+        }
+      })
+      .catch(error => {
+        console.error('Erreur lors du téléchargement:', error);
+        showToast('Erreur', 'Une erreur est survenue lors du téléchargement', 'danger');
+        // Restaurer le contenu original
+        avatarContainer.innerHTML = originalContent;
+      });
+    });
+    
+    // Gestion de la couverture
+    const coverInput = document.getElementById('cover-input');
+    const coverForm = document.getElementById('cover-form');
+    const coverContainer = document.querySelector('.chan-cover');
+    
+    if (coverInput && coverForm && coverContainer) {
+      console.log('Initialisation de la gestion de la couverture');
+      
+      // Gérer le changement de fichier pour la couverture
+      coverInput.addEventListener('change', function() {
+        console.log('Changement de fichier de couverture détecté');
+        
+        if (!this.files || !this.files[0]) {
+          console.log('Aucun fichier de couverture sélectionné');
+          return;
+        }
+        
+        // Afficher un indicateur de chargement
+        const originalCoverContent = coverContainer.innerHTML;
+        coverContainer.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:rgba(0,0,0,0.5);position:absolute;top:0;left:0;z-index:10">
+            <div class="spinner-border text-light" role="status">
+              <span class="visually-hidden">Chargement...</span>
+            </div>
+          </div>
+        `;
+        
+        // Préparer les données du formulaire
+        const formData = new FormData(coverForm);
+        
+        // Récupérer le token CSRF
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        if (!csrfToken) {
+          console.error('CSRF token non trouvé');
+          showToast('Erreur de sécurité. Veuillez recharger la page et réessayer.', 'danger');
+          coverContainer.innerHTML = originalCoverContent;
+          return;
+        }
+        
+        // Envoyer la requête AJAX
+        fetch(coverForm.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Réponse du serveur pour la couverture:', data);
+          
+          if (data.success) {
+            // Mettre à jour l'image de couverture
+            if (data.cover_url) {
+              const existingImg = coverContainer.querySelector('img');
+              if (existingImg) {
+                existingImg.src = `${data.cover_url}?t=${new Date().getTime()}`;
+              } else {
+                const newImg = document.createElement('img');
+                newImg.src = `${data.cover_url}?t=${new Date().getTime()}`;
+                newImg.alt = 'Couverture';
+                newImg.style = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85;';
+                
+                // Supprimer le fond de dégradé s'il existe
+                const gradientDiv = coverContainer.querySelector('div[style*="gradient"]');
+                if (gradientDiv) {
+                  coverContainer.removeChild(gradientDiv);
+                }
+                
+                coverContainer.insertBefore(newImg, coverContainer.firstChild);
+              }
+              
+              // Afficher un message de succès
+              showToast('Succès', 'Image de couverture mise à jour avec succès', 'success');
+            }
+          } else {
+            // Afficher un message d'erreur
+            showToast('Erreur', data.message || 'Une erreur est survenue', 'danger');
+            // Restaurer le contenu original en cas d'erreur
+            coverContainer.innerHTML = originalCoverContent;
+          }
+        })
+        .catch(error => {
+          console.error('Erreur lors du téléchargement de la couverture:', error);
+          showToast('Erreur', 'Une erreur est survenue lors du téléchargement', 'danger');
+          // Restaurer le contenu original en cas d'erreur
+          coverContainer.innerHTML = originalCoverContent;
+        });
+      });
+      
+      // Gérer le clic sur le bouton de modification
+      const coverBtn = document.getElementById('cover-btn');
+      if (coverBtn) {
+        coverBtn.addEventListener('click', () => coverInput.click());
+      }
     }
+    
+    // Mise à jour de l'indicateur en ligne
     const dot = document.getElementById('online-dot');
-    if(dot){ dot.style.backgroundColor = (dot.dataset.online === '1') ? '#22c55e' : '#9ca3af'; }
-  })();
+    if(dot) { 
+      dot.style.backgroundColor = (dot.dataset.online === '1') ? '#22c55e' : '#9ca3af'; 
+    }
+    
+    // Fonction utilitaire pour afficher des notifications toast
+    function showToast(title, message, type = 'info') {
+      // Vérifier si la fonction showToast existe déjà (définie ailleurs)
+      if (typeof window.showToast === 'function') {
+        window.showToast(title, message, type);
+        return;
+      }
+      
+      // Implémentation de base si la fonction n'existe pas
+      console.log(`[${type.toUpperCase()}] ${title}: ${message}`);
+      
+      // Créer un élément toast basique si nécessaire
+      const toastContainer = document.querySelector('.toast-container');
+      if (!toastContainer) return;
+      
+      const toastId = 'toast-' + Date.now();
+      const toast = document.createElement('div');
+      toast.id = toastId;
+      toast.className = `toast show align-items-center text-white bg-${type === 'error' ? 'danger' : type} border-0`;
+      toast.role = 'alert';
+      toast.setAttribute('aria-live', 'assertive');
+      toast.setAttribute('aria-atomic', 'true');
+      
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">
+            <strong>${title}</strong><br>${message}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
+        </div>
+      `;
+      
+      toastContainer.appendChild(toast);
+      
+      // Supprimer le toast après 5 secondes
+      setTimeout(() => {
+        const toastElement = document.getElementById(toastId);
+        if (toastElement) {
+          toastElement.classList.remove('show');
+          setTimeout(() => toastElement.remove(), 150);
+        }
+      }, 5000);
+    }
+  }); // Fin de DOMContentLoaded
 </script>
+<style>
+  /* Styles pour les notifications toast */
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1100;
+  }
+  
+  .toast {
+    min-width: 250px;
+    margin-bottom: 10px;
+    opacity: 1;
+    transition: opacity 0.15s ease-in-out;
+  }
+  
+  .toast.hide {
+    opacity: 0;
+  }
+  
+  /* Styles pour le bouton d'édition de l'avatar */
+  .avatar-edit {
+    transition: all 0.2s ease;
+  }
+  
+  .avatar-edit:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+  }
+</style>
 {% endblock %}

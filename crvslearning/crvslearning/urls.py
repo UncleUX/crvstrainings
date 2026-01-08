@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include, re_path
+from django.views.generic import RedirectView
 from django.views.generic import TemplateView
 from django.shortcuts import redirect
 from users import views as user_views
@@ -16,6 +17,7 @@ urlpatterns = [
     path('certifications/', include('certifications.urls')),
     # Ajoutez cette ligne dans urlpatterns
     path('chat/', include('interactions.urls', namespace='interactions')),
+    path('documentation/', include('documentation.urls', namespace='documentation')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
     path('classrooms/', include('classrooms.urls')),
     path('subscriptions/', include('subscriptions.urls')),

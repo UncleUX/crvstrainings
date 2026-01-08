@@ -1,0 +1,517 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Documentation - CRVS Learning{% endblock %}
+
+{% block content %}
+<div class="documentation-container">
+    <!-- Sidebar Navigation -->
+    <aside class="doc-sidebar">
+        <div class="doc-logo">
+            <img src="{% static 'images/logo.png' %}" alt="CRVS Learning" class="img-fluid">
+            <h2>Documentation</h2>
+        </div>
+        <nav class="doc-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#introduction">
+                        <i class="fas fa-home"></i> Introduction
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#getting-started">
+                        <i class="fas fa-rocket"></i> Démarrage rapide
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <span class="nav-section">Fonctionnalités principales</span>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#gestion-utilisateurs">
+                                <i class="fas fa-users"></i> Gestion des utilisateurs
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#gestion-cours">
+                                <i class="fas fa-book"></i> Gestion des cours
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#evaluations">
+                                <i class="fas fa-tasks"></i> Évaluations
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <span class="nav-section">Administration</span>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#admin-dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Tableau de bord
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#gestion-contenu">
+                                <i class="fas fa-cog"></i> Gestion du contenu
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#deploiement">
+                        <i class="fas fa-server"></i> Déploiement
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#faq">
+                        <i class="fas fa-question-circle"></i> FAQ
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="doc-main">
+        <div class="doc-content">
+            <section id="introduction" class="doc-section">
+                <h1>Documentation CRVS Learning</h1>
+                <p class="lead">Bienvenue dans la documentation complète de la plateforme CRVS Learning, votre solution tout-en-un pour l'apprentissage en ligne.</p>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Cette documentation est en constante évolution. N'hésitez pas à nous faire part de vos suggestions.
+                </div>
+
+                <h2>À propos de CRVS Learning</h2>
+                <p>CRVS Learning est une plateforme d'apprentissage en ligne complète qui permet :</p>
+                <ul>
+                    <li>La création et la gestion de cours en ligne</li>
+                    <li>L'évaluation des apprenants</li>
+                    <li>Le suivi des progrès</li>
+                    <li>La gestion des utilisateurs et des rôles</li>
+                </ul>
+            </section>
+
+            <section id="getting-started" class="doc-section">
+                <h2>Démarrage rapide</h2>
+                <p>Commencez avec CRVS Learning en suivant ces étapes simples :</p>
+                
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Installation</h4>
+                            <pre><code># Cloner le dépôt
+git clone [url-du-depot]
+
+# Installer les dépendances
+pip install -r requirements.txt
+
+# Configurer les variables d'environnement
+cp .env.example .env
+
+# Effectuer les migrations
+python manage.py migrate
+
+# Créer un superutilisateur
+python manage.py createsuperuser
+
+# Lancer le serveur
+python manage.py runserver</code></pre>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Première connexion</h4>
+                            <ol>
+                                <li>Ouvrez votre navigateur à l'adresse <code>http://localhost:8000</code></li>
+                                <li>Connectez-vous avec vos identifiants d'administration</li>
+                                <li>Accédez au tableau de bord d'administration</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="gestion-utilisateurs" class="doc-section">
+                <h2>Gestion des utilisateurs</h2>
+                <p>CRVS Learning propose différents rôles utilisateurs :</p>
+                
+                <div class="card-deck">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Apprenant</h5>
+                            <p class="card-text">Peut suivre des cours, passer des évaluations et voir sa progression.</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Formateur</h5>
+                            <p class="card-text">Peut créer et gérer des cours, évaluer les apprenants.</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Administrateur</h5>
+                            <p class="card-text">Accès complet à toutes les fonctionnalités de la plateforme.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="gestion-cours" class="doc-section">
+                <h2>Gestion des cours</h2>
+                <p>Créez et gérez facilement vos cours en ligne :</p>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Seuls les utilisateurs avec les droits appropriés peuvent créer et gérer des cours.
+                </div>
+
+                <h4>Structure d'un cours</h4>
+                <p>Un cours est composé de :</p>
+                <ul>
+                    <li>Catégories</li>
+                    <li>Leçons</li>
+                    <li>Exercices</li>
+                    <li>Évaluations</li>
+                </ul>
+            </section>
+
+            <section id="deploiement" class="doc-section">
+                <h2>Déploiement</h2>
+                <p>Guide de déploiement de CRVS Learning en production :</p>
+                
+                <h4>Configuration requise</h4>
+                <ul>
+                    <li>Python 3.8+</li>
+                    <li>PostgreSQL 12+</li>
+                    <li>Redis (pour le cache et les files d'attente)</li>
+                    <li>Nginx ou Apache</li>
+                </ul>
+
+                <h4>Variables d'environnement</h4>
+                <p>Créez un fichier <code>.env</code> à la racine du projet :</p>
+                <pre><code>DEBUG=False
+SECRET_KEY=votre_cle_secrete
+DATABASE_URL=postgres://user:password@localhost:5432/crvslearning
+REDIS_URL=redis://localhost:6379/0
+ALLOWED_HOSTS=.votredomaine.com,.votredomaine.fr</code></pre>
+            </section>
+
+            <section id="faq" class="doc-section">
+                <h2>FAQ</h2>
+                
+                <div class="accordion" id="faqAccordion">
+                    <div class="card">
+                        <div class="card-header" id="headingOne">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                    Comment réinitialiser un mot de passe oublié ?
+                                </button>
+                            </h5>
+                        </div>
+                        <div id="collapseOne" class="collapse show">
+                            <div class="card-body">
+                                Cliquez sur "Mot de passe oublié" sur la page de connexion et suivez les instructions envoyées par email.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Plus de questions/réponses ici -->
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Styles pour la documentation */
+.documentation-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.doc-sidebar {
+    width: 280px;
+    background: #2c3e50;
+    color: #ecf0f1;
+    padding: 1.5rem 0;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.doc-logo {
+    padding: 0 1.5rem 1.5rem;
+    border-bottom: 1px solid #34495e;
+    margin-bottom: 1rem;
+}
+
+.doc-logo img {
+    max-width: 180px;
+    margin-bottom: 1rem;
+}
+
+.doc-logo h2 {
+    font-size: 1.25rem;
+    margin: 0;
+    color: #fff;
+}
+
+.doc-nav {
+    padding: 0 1rem;
+}
+
+.doc-nav .nav-link {
+    color: #bdc3c7;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+}
+
+.doc-nav .nav-link i {
+    margin-right: 0.75rem;
+    width: 20px;
+    text-align: center;
+}
+
+.doc-nav .nav-link:hover,
+.doc-nav .nav-link.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    text-decoration: none;
+}
+
+.doc-nav .nav-section {
+    display: block;
+    padding: 1rem 1rem 0.5rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #7f8c8d;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.doc-main {
+    flex: 1;
+    margin-left: 280px;
+    padding: 2rem 3rem;
+    background: #f8f9fa;
+}
+
+.doc-section {
+    background: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.doc-section h2 {
+    color: #2c3e50;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f1f1f1;
+    margin-bottom: 1.5rem;
+}
+
+.steps {
+    margin: 2rem 0;
+}
+
+.step {
+    display: flex;
+    margin-bottom: 2rem;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.step-content {
+    flex: 1;
+}
+
+pre {
+    background: #2d2d2d;
+    color: #f8f8f2;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+}
+
+.alert {
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.alert i {
+    margin-right: 0.75rem;
+    margin-top: 0.2rem;
+}
+
+.card-deck {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.accordion .card {
+    margin-bottom: 1rem;
+    border: 1px solid #e9ecef;
+}
+
+.accordion .card-header {
+    background: #f8f9fa;
+    padding: 0;
+    border: none;
+}
+
+.accordion .btn-link {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 1rem 1.5rem;
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.accordion .btn-link:hover {
+    text-decoration: none;
+    color: #3498db;
+}
+
+.accordion .card-body {
+    border-top: 1px solid #e9ecef;
+}
+
+/* Styles responsifs */
+@media (max-width: 992px) {
+    .documentation-container {
+        flex-direction: column;
+    }
+    
+    .doc-sidebar {
+        width: 100%;
+        position: static;
+        height: auto;
+        max-height: 300px;
+    }
+    
+    .doc-main {
+        margin-left: 0;
+        padding: 1.5rem;
+    }
+}
+
+/* Animation pour les sections */
+.doc-section {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Délai d'animation pour chaque section */
+.doc-section:nth-child(1) { animation-delay: 0.1s; }
+.doc-section:nth-child(2) { animation-delay: 0.2s; }
+.doc-section:nth-child(3) { animation-delay: 0.3s; }
+.doc-section:nth-child(4) { animation-delay: 0.4s; }
+.doc-section:nth-child(5) { animation-delay: 0.5s; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Script pour le défilement fluide
+$(document).ready(function() {
+    // Ajoute la classe active au chargement de la page
+    const currentHash = window.location.hash || '#introduction';
+    $(`.doc-nav a[href="${currentHash}"]`).addClass('active');
+
+    // Gère le clic sur les liens de navigation
+    $('.doc-nav a').on('click', function(e) {
+        e.preventDefault();
+        const target = $(this).attr('href');
+        
+        // Met à jour la classe active
+        $('.doc-nav a').removeClass('active');
+        $(this).addClass('active');
+        
+        // Défilement fluide vers la section cible
+        $('html, body').animate({
+            scrollTop: $(target).offset().top - 20
+        }, 500);
+        
+        // Met à jour l'URL sans recharger la page
+        history.pushState(null, null, target);
+    });
+
+    // Met à jour la navigation active lors du défilement
+    $(window).on('scroll', function() {
+        const scrollPosition = $(window).scrollTop() + 100;
+        
+        $('.doc-section').each(function() {
+            const currentSection = $(this);
+            const sectionTop = currentSection.offset().top;
+            const sectionHeight = currentSection.outerHeight();
+            const sectionId = '#' + currentSection.attr('id');
+            
+            if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                $('.doc-nav a').removeClass('active');
+                $(`.doc-nav a[href="${sectionId}"]`).addClass('active');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

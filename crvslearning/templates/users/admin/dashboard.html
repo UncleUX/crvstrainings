@@ -1,0 +1,1795 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <style>
+        /* Réduction de la taille des cartes et des éléments */
+        .card {
+            margin-bottom: 0.75rem !important;
+        }
+        
+        .card-body {
+            padding: 0.5rem !important;
+        }
+        
+        /* Réduction supplémentaire pour la carte des logs */
+        .activity-logs .card-body {
+            padding: 0.25rem 0.5rem !important;
+        }
+        
+        .card-header {
+            padding: 0.5rem 1rem !important;
+        }
+        
+        /* Taille des titres des cartes */
+        .card-title {
+            font-size: 0.9rem !important;
+            margin-bottom: 0.4rem !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Taille des sous-titres dans les cartes */
+        .card-subtitle {
+            font-size: 0.8rem !important;
+            margin-top: -0.2rem !important;
+            margin-bottom: 0.3rem !important;
+        }
+        
+        /* Taille des en-têtes de cartes */
+        .card-header h5, .card-header .h5 {
+            font-size: 0.85rem !important;
+            margin-bottom: 0 !important;
+        }
+        
+        /* Réduction des marges et paddings généraux */
+        .container-fluid {
+            padding: 0.5rem !important;
+        }
+        
+        .row {
+            margin-left: -0.25rem !important;
+            margin-right: -0.25rem !important;
+        }
+        
+        .col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, 
+        .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
+        }
+        
+        /* Ajustement des boutons */
+        .btn {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.85rem !important;
+        }
+        
+        /* Ajustement des icônes */
+        .fas, .far, .fab {
+            font-size: 0.9em !important;
+        }
+        
+        /* Ajustement pour les modals */
+        .modal {
+            zoom: 1;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord administrateur</title>
+    <!-- CSS -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/webfonts/css/all.min.css' %}">
+    <!-- JavaScript -->
+    <script src="{% static 'vendor/js/v1/jquery.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   
+<style>
+    /* ================================
+   SOFT DARK ADMIN THEME
+   ================================ */
+
+body {
+    background-color: #181a1f;
+    color: #d6d8dc;
+}
+
+/* Titres */
+h1, h2, h3, h4, h5, h6 {
+    color: #e4e6eb;
+}
+
+/* Textes secondaires */
+.text-muted {
+    color: #9aa0a6 !important;
+}
+
+/* Cartes neutres */
+.card:not(.bg-primary):not(.bg-success):not(.bg-warning):not(.bg-info):not(.carte-cmr) {
+    background-color: #20232a;
+    border: 1px solid #00ffff;
+    color: #d6d8dc;
+}
+
+/* En-têtes / pieds */
+.card-header,
+.card-footer {
+    background-color: #20232a;
+    border-color: #00ffff;
+}
+
+/* Listes */
+.list-group-item {
+    background-color: #20232a;
+    color: #d6d8dc;
+    border-color: #2b2f36;
+}
+
+.list-group-item:hover {
+    background-color: #252933;
+}
+
+/* Items modèles */
+.model-item {
+    background-color: transparent;
+}
+
+.model-item:hover {
+    background-color: #252933;
+}
+
+/* Champs */
+.form-control,
+.input-group-text {
+    background-color: #252933;
+    border: 1px solid #343a46;
+    color: #d6d8dc;
+}
+
+.form-control::placeholder {
+    color: #8b9098;
+}
+
+.form-control:focus {
+    background-color: #252933;
+    color: #ffffff;
+    border-color: #4e73df;
+    box-shadow: none;
+}
+
+/* Boutons neutres */
+.btn-outline-secondary {
+    color: #cfd3da;
+    border-color: #3a3f4b;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #2a2f3a;
+    color: #ffffff;
+}
+
+/* Liens */
+a {
+    color: #8ab4f8;
+}
+
+a:hover {
+    color: #a6c8ff;
+}
+
+/* Modals */
+.modal-content {
+    background-color: #20232a;
+    border: 1px solid #2b2f36;
+}
+
+/* Scrollbar subtile */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #181a1f;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2f3440;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #3a3f4b;
+}
+
+/* =====================================
+   JOURNAL D’ACTIVITÉ – STYLE TERMINAL
+   ===================================== */
+
+/* Conteneur principal */
+.activity-logs {
+    background-color: #0b0f0c;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 13px;
+}
+
+/* Élément de log */
+#activityLogs .list-group-item {
+    background-color: transparent;
+    color: #2fdc74;
+    border-bottom: 1px dashed rgba(47, 220, 116, 0.25);
+}
+
+/* Hover discret */
+#activityLogs .list-group-item:hover {
+    background-color: rgba(47, 220, 116, 0.05);
+}
+
+/* Titres d’action */
+#activityLogs h6 {
+    color: #7dffb3;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+/* Texte secondaire */
+#activityLogs .text-muted,
+#activityLogs small {
+    color: #5fbf8f !important;
+}
+
+/* Icônes */
+#activityLogs i {
+    color: #2fdc74 !important;
+    opacity: 0.85;
+}
+
+/* Badge "Vous" */
+#activityLogs .badge {
+    background-color: #145c3a;
+    color: #a6ffd3;
+    border: 1px solid #2fdc74;
+}
+
+/* Bloc user-agent */
+#activityLogs .bg-light {
+    background-color: rgba(47, 220, 116, 0.08) !important;
+    color: #9affc6;
+    border-left: 2px solid #2fdc74;
+}
+
+/* Avatar fallback */
+#activityLogs .bg-primary,
+#activityLogs .bg-secondary {
+    background-color: #145c3a !important;
+    color: #b6ffda !important;
+}
+
+/* Scrollbar terminal */
+.activity-logs::-webkit-scrollbar {
+    width: 6px;
+}
+
+.activity-logs::-webkit-scrollbar-track {
+    background: #0b0f0c;
+}
+
+.activity-logs::-webkit-scrollbar-thumb {
+    background: #1f7a4d;
+    border-radius: 3px;
+}
+
+.activity-logs::-webkit-scrollbar-thumb:hover {
+    background: #2fdc74;
+}
+
+.carte-cmr {
+    width: 100%;
+    height: 560px;
+    background:
+        radial-gradient(circle at 30% 30%, rgba(0,255,255,0.35), transparent 40%),
+        radial-gradient(circle at center, #003333 0%, #001111 70%);
+    border: 1px solid #00ffff;
+    box-shadow: 0 0 30px rgba(0,255,255,0.4);
+    position: relative;
+}
+.carte-cmr img{
+    z-index: 999;
+}
+.carte-cmr::after {
+    content: "";
+    position: absolute;
+    inset: 15%;
+    border-radius: 50%;
+    border: 1px dashed rgba(0,255,255,0.4);
+}
+
+/* =====================================
+   BOUTONS TERMINAL – ACTIONS ADMIN
+   ===================================== */
+
+/* Boutons ciblés */
+.btn-terminal {
+    background-color: #0b0f0c !important;
+    color: #2fdc74 !important;
+    border: 1px solid #2fdc74 !important;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    box-shadow: inset 0 0 0 1px rgba(47, 220, 116, 0.2);
+    transition: all 0.2s ease-in-out;
+}
+
+/* Icônes */
+.btn-terminal i {
+    color: #2fdc74 !important;
+}
+
+/* Hover */
+.btn-terminal:hover {
+    background-color: #102018 !important;
+    color: #9affc6 !important;
+    box-shadow: 0 0 8px rgba(47, 220, 116, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Focus */
+.btn-terminal:focus {
+    box-shadow: 0 0 0 2px rgba(47, 220, 116, 0.35);
+}
+
+/* Bouton secondaire (outline-like) */
+.btn-terminal-outline {
+    background-color: transparent !important;
+    color: #2fdc74 !important;
+    border: 1px dashed rgba(47, 220, 116, 0.6) !important;
+}
+
+.btn-terminal-outline:hover {
+    background-color: rgba(47, 220, 116, 0.08) !important;
+}
+/* Dernière row en flex */
+.row-flex-bottom {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* Colonnes flex */
+.row-flex-bottom > [class^="col-"] {
+    display: flex;
+}
+
+</style>
+<style>
+    .top > div>{
+        width: 100%;
+        height: 1px;
+        background-color: #00ffff;
+        color: #00ffff;
+    }
+</style>
+</head>
+<body>
+
+
+    <div class="container-fluid py-1    ">
+        <!-- En-tête avec titre et statistiques -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <h1 class="h3">ADMIN DASHBOARD</h1>
+                <p class="text-muted">Welcome Back, @{{ request.user.get_full_name|default:request.user.username }}</p>
+            </div> 
+               <div class="d-flex align-items-center text-center total_users" style="width:400px;height:80px;border-left:6px solid #1aff64;border-right:6px solid #1aff64;padding:6px 10px;box-sizing:border-box;color:#1aff64;justify-content:space-between; font-family: montserrat;">
+                     <div class="text-center">
+                         <!-- <i class="fas fa-users"style="font-size:32px;opacity:0.6;"></i> -->
+                          <h2 class="mt-5" style="font-size:70px;font-weight:bold;margin:0;line-height:1;" class="text-center">
+                            000,000{{ stats.total_users|default:'0' }}
+                        </h2>
+                        <h6 class="mb-3" style="font-size:15px;font-weight:200;text-transform:uppercase;margin:0;line-height:1;letter-spacing:0.5px;">
+                         Utilisateurs sur la plateforme
+                        </h6>
+                    </div>
+                </div>
+            <div class="d-flex gap-2">
+                <button type="button"
+                class="btn btn-terminal"
+                data-bs-toggle="modal"
+                data-bs-target="#quickActionsModal">
+              <i class="fas fa-bolt me-1"></i> Add
+                </button>
+
+                <a href="{% url 'admin:index' %}" class="btn btn-terminal btn-terminal-outline me-2">
+                    <i class="fas fa-cog me-1"></i> Advanced
+                </a>
+                <button type="button" class="btn btn-terminal" data-bs-toggle="modal" data-bs-target="#advancedStatsModal">
+                    <i class="fas fa-chart-bar me-1"></i> +
+                </button>
+                <a href="{% url 'users:logout' %}" title="Déconnexion" class="btn btn-terminal ms-2">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+
+            </div>
+            
+        </div>
+        
+        <!-- Modal des actions rapides -->
+        <div class="modal fade" id="quickActionsModal" tabindex="-1" aria-labelledby="quickActionsModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="quickActionsModalLabel">
+                            <i class="fas fa-bolt text-warning me-2"></i>More
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="list-group list-group-flush">
+                            <a href="{% url 'users:admin_model_add' app_label='courses' model_name='course' %}" 
+                               class="list-group-item list-group-item-action">
+                                <i class="fas fa-plus-circle text-success me-2"></i> Nouveau cours
+                            </a>
+                            <a href="{% url 'users:admin_model_add' app_label='users' model_name='customuser' %}" 
+                               class="list-group-item list-group-item-action">
+                                <i class="fas fa-user-plus text-primary me-2"></i> Nouvel utilisateur
+                            </a>
+                            <a href="{% url 'users:admin_model_add' app_label='courses' model_name='category' %}" 
+                               class="list-group-item list-group-item-action">
+                                <i class="fas fa-tags text-info me-2"></i> Nouvelle catégorie
+                            </a>
+                            <a href="{% url 'users:admin_model_list' app_label='courses' model_name='enrollment' %}" 
+                               class="list-group-item list-group-item-action">
+                                <i class="fas fa-user-graduate text-warning me-2"></i> Voir les inscriptions
+                            </a>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i> Fermer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Grille de statistiques -->
+       <section style="color:#1aff64; background:transparent;" class="d-flex justify-content-between mb-2">
+            <div class="row d-flex justify-content-start" style="gap:20px;">
+
+                <!-- Cours -->
+                <div style="width:100px; text-align:left;">
+                    <h6 style="font-size:16px; font-weight:bold; text-transform:uppercase; margin:0;line-height:1.1;">
+                        Cours
+                    </h6>
+                    <p style="
+                        font-size:10px;
+                        font-weight:bold;
+                        margin:1px 0 3px 0;
+                        line-height:1.1;
+                        opacity:0.85;
+                    ">
+                        Disponibles
+                    </p>
+                    <h2 style="
+                        font-size:16px;
+                        font-weight:bold;
+                        margin:0;
+                        line-height:1.2;
+                    ">
+                        {{ stats.total_courses|default:'0' }}
+                    </h2>
+                </div>
+
+                <!-- Étudiants actifs -->
+                <div style="width:100px; text-align:left;">
+                    <h6 style="
+                        font-size:16px;
+                        font-weight:bold;
+                        text-transform:uppercase;
+                        margin:0;
+                        line-height:1.1;
+                    ">
+                        Étudiants
+                    </h6>
+                    <p style="
+                        font-size:10px;
+                        font-weight:bold;
+                        margin:1px 0 3px 0;
+                        line-height:1.1;
+                        opacity:0.85;
+                    ">
+                        Actifs
+                    </p>
+                    <h2 style="
+                        font-size:16px;
+                        font-weight:bold;
+                        margin:0;
+                        line-height:1.2;
+                    ">
+                        {{ stats.active_users|default:'0' }}
+                    </h2>
+                </div>
+
+                <!-- Inscriptions -->
+                <div style="width:100px; text-align:left;">
+                    <h6 style="
+                        font-size:16px;
+                        font-weight:bold;
+                        text-transform:uppercase;
+                        margin:0;
+                        line-height:1.1;
+                    ">
+                        Inscriptions
+                    </h6>
+                    <p style="
+                        font-size:10px;
+                        font-weight:bold;
+                        margin:1px 0 3px 0;
+                        line-height:1.1;
+                        opacity:0.85;
+                    ">
+                        Totales
+                    </p>
+                    <h2 style="
+                        font-size:16px;
+                        font-weight:bold;
+                        margin:0;
+                        line-height:1.2;
+                    ">
+                        {{ stats.total_enrollments|default:'0' }}
+                    </h2>
+                </div>
+            </div>
+               <!-- Barres de progression (version alternative) ici -->
+          
+
+       </section>
+
+        
+        <div class="row">
+            <!-- Côté gauche - Dernières activités -->
+            <div class="col-md-3">
+                 <!-- Journal d'activité complet -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-scroll me-2"></i> LOGS</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-2" id="refreshLogs" title="Rafraîchir">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="pauseLogs" title="Mettre en pause">
+                                <i class="fas fa-pause"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="activity-logs" style="max-height: 300px; overflow-y: auto;">
+                            <ul class="list-group list-group-flush mb-0" id="activityLogs">
+                                {% for log in activity_logs %}
+                                <li class="list-group-item border-0 border-bottom py-3 {% if log.user.id == request.user.id %}bg-light{% endif %}" data-log-id="{{ log.id }}">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-shrink-0 me-3 position-relative">
+                                            <div class="avatar-container" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background-color: #f0f0f0;">
+                                                {% if log.user.avatar %}
+                                                    <img src="{{ log.user.avatar.url }}" 
+                                                         alt="{{ log.user.username }}"
+                                                         style="width: 100%; height: 100%; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="d-flex align-items-center justify-content-center w-100 h-100 bg-{% if log.user.id == request.user.id %}primary{% else %}secondary{% endif %} text-white" 
+                                                         style="font-size: 12px;">
+                                                        {{ log.user.first_name|first|default:log.user.username.0|upper }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            {% if log.user.id == request.user.id %}
+                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info" style="font-size: 8px; padding: 2px 4px;">
+                                                Vous
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0">
+                                                    <i class="fas {% if log.action == 'login' %}fa-sign-in-alt text-success{% else %}fa-sign-out-alt text-danger{% endif %} me-2"></i>
+                                                    {{ log.get_action_display }}
+                                                </h6>
+                                                <small class="text-muted" data-timestamp="{{ log.timestamp|date:'c' }}" title="{{ log.timestamp|date:'d/m/Y H:i:s' }}">
+                                                    {{ log.timestamp|timesince }}
+                                                </small>
+                                            </div>
+                                            <p class="mb-0 text-muted small mt-1">
+                                                {{ log.user.get_full_name|default:log.user.username }}
+                                                {% if log.ip_address %}
+                                                    <span class="ms-2">({{ log.ip_address }})</span>
+                                                {% endif %}
+                                            </p>
+                                            {% if log.user_agent %}
+                                            <div class="mt-2 p-2 bg-light rounded small text-muted">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                {{ log.user_agent|truncatechars:60 }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </li>
+                                {% empty %}
+                                <li class="list-group-item text-center text-muted py-4">
+                                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                                    <p class="mb-0">Aucune activité récente</p>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between align-items-center py-2">
+                            <small class="text-muted" id="logsCount">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ activity_logs|length }} activité(s) récente(s)
+                            </small>
+                        <!-- <a href="#" class="small">Voir tout l'historique</a> -->
+                    </div>
+                </div>
+                
+                <!-- Dernières activités -->
+                <!-- <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i> Dernières activités</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_activities %}
+                            {% for activity in recent_activities %}
+                            <div class="d-flex mb-3">
+                                <div class="flex-shrink-0">
+                                    <i class="fas {{ activity.icon }} fa-2x text-{{ activity.color }}"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <p class="mb-0">{{ activity.description }}</p>
+                                    <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted mb-0">Aucune activité récente</p>
+                        {% endif %}
+                    </div>
+                </div> -->       
+                  <!-- Derniers utilisateurs actifs -->
+                <!-- <div class="card mt-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-user-clock me-2"></i> Activité des utilisateurs</h5>
+                        <div>
+                            <span class="badge bg-success">{{ online_users|length }} en ligne</span>
+                            <span class="badge bg-secondary ms-1">{{ all_active_users|length|add:online_users|add:-1 }} actifs</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if all_active_users %}
+                            <div class="list-group list-group-flush" id="activeUsersList">
+                                {% for user in all_active_users|slice:":10" %}
+                                <div class="list-group-item border-0 py-3 user-activity-item" data-user-id="{{ user.id }}">
+                                    <div class="d-flex align-items-center">
+                                        <div class="position-relative me-3">
+                                            {% if user.avatar %}
+                                                <img src="{{ user.avatar.url }}" 
+                                                     alt="{{ user.username }}" 
+                                                     class="rounded-circle" 
+                                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% elif user.avatar_url %}
+                                                <img src="{{ user.avatar_url }}" 
+                                                     alt="{{ user.username }}" 
+                                                     class="rounded-circle" 
+                                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="d-flex align-items-center justify-content-center rounded-circle" 
+                                                     style="width: 40px; height: 40px; background-color: #6c757d; color: white;">
+                                                    {{ user.first_name|first|default:user.username.0|upper }}
+                                                </div>
+                                            {% endif %}
+                                            <span class="position-absolute bottom-0 end-0 p-1 border border-white rounded-circle {% if user.is_currently_online %}bg-success{% else %}bg-secondary{% endif %}">
+                                                <span class="visually-hidden">{% if user.is_currently_online %}En ligne{% else %}Hors ligne{% endif %}</span>
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0">
+                                                    {{ user.get_full_name|default:user.username }}
+                                                    {% if user.is_staff %}
+                                                        <span class="badge bg-info ms-2">Staff</span>
+                                                    {% endif %}
+                                                </h6>
+                                                <span class="badge {% if user.is_currently_online %}bg-success{% else %}bg-secondary{% endif %} bg-opacity-25 text-{% if user.is_currently_online %}success{% else %}muted{% endif %} small">
+                                                    {% if user.is_currently_online %}
+                                                        <i class="fas fa-circle small"></i> En ligne
+                                                    {% else %}
+                                                        <i class="far fa-clock"></i> {{ user.last_seen|timesince }}
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                            <div class="d-flex flex-wrap align-items-center mt-1">
+                                                <small class="text-muted me-3">
+                                                    <i class="far fa-calendar-plus me-1"></i>
+                                                    Inscrit {{ user.date_joined|date:"d/m/Y" }}
+                                                </small>
+                                                <small class="text-muted">
+                                                    <i class="far fa-clock me-1"></i>
+                                                    Dernière activité: 
+                                                    <span class="user-last-seen" data-timestamp="{{ user.last_seen|date:'c' }}">
+                                                        {{ user.last_seen|timesince }}
+                                                    </span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center p-4">
+                                <i class="fas fa-user-clock fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">Aucune activité utilisateur récente</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer d-flex justify-content-between align-items-center py-2">
+                        <small class="text-muted" id="usersCount">
+                            <i class="fas fa-users me-1"></i>
+                            {{ all_active_users|length }} utilisateur(s) actif(s)
+                        </small>
+                        <small class="text-muted">
+                            <i class="fas fa-sync-alt fa-spin me-1"></i>
+                            <span id="lastUsersUpdate">Mise à jour en temps réel</span>
+                        </small>
+                    </div>
+                </div> -->
+             <!-- Utilisateurs en ligne -->
+                <div class="card mt-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-circle text-success me-2"></i> En ligne maintenant <span class="badge bg-primary rounded-pill ms-2">{{ online_users|length }}</span></h5>
+                    </div>
+                    <div class="card-body p-0" style="height: 110px; overflow: hidden; position: relative;">
+                        {% if online_users %}
+                            <div class="online-users-container" style="position: relative;">
+                                {% for user in online_users %}
+                                <div class="online-user-item" style="padding: 0.75rem; border-bottom: 1px solid rgba(0,0,0,0.1); transition: transform 0.5s ease-in-out;">
+                                    <div class="d-flex align-items-center">
+                                        <div class="position-relative me-3">
+                                            {% if user.avatar %}
+                                                <img src="{{ user.avatar.url }}" 
+                                                     alt="{{ user.username }}" 
+                                                     class="rounded-circle" 
+                                                     style="width: 36px; height: 36px; object-fit: cover;">
+                                            {% elif user.avatar_url %}
+                                                <img src="{{ user.avatar_url }}" 
+                                                     alt="{{ user.username }}" 
+                                                     class="rounded-circle" 
+                                                     style="width: 36px; height: 36px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="d-flex align-items-center justify-content-center rounded-circle" 
+                                                     style="width: 36px; height: 36px; background-color: #6c757d; color: white; font-size: 0.9rem;">
+                                                    {{ user.first_name|first|default:user.username.0|upper }}
+                                                </div>
+                                            {% endif %}
+                                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle">
+                                                <span class="visually-hidden">En ligne</span>
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0" style="font-size: 0.85rem;">
+                                                {{ user.get_full_name|default:user.username|truncatechars:20 }}
+                                                {% if user.is_staff %}
+                                                    <span class="badge bg-info ms-1" style="font-size: 0.65rem;">Staff</span>
+                                                {% endif %}
+                                            </h6>
+                                            <small class="text-muted" style="font-size: 0.75rem;">
+                                                Dernière activité: il y a 
+                                                <span class="user-last-seen" data-timestamp="{{ user.last_seen|date:'c' }}">
+                                                    {{ user.last_seen|timesince }}
+                                                </span>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const container = document.querySelector('.online-users-container');
+                                const items = container.querySelectorAll('.online-user-item');
+                                const containerHeight = 200; // Hauteur fixe du conteneur
+                                const itemHeight = 70; // Hauteur approximative d'un élément utilisateur
+                                let currentIndex = 0;
+                                let isPaused = false;
+                                
+                                // Masquer tous les éléments sauf le premier
+                                items.forEach((item, index) => {
+                                    if (index > 0) {
+                                        item.style.display = 'none';
+                                    }
+                                });
+                                
+                                // Fonction pour afficher l'utilisateur suivant
+                                function showNextUser() {
+                                    if (isPaused) return;
+                                    
+                                    // Masquer l'utilisateur actuel
+                                    items[currentIndex].style.display = 'none';
+                                    
+                                    // Passer à l'utilisateur suivant
+                                    currentIndex = (currentIndex + 1) % items.length;
+                                    
+                                    // Afficher le nouvel utilisateur
+                                    items[currentIndex].style.display = 'block';
+                                    
+                                    // Faire défiler vers le haut pour le premier élément si on recommence
+                                    if (currentIndex === 0) {
+                                        container.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }
+                                }
+                                
+                                // Démarrer le défilement automatique
+                                let scrollInterval = setInterval(showNextUser, 3000);
+                                
+                                // Mettre en pause le défilement au survol
+                                container.addEventListener('mouseenter', () => {
+                                    isPaused = true;
+                                });
+                                
+                                // Reprendre le défilement quand la souris quitte
+                                container.addEventListener('mouseleave', () => {
+                                    isPaused = false;
+                                });
+                                
+                                // Mettre à jour les timestamps en temps réel
+                                function updateTimestamps() {
+                                    document.querySelectorAll('.user-last-seen').forEach(element => {
+                                        const timestamp = element.getAttribute('data-timestamp');
+                                        if (timestamp) {
+                                            const date = new Date(timestamp);
+                                            const now = new Date();
+                                            const diffInSeconds = Math.floor((now - date) / 1000);
+                                            
+                                            let timeAgo;
+                                            if (diffInSeconds < 60) {
+                                                timeAgo = 'à l\'instant';
+                                            } else if (diffInSeconds < 3600) {
+                                                const minutes = Math.floor(diffInSeconds / 60);
+                                                timeAgo = `il y a ${minutes} minute${minutes > 1 ? 's' : ''}`;
+                                            } else if (diffInSeconds < 86400) {
+                                                const hours = Math.floor(diffInSeconds / 3600);
+                                                timeAgo = `il y a ${hours} heure${hours > 1 ? 's' : ''}`;
+                                            } else {
+                                                const days = Math.floor(diffInSeconds / 86400);
+                                                timeAgo = `il y a ${days} jour${days > 1 ? 's' : ''}`;
+                                            }
+                                            
+                                            element.textContent = timeAgo;
+                                        }
+                                    });
+                                }
+                                
+                                // Mettre à jour les timestamps toutes les minutes
+                                setInterval(updateTimestamps, 60000);
+                                updateTimestamps(); // Premier appel
+                            });
+                            </script>
+                            
+                        {% else %}
+                            <div class="text-center p-4">
+                                <i class="fas fa-user-clock fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">Aucun autre utilisateur en ligne</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Carte du Cameroun au milieu -->
+            <div class="col-md-6">
+                <div class="card carte-cmr">
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <div class="text-center">
+                            <img  src="{% static '/img/cmr.png' %}" alt="Carte cameroun" 
+                                 alt="Carte du Cameroun" 
+                                 class="img-fluid" 
+                                 style="height: 550px; width: 100%; object-fit: cover; border: #00ffff;">
+                            <!-- <p class="mt-3 mb-0">
+                                <i class="fas fa-info-circle text-primary me-1"></i>
+                                Visualisation des données par région
+                            </p> -->
+                            <!-- total utilisateur sur a plateforme  -->
+                         
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Côté droit - Statistiques avancées -->
+            <div class="col-md-3">
+                <div class="card mb-2 ">
+                    <!-- <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i> STATS</h5>
+                    </div> -->
+                    <div class="card-body">
+                        <!-- Graphique camembert -->
+                        <div class="mb-3" style="height: 90px;">
+                            <canvas id="statsChart"></canvas>
+                        </div>
+                        
+                        <!-- Légende et détails -->
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="mb-1" style="width: 16px; height: 16px; background-color: #4e73df; border-radius: 50%;"></div>
+                                    <small class="text-muted">Utilisateurs</small>
+                                    <h6 class="mb-0">{{ stats.active_users_percentage }}%</h6>
+                                    <small class="text-muted">{{ stats.active_users }}/{{ stats.total_users }}</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="mb-1" style="width: 16px; height: 16px; background-color: #1cc88a; border-radius: 50%;"></div>
+                                    <small class="text-muted">Cours</small>
+                                    <h6 class="mb-0">{{ stats.published_courses_percentage }}%</h6>
+                                    <small class="text-muted">{{ stats.published_courses }}/{{ stats.total_courses }}</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="mb-1" style="width: 16px; height: 16px; background-color: #f6c23e; border-radius: 50%;"></div>
+                                    <small class="text-muted">Réussite</small>
+                                    <h6 class="mb-0">{{ stats.success_rate }}%</h6>
+                                    <small class="text-muted">Examens</small>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="">
+                            <div class="d-flex justify-content-between mb-1 small">
+                                <span>Utilisateurs actifs</span>
+                                <span class="fw-bold">{{ stats.active_users_percentage }}%</span>
+                            </div>
+                            <div class="progress mb-3" style="height: 6px;">
+                                <div class="progress-bar" role="progressbar" style="width: 100%; background-color: #4e73df;" aria-valuenow="{{ stats.active_users_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                    <div style="width: {{ stats.active_users_percentage }}%; height: 100%; background-color: #4e73df;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-1 small">
+                                <span>Cours publiés</span>
+                                <span class="fw-bold">{{ stats.published_courses_percentage }}%</span>
+                            </div>
+                            <div class="progress mb-3" style="height: 6px;">
+                                <div class="progress-bar" role="progressbar" style="width: 100%; background-color: #e9ecef;">
+                                    <div style="width: {{ stats.published_courses_percentage }}%; height: 100%; background-color: #1cc88a;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mb-1 small">
+                                <span>Réussite aux examens</span>
+                                <span class="fw-bold">{{ stats.success_rate }}%</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar" role="progressbar" style="width: 100%; background-color: #e9ecef;">
+                                    <div style="width: {{ stats.success_rate }}%; height: 100%; background-color: #f6c23e;"></div>
+                                </div>
+                            </div>
+                        </div>
+                     
+                    </div>
+                </div>
+                
+                <!-- Derniers utilisateurs inscrits avec défilement -->
+                <div class="card mb-4">
+                    <!-- <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="fas fa-user-plus me-2"></i>Dernières inscriptions</h6>
+                        <a href="{% url 'users:admin_model_list' 'auth' 'user' %}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                    </div> -->
+                    <div class="recent-users-container" style="position: relative; height: 200px; overflow: hidden;">
+                        <div class="recent-users-scroll" style="padding: 0 1.25rem; transition: transform 0.5s ease-out;">
+                            {% for user in recent_users %}
+                            <div class="list-group-item border-0 py-3 px-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0 me-3">
+                                        {% if user.avatar %}
+                                            <img src="{{ user.avatar.url }}" 
+                                                 alt="{{ user.username }}" 
+                                                 class="rounded-circle" 
+                                                 style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="fas fa-user text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0 d-flex align-items-center" style="font-size: 0.9rem;">
+                                            {{ user.get_full_name|default:user.username|truncatechars:20 }}
+                                            {% if user.is_staff %}
+                                                <span class="badge bg-primary ms-2" title="Staff">S</span>
+                                            {% endif %}
+                                        </h6>
+                                        <small class="text-muted">
+                                            <i class="far fa-clock me-1"></i> Inscrit 
+                                            <span class="user-joined-time" data-timestamp="{{ user.date_joined|date:'c' }}">
+                                                {{ user.date_joined|timesince }}
+                                            </span>
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <a href="{% url 'users:admin_model_edit' 'auth' 'user' user.id %}" 
+                                           class="btn btn-sm btn-outline-secondary"
+                                           title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center p-4">
+                                <i class="fas fa-user-slash fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">Aucun utilisateur trouvé</p>
+                            </div>
+                            {% endfor %}
+                        </div>  
+                        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 30px; 
+                                 background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, #1f7a4d 100%);
+                                 pointer-events: none;">
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between align-items-center py-2">
+                        <small class="text-muted">
+                            <i class="fas fa-users me-1"></i>
+                            <span id="usersCount">{{ recent_users|length }}</span> derniers utilisateur(s) inscrits
+                        </small>
+                        <!-- <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span id="lastUsersUpdate">En temps réel</span>
+                        </small> -->
+                    </div>
+                </div>
+                
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const container = document.querySelector('.recent-users-container');
+                    const content = container.querySelector('.recent-users-scroll');
+                    
+                    // Vérifier si le contenu dépasse la hauteur du conteneur
+                    if (content.scrollHeight > container.clientHeight) {
+                        let scrollPosition = 0;
+                        const scrollHeight = content.scrollHeight - container.clientHeight + 20;
+                        let isScrolling = true;
+                        
+                        function startScrolling() {
+                            const scrollInterval = setInterval(() => {
+                                if (!isScrolling) return;
+                                
+                                if (scrollPosition >= scrollHeight) {
+                                    scrollPosition = 0;
+                                    content.style.transition = 'transform 0.8s ease-in-out';
+                                    content.style.transform = 'translateY(0)';
+                                    
+                                    setTimeout(() => {
+                                        content.style.transition = 'transform 0.1s linear';
+                                    }, 800);
+                                } else {
+                                    scrollPosition += 0.5;
+                                    content.style.transform = `translateY(-${scrollPosition}px)`;
+                                }
+                            }, 50);
+                            
+                            return scrollInterval;
+                        }
+                        
+                        let scrollInterval = startScrolling();
+                        
+                        container.addEventListener('mouseenter', () => {
+                            isScrolling = false;
+                            clearInterval(scrollInterval);
+                        });
+                        
+                        container.addEventListener('mouseleave', () => {
+                            isScrolling = true;
+                            scrollInterval = startScrolling();
+                        });
+                    }
+                });
+                </script>
+                </div>
+            </div>
+        </div>
+
+      <!-- Modal pour les statistiques avancées -->
+      <div class="modal fade" id="advancedStatsModal" tabindex="-1" aria-labelledby="advancedStatsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border border-2 border-success">
+                <div class="modal-header bg-dark text-success">
+                    <h5 class="modal-title" id="advancedStatsModalLabel">
+                        <i class="fas fa-chart-line me-2"></i>Statistiques Avancées
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-dark text-light align-items-center text-center">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card bg-dark border-success mb-4">
+                                <div class="card-body">
+                                    <h5 class="card-title text-success">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Tableau de bord complet
+                                    </h5>
+                                    <div class="row mt-4">
+            
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-th-large me-2"></i> Applications
+                </h5>
+
+                <div class="input-group" style="max-width: 300px;">
+                    <span class="input-group-text bg-white">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Rechercher..."
+                           id="searchInput">
+                </div>
+            </div>
+
+            <!-- body flex -->
+            <div class="card-body p-0 flex-grow-1 overflow-auto">
+                
+                {% if app_list %}
+                    {% for app in app_list %}
+                    <div class="app-card card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="app-title">
+                                <div class="app-icon">
+                                    <i class="fas fa-folder"></i>
+                                </div>
+                                {{ app.name }}
+                            </div>
+                            <a href="{{ app.app_url }}" class="btn btn-sm btn-light">
+                                <i class="fas fa-arrow-right me-1"></i> Voir tout
+                            </a>
+                        </div>
+
+                        <div class="card-body">
+                            {% for model in app.models %}
+                            <div class="model-item d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-table text-muted me-3" style="width: 20px;"></i>
+                                    <div>
+                                        <h6 class="mb-0">
+                                            {% if model.admin_url %}
+                                                <a href="{{ model.admin_url }}" class="text-dark">
+                                                    {{ model.name }}
+                                                </a>
+                                            {% else %}
+                                                {{ model.name }}
+                                            {% endif %}
+                                        </h6>
+                                        <small class="text-muted">
+                                            {{ model.object_name }}
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="model-actions">
+                                    {% if model.add_url %}
+                                    <a href="{{ model.add_url }}"
+                                       class="btn btn-sm btn-outline-success"
+                                       data-bs-toggle="tooltip"
+                                       title="Ajouter">
+                                        <i class="fas fa-plus"></i>
+                                    </a>
+                                    {% endif %}
+
+                                    {% if model.admin_url %}
+                                    <a href="{{ model.admin_url }}"
+                                       class="btn btn-sm btn-outline-primary ms-1"
+                                       data-bs-toggle="tooltip"
+                                       title="Voir la liste">
+                                        <i class="fas fa-list"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Aucune application trouvée</h5>
+                </div>
+                {% endif %}
+            </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer bg-dark border-top border-success">
+                    <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Gestionnaire d'événements pour les boutons d'ajout et de liste
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM complètement chargé, initialisation des gestionnaires d\'événements...');
+        
+        // Fonction pour gérer les clics sur les boutons
+        function handleAddButtonClick(e) {
+            console.log('=== BOUTON CLIQUE ===');
+            console.log('Élément cliqué:', this);
+            console.log('Texte du bouton:', this.innerText);
+            console.log('URL du bouton:', this.href);
+            console.log('Classes du bouton:', this.className);
+            
+            // Vérifier si le lien est valide
+            if (!this.href || this.href === '#' || this.href === '') {
+                console.error('ERREUR: URL du bouton vide ou invalide');
+                e.preventDefault();
+                return false;
+            }
+            
+            console.log('Redirection vers:', this.href);
+            return true;
+        }
+        
+        // Fonction pour initialiser les boutons
+        function initializeButtons() {
+            // Sélectionner tous les boutons d'ajout, de liste et de visualisation
+            const buttons = document.querySelectorAll(
+                'a[title*="Ajouter"], ' +
+                'a[title*="Liste"], ' +
+                'a[title*="Voir"], ' +
+                '.model-add-link, ' +
+                '.model-list-link, ' +
+                '.btn[href*="add"], ' +
+                '.btn[href*="list"], ' +
+                '.btn[href*="edit"], ' +
+                '.btn[href*="change"]'
+            );
+            
+            console.log(`Nombre de boutons trouvés: ${buttons.length}`);
+            
+            // Ajouter un gestionnaire d'événements à chaque bouton
+            buttons.forEach(button => {
+                // Supprimer les anciens gestionnaires
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                
+                // Ajouter le nouveau gestionnaire
+                newButton.addEventListener('click', handleAddButtonClick);
+                console.log('Gestionnaire ajouté au bouton:', newButton.outerHTML);
+            });
+        }
+        
+        // Initialiser les boutons au chargement
+        initializeButtons();
+        
+        // Réinitialiser les boutons après le chargement des modaux
+        document.body.addEventListener('shown.bs.modal', function() {
+            console.log('Modal affiché, réinitialisation des boutons...');
+            setTimeout(initializeButtons, 500);
+        });
+        
+        // Réessayer d'initialiser après un court délai
+        setTimeout(initializeButtons, 1000);
+        
+        // Réinitialiser les boutons après chaque navigation AJAX si nécessaire
+        if (typeof jQuery !== 'undefined') {
+            $(document).ajaxComplete(function() {
+                console.log('Requête AJAX terminée, réinitialisation des boutons...');
+                setTimeout(initializeButtons, 500);
+            });
+        }
+    });
+    
+    // Variables pour le défilement des utilisateurs
+    let isUsersPaused = false;
+    let usersScrollInterval;
+    const recentUsersList = document.getElementById('recentUsersList');
+    const refreshUsersBtn = document.getElementById('refreshUsers');
+    const usersCountElement = document.getElementById('usersCount');
+    const lastUsersUpdateElement = document.getElementById('lastUsersUpdate');
+    
+    // Fonction pour formater la date d'inscription
+    function formatUserJoinTime(date) {
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) {
+            return 'à l\'instant';
+        } else if (diffInSeconds < 3600) {
+            const minutes = Math.floor(diffInSeconds / 60);
+            return `il y a ${minutes} minute${minutes > 1 ? 's' : ''}`;
+        } else if (diffInSeconds < 86400) {
+            const hours = Math.floor(diffInSeconds / 3600);
+            return `il y a ${hours} heure${hours > 1 ? 's' : ''}`;
+        } else {
+            const days = Math.floor(diffInSeconds / 86400);
+            return `il y a ${days} jour${days > 1 ? 's' : ''}`;
+        }
+    }
+    
+    // Mettre à jour les horodatages des utilisateurs
+    function updateUserTimestamps() {
+        document.querySelectorAll('.user-joined-time').forEach(element => {
+            const timestamp = element.getAttribute('data-timestamp');
+            if (timestamp) {
+                const date = new Date(timestamp);
+                element.textContent = formatUserJoinTime(date);
+            }
+        });
+    }
+    
+    // Fonction pour charger les nouveaux utilisateurs
+    function loadNewUsers() {
+        fetch('{% url "users:admin_dashboard" %}?partial=users')
+            .then(response => response.json())
+            .then(data => {
+                if (data.users && data.users.length > 0) {
+                    // Mettre à jour le compteur
+                    usersCountElement.innerHTML = `<i class=\'fas fa-users me-1\'></i> ${data.users.length} utilisateur(s) récent(s)`;
+                    
+                    // Mettre à jour l'horodatage
+                    lastUsersUpdateElement.textContent = 'maintenant';
+                    
+                    // Mettre à jour la liste des utilisateurs
+                    let usersHtml = '';
+                    data.users.forEach(user => {
+                        usersHtml += `
+                        <li class="list-group-item border-0 border-bottom py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    ${user.avatar ? 
+                                        `<img src="${user.avatar}" alt="${user.username}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">` :
+                                        `<div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user text-muted"></i>
+                                        </div>`
+                                    }
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 d-flex align-items-center">
+                                        ${user.full_name || user.username}
+                                        ${user.is_staff ? '<span class="badge bg-primary ms-2" title="Staff">S</span>' : ''}
+                                    </h6>
+                                    <small class="text-muted">
+                                        <i class="far fa-clock me-1"></i> Inscrit <span class="user-joined-time" data-timestamp="${user.date_joined}">
+                                            ${user.date_joined_ago}
+                                        </span>
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <a href="/users/admin/edit/auth/user/${user.id}/" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </li>`;
+                    });
+                    
+                    // Animer le remplacement du contenu
+                    recentUsersList.style.opacity = '0.5';
+                    setTimeout(() => {
+                        recentUsersList.innerHTML = usersHtml;
+                        recentUsersList.style.opacity = '1';
+                        updateUserTimestamps();
+                    }, 200);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors du chargement des utilisateurs:', error);
+                lastUsersUpdateElement.textContent = 'erreur de mise à jour';
+            });
+    }
+    
+    // Fonction pour démarrer le défilement des utilisateurs
+    function startUsersScrolling() {
+        if (recentUsersList && recentUsersList.scrollHeight > recentUsersList.clientHeight) {
+            let scrollStep = 1;
+            
+            usersScrollInterval = setInterval(() => {
+                if (!isUsersPaused) {
+                    if (recentUsersList.scrollTop >= (recentUsersList.scrollHeight - recentUsersList.clientHeight - 1)) {
+                        recentUsersList.scrollTop = 0;
+                    } else {
+                        recentUsersList.scrollTop += scrollStep;
+                    }
+                }
+            }, 50);
+        }
+    }
+    
+    // Gestion du bouton rafraîchir
+    if (refreshUsersBtn) {
+        refreshUsersBtn.addEventListener('click', function() {
+            loadNewUsers();
+            this.querySelector('i').classList.add('fa-spin');
+            setTimeout(() => {
+                this.querySelector('i').classList.remove('fa-spin');
+            }, 1000);
+        });
+    }
+    
+    // Initialiser le défilement des utilisateurs
+    document.addEventListener('DOMContentLoaded', function() {
+        updateUserTimestamps();
+        startUsersScrolling();
+        
+        // Mettre à jour les horodatages toutes les minutes
+        setInterval(updateUserTimestamps, 60000);
+        
+        // Rafraîchir les utilisateurs toutes les 5 minutes
+        setInterval(loadNewUsers, 300000);
+    });
+    
+    // Initialisation du graphique camembert
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('statsChart').getContext('2d');
+        const statsChart = new Chart(ctx, {
+            type: 'doughnut',  // Type de graphique camembert
+            data: {
+                labels: ['Utilisateurs actifs', 'Cours publiés', 'Réussite examens'],
+                datasets: [{
+                    data: [
+                        {{ stats.active_users_percentage }}, 
+                        {{ stats.published_courses_percentage }}, 
+                        {{ stats.success_rate }}
+                    ],
+                    backgroundColor: [
+                        'rgba(78, 115, 223, 0.8)',  // Bleu pour les utilisateurs
+                        'rgba(28, 200, 138, 0.8)',  // Vert pour les cours
+                        'rgba(246, 194, 62, 0.8)'   // Jaune pour la réussite
+                    ],
+                    borderColor: [
+                        'rgba(78, 115, 223, 1)',
+                        'rgba(28, 200, 138, 1)',
+                        'rgba(246, 194, 62, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',  // Pour un effet de donut
+                plugins: {
+                    legend: {
+                        display: false  // On cache la légende car on l'affiche en dessous
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.raw}%`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialisation des tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Fonction de recherche
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const appCards = document.querySelectorAll('.app-card');
+                
+                appCards.forEach(function(card) {
+                    const appName = card.querySelector('.app-title').textContent.toLowerCase();
+                    const modelItems = card.querySelectorAll('.model-item');
+                    let hasVisibleModels = false;
+                    
+                    modelItems.forEach(function(item) {
+                        const modelName = item.textContent.toLowerCase();
+                        if (modelName.includes(searchTerm)) {
+                            item.style.display = '';
+                            hasVisibleModels = true;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    
+                    // Afficher/masquer la carte d'application en fonction des résultats
+                    card.style.display = (searchTerm === '' || hasVisibleModels || appName.includes(searchTerm)) ? '' : 'none';
+                });
+            });
+        }
+    });
+    </script>
+    
+    <script>
+    // Gestion du journal d'activité
+    document.addEventListener('DOMContentLoaded', function() {
+        const logsContainer = document.querySelector('.activity-logs');
+        const logsList = document.getElementById('activityLogs');
+        const pauseButton = document.getElementById('pauseLogs');
+        const refreshButton = document.getElementById('refreshLogs');
+        let isPaused = false;
+        let scrollInterval;
+        let autoScroll = true;
+        
+        // Fonction pour formater la date
+        function formatTimeAgo(date) {
+            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            let interval = Math.floor(seconds / 31536000);
+            if (interval > 1) return `il y a ${interval} ans`;
+            if (interval === 1) return 'il y a un an';
+            
+            interval = Math.floor(seconds / 2592000);
+            if (interval > 1) return `il y a ${interval} mois`;
+            if (interval === 1) return 'il y a un mois';
+            
+            interval = Math.floor(seconds / 86400);
+            if (interval > 1) return `il y a ${interval} jours`;
+            if (interval === 1) return 'hier';
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval >= 1) return `il y a ${interval} h`;
+            
+            interval = Math.floor(seconds / 60);
+            if (interval >= 1) return `il y a ${interval} min`;
+            
+            return 'à l\'instant';
+        }
+        
+        // Mettre à jour les timestamps
+        function updateTimestamps() {
+            document.querySelectorAll('[data-timestamp]').forEach(element => {
+                const timestamp = element.getAttribute('data-timestamp');
+                if (timestamp) {
+                    element.textContent = formatTimeAgo(timestamp);
+                }
+            });
+        }
+        
+        // Fonction pour charger les nouveaux logs
+        async function loadNewLogs() {
+            try {
+                // Récupérer l'ID du dernier log chargé
+                const lastLogItem = document.querySelector('#activityLogs .list-group-item:first-child');
+                const lastLogId = lastLogItem ? lastLogItem.dataset.logId : 0;
+                
+                // Faire une requête AJAX pour récupérer les nouveaux logs
+                const response = await fetch(`/users/admin/activity-logs/?last_id=${lastLogId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.logs && data.logs.length > 0) {
+                    // Ajouter les nouveaux logs au début de la liste
+                    const logsList = document.getElementById('activityLogs');
+                    const fragment = document.createDocumentFragment();
+                    
+                    data.logs.forEach(logData => {
+                        const logElement = createLogElement(logData);
+                        if (logElement) {
+                            fragment.prepend(logElement);
+                        }
+                    });
+                    
+                    // Ajouter les nouveaux éléments au début de la liste
+                    if (logsList.firstChild) {
+                        logsList.insertBefore(fragment, logsList.firstChild);
+                    } else {
+                        logsList.appendChild(fragment);
+                    }
+                    
+                    // Limiter le nombre d'éléments affichés (par exemple, 50 max)
+                    const maxLogs = 50;
+                    while (logsList.children.length > maxLogs) {
+                        logsList.removeChild(logsList.lastChild);
+                    }
+                }
+                
+                // Mettre à jour les timestamps
+                updateTimestamps();
+                
+                // Mettre à jour le compteur
+                updateLogsCount();
+                
+                return data;
+            } catch (error) {
+                console.error('Erreur dans loadNewLogs:', error);
+                return { status: 'error', message: error.message };
+            }
+        }
+        
+        // Fonction pour créer un élément de log
+        function createLogElement(log) {
+            try {
+                // Vérifier si le log est valide
+                if (!log) {
+                    console.error('Log invalide:', log);
+                    return null;
+                }
+
+                // Récupérer l'ID de l'utilisateur actuel depuis le template
+                const currentUserId = '{{ request.user.id|default:"0" }}';
+                const user = log.user || {};
+                const isCurrentUser = user.id && (user.id.toString() === currentUserId);
+                
+                const logItem = document.createElement('li');
+                logItem.className = `list-group-item border-0 border-bottom py-3 ${isCurrentUser ? 'bg-light' : ''}`;
+                logItem.dataset.logId = log.id || '0';
+                
+                // Créer l'avatar de l'utilisateur
+                let userAvatar;
+                if (user.avatar) {
+                    userAvatar = `<img src="${user.avatar}" alt="${user.username || ''}" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">`;
+                } else {
+                    const userInitial = (user.first_name || user.username || '?').charAt(0).toUpperCase();
+                    const bgClass = isCurrentUser ? 'bg-primary' : 'bg-secondary';
+                    userAvatar = `
+                        <div class="d-flex align-items-center justify-content-center ${bgClass} text-white"
+                             style="width: 32px; height: 32px; border-radius: 50%; font-size: 12px;">
+                            ${userInitial}
+                        </div>`;
+                }
+                
+                // Déterminer l'icône et la couleur en fonction de l'action
+                let icon, textClass, actionText;
+                if (log.action === 'login') {
+                    icon = 'fa-sign-in-alt';
+                    textClass = 'text-success';
+                    actionText = 's\'est connecté(e)';
+                } else {
+                    icon = 'fa-sign-out-alt';
+                    textClass = 'text-danger';
+                    actionText = 's\'est déconnecté(e)';
+                }
+                
+                // Formater la date
+                const timestamp = new Date(log.timestamp);
+                const timeAgo = formatTimeAgo(timestamp);
+                
+                // Créer le contenu HTML du log
+                logItem.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <div class="flex-shrink-0 me-3 position-relative">
+                            <div class="avatar-container" style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background-color: #f0f0f0;">
+                                ${userAvatar}
+                            </div>
+                            ${isCurrentUser ? '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info" style="font-size: 8px; padding: 2px 4px;">Vous</span>' : ''}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <span class="fw-bold">${user.first_name || user.username || 'Utilisateur'}</span>
+                                    <span class="text-muted">${actionText}</span>
+                                </h6>
+                                <small class="text-muted" data-timestamp="${log.timestamp}">${timeAgo}</small>
+                            </div>
+                            <div class="small text-muted">
+                                <i class="fas ${icon} ${textClass} me-1"></i>
+                                <span>${log.ip_address || 'IP inconnue'}</span>
+                                <span class="mx-1">•</span>
+                                <span>${log.user_agent ? log.user_agent.split('(')[0] : ''}</span>
+                            </div>
+                        </div>
+                    </div>`;
+                
+                return logItem;
+                
+            } catch (error) {
+                console.error('Erreur dans createLogElement:', error);
+                return null;
+            }
+        }
+        
+        // Mettre à jour le compteur de logs
+        function updateLogsCount() {
+            const countElement = document.getElementById('logsCount');
+            if (countElement) {
+                // Compter les éléments de log existants dans le DOM
+                const logsList = document.getElementById('activityLogs');
+                const count = logsList ? logsList.querySelectorAll('li').length : 0;
+                
+                // Mettre à jour le texte
+                if (count > 0) {
+                    countElement.innerHTML = `
+                        <i class="fas fa-info-circle me-1"></i>
+                        ${count} activité(s) récente(s)`;
+                } else {
+                    // Afficher un message si aucun log n'est disponible
+                    countElement.innerHTML = `
+                        <i class="fas fa-info-circle me-1"></i>
+                        Aucune activité récente`;
+                }
+            }
+        }
+        
+        // Fonction pour démarrer/arrêter le défilement
+        function toggleScrolling() {
+            if (autoScroll) {
+                if (scrollInterval) clearInterval(scrollInterval);
+                logsContainer.scrollTo({ top: logsList.scrollHeight, behavior: 'smooth' });
+            } else {
+                startScrolling();
+            }
+        }
+        
+        // Fonction pour démarrer le défilement
+        function startScrolling() {
+            if (scrollInterval) clearInterval(scrollInterval);
+            
+            scrollInterval = setInterval(() => {
+                if (!isPaused && logsContainer.scrollTop < (logsList.scrollHeight - logsContainer.offsetHeight)) {
+                    logsContainer.scrollBy({ top: 1, behavior: 'smooth' });
+                } else if (logsContainer.scrollTop >= (logsList.scrollHeight - logsContainer.offsetHeight - 1)) {
+                    // Revenir en haut quand on arrive en bas
+                    logsContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, 50);
+        }
+        
+        // Gestion du bouton pause/play
+        pauseButton.addEventListener('click', function() {
+            isPaused = !isPaused;
+            const icon = this.querySelector('i');
+            if (isPaused) {
+                icon.classList.remove('fa-pause');
+                icon.classList.add('fa-play');
+                icon.setAttribute('title', 'Reprendre le défilement');
+            } else {
+                icon.classList.remove('fa-play');
+                icon.classList.add('fa-pause');
+                icon.setAttribute('title', 'Mettre en pause');
+                startScrolling();
+            }
+        });
+        
+        // Rafraîchir les logs
+        refreshButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const icon = this.querySelector('i');
+            icon.classList.add('fa-spin');
+            loadNewLogs().finally(() => {
+                setTimeout(() => icon.classList.remove('fa-spin'), 500);
+            });
+        });
+        
+        // Démarrer le défilement automatique
+        startScrolling();
+        
+        // Mettre à jour les timestamps toutes les minutes
+        setInterval(updateTimestamps, 60000);
+        
+        // Charger les nouveaux logs toutes les 30 secondes
+        setInterval(loadNewLogs, 30000);
+        
+        // Charger les premiers logs
+        loadNewLogs();
+        
+        // Mettre en pause au survol
+        logsContainer.addEventListener('mouseenter', () => isPaused = true);
+        logsContainer.addEventListener('mouseleave', () => isPaused = false);
+        
+        // Mettre à jour les timestamps au chargement
+        updateTimestamps();
+    });
+    </script>
+</body>
+</html>

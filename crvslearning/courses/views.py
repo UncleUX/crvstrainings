@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView
+from exercices.models import Exercise, UserExerciseAttempt
  
 from .models import Course, Module, Lesson, Enrollment, Comment, CourseRating, CourseLike, LessonVideo, Category, CourseCompletion
 from evaluations.models import EvaluationLevel
@@ -220,6 +221,32 @@ def course_detail(request, course_id):
             'certification': certification
         })
 
+    # Récupérer le score du quiz s'il existe
+    quiz_score = None
+    if request.user.is_authenticated and is_enrolled:
+        # Récupérer tous les exercices du cours
+        course_exercises = Exercise.objects.filter(lesson__module__course=course)
+        
+        if course_exercises.exists():
+            # Récupérer les tentatives de l'utilisateur pour ces exercices
+            user_attempts = UserExerciseAttempt.objects.filter(
+                user=request.user,
+                exercise__in=course_exercises
+            ).select_related('exercise', 'selected_choice')
+            
+            if user_attempts.exists():
+                # Calculer le score
+                total_questions = course_exercises.count()
+                correct_answers = user_attempts.filter(is_correct=True).count()
+                score_percentage = int((correct_answers / total_questions) * 100) if total_questions > 0 else 0
+                
+                quiz_score = {
+                    'score': score_percentage,
+                    'total_questions': total_questions,
+                    'correct_answers': correct_answers,
+                    'last_attempt': user_attempts.latest('created_at').created_at
+                }
+
     # Préparer le contexte
     context = {
         'course': course,
@@ -234,6 +261,7 @@ def course_detail(request, course_id):
         'enrolled_users': enrolled_users,
         'nombre_inscrits': nombre_inscrits,
         'has_passed_evaluation': has_passed_evaluation,
+        'quiz_score': quiz_score,  # Ajout du score du quiz
     }
 
     # Course rating & like context
@@ -258,7 +286,6 @@ def course_detail(request, course_id):
     })
 
     return render(request, 'courses/course_detail.html', context)
-
 
 
 @login_required
@@ -529,6 +556,7 @@ def rate_course(request, course_id):
         return redirect(ref)
     return redirect('courses:course_detail', course_id=course.id)
 
+
 @login_required
 @require_POST
 def toggle_like(request, course_id):
@@ -566,6 +594,7 @@ def create_category(request):
         })
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
 
 @user_passes_test(is_formateur)
 @login_required

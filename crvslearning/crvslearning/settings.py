@@ -33,35 +33,33 @@ ALLOWED_HOSTS = [
 # APPLICATIONS
 # ==================================================
 INSTALLED_APPS = [
-    "jazzmin",
+    'jazzmin',
+    'django.contrib.admin',          # administration
+    'django.contrib.auth',           # gestion des utilisateurs
+    'django.contrib.contenttypes',   # gestion des types de contenus
+    'django.contrib.sessions',       # sessions utilisateurs
+    'django.contrib.messages',       # système de messages
+    'django.contrib.staticfiles',    # fichiers statiques (css, js...)
+    'django.contrib.sites',          # gestion des sites (important pour admin)
+    'django.contrib.humanize',       # filtres pour templates
 
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "django.contrib.sites",
-    "django.contrib.humanize",
-
-    # Third-party
-    "crispy_forms",
-    "crispy_bootstrap5",
-    "channels",
-
-    # Local apps
-    "users",
-    "courses",
-    "evaluations",
-    "notifications",
-    "certifications",
-    "classrooms",
-    "subscriptions",
-    "interactions",
-    "exercices",
-    "core",
-    "sms",
-    "tracking",
+    # Tes apps custom
+    'users',
+    'courses',
+    'evaluations',
+    'notifications',
+    'certifications',
+    'classrooms',
+    'channels',
+    'subscriptions',
+    'documentation',
+    'interactions',
+    'exercices',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'core',  # Application de messagerie
+    'sms',   # Application de messagerie instantanée
+    'tracking'  # Suivi des apprenants et progression des cours
 ]
 
 SITE_ID = 1
@@ -76,16 +74,16 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 # MIDDLEWARE
 # ==================================================
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "users.middleware.LastSeenMiddleware",
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'tracking.middleware.ActivityTrackingMiddleware',  # Suivi des activités
+    'users.middleware.LastSeenMiddleware',
     'users.middleware.AdminRedirectMiddleware',  # Redirection des admins
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 # ==================================================

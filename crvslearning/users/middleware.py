@@ -1,6 +1,9 @@
 from django.utils import timezone
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.core.cache import cache
+from django.conf import settings
+import json
 
 class LastSeenMiddleware:
     def __init__(self, get_response):
@@ -8,15 +11,26 @@ class LastSeenMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
+        
         if request.user.is_authenticated:
-            # Update last_seen at most every minute to reduce writes
             user = request.user
             now = timezone.now()
-            try:
-                if not user.last_seen or (now - user.last_seen).total_seconds() > 60:
-                    type(user).objects.filter(pk=user.pk).update(last_seen=now)
-            except Exception:
-                pass
+            
+            # Mettre à jour le last_seen toutes les 30 secondes maximum
+            if not user.last_seen or (now - user.last_seen).total_seconds() > 30:
+                user.last_seen = now
+                user.save(update_fields=['last_seen'])
+            
+            # Mettre à jour le cache des utilisateurs en ligne
+            cache_key = f'user_online_{user.id}'
+            user_data = {
+                'id': user.id,
+                'username': user.username,
+                'last_seen': now.isoformat(),
+                'is_online': True
+            }
+            cache.set(cache_key, json.dumps(user_data), 60 * 5)  # 5 minutes d'expiration
+        
         return response
 
 

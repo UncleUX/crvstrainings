@@ -4,14 +4,12 @@
 {% block content %}
 <div class="container mt-4">
     <h2>{% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %} un exercice</h2>
-    <form method="post" id="exercise-form">
+    <form method="post" class="mt-4" id="exercise-form">
         {% csrf_token %}
         {{ form|crispy }}
         
         <h4 class="mt-4">Choix de réponses</h4>
-        <p class="text-muted">Cochez la case pour indiquer la bonne réponse.</p>
-        
-        {{ formset.management_form }}
+        {{ choice_formset.management_form }}
         <div id="choices-container">
             {% for choice_form in formset %}
                 <div class="card mb-3 choice-form {% if forloop.first %}default-choice{% endif %}" {% if forloop.first %}data-default="true"{% endif %}>
@@ -58,10 +56,13 @@
                     </button>
                 </div>
                 <div>
+                    <button type="button" onclick="window.history.back();" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </button>
                     <a href="{% url 'courses:lesson_detail' lesson_id=view.kwargs.lesson_id %}" class="btn btn-outline-secondary me-2">
                         <i class="fas fa-times"></i> Annuler
                     </a>
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn btn-success" id="submit-btn">
                         <i class="fas fa-save"></i> Enregistrer l'exercice
                     </button>
                 </div>
@@ -72,164 +73,174 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Fonction pour initialiser les événements d'un choix
-    function initChoiceEvents(choiceElement) {
-        // Bouton pour afficher/masquer l'explication
-        const toggleBtn = choiceElement.querySelector('.toggle-explanation');
-        const explanationField = choiceElement.querySelector('.explanation-field');
-        
-        if (toggleBtn && explanationField) {
-            toggleBtn.addEventListener('click', function() {
-                const isVisible = explanationField.style.display === 'block';
-                explanationField.style.display = isVisible ? 'none' : 'block';
-                toggleBtn.innerHTML = isVisible 
-                    ? '<i class="fas fa-comment-dots"></i> Ajouter une explication'
-                    : '<i class="fas fa-eye-slash"></i> Masquer l\'explication';
-            });
-        }
-
-        // Bouton de suppression
-        const deleteBtn = choiceElement.querySelector('.delete-choice');
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', function() {
-                const formCount = document.getElementById('id_choices-TOTAL_FORMS');
-                const container = choiceElement.closest('#choices-container');
-                
-                // Si c'est un formulaire existant, on le marque pour suppression
-                const deleteInput = choiceElement.querySelector('input[type="checkbox"][name$="-DELETE"]');
-                if (deleteInput) {
-                    deleteInput.checked = true;
-                    choiceElement.style.display = 'none';
-                } else {
-                    // Sinon on le supprime directement
-                    container.removeChild(choiceElement);
-                    updateFormIndices();
-                }
-            });
-        }
+// Fonction pour initialiser les événements d'un choix
+function initChoiceEvents(choiceElement) {
+    // Bouton pour afficher/masquer l'explication
+    const toggleBtn = choiceElement.querySelector('.toggle-explanation');
+    const explanationField = choiceElement.querySelector('.explanation-field');
+    
+    if (toggleBtn && explanationField) {
+        toggleBtn.addEventListener('click', function() {
+            const isVisible = explanationField.style.display === 'block';
+            explanationField.style.display = isVisible ? 'none' : 'block';
+            toggleBtn.innerHTML = isVisible 
+                ? '<i class="fas fa-comment-dots"></i> Ajouter une explication'
+                : '<i class="fas fa-eye-slash"></i> Masquer l\'explication';
+        });
     }
 
-    // Initialiser les événements pour les choix existants
-    document.querySelectorAll('.choice-form').forEach(choice => {
-        initChoiceEvents(choice);
-    });
+    // Bouton de suppression
+    const deleteBtn = choiceElement.querySelector('.delete-choice');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const formCount = document.getElementById('id_choices-TOTAL_FORMS');
+            const container = choiceElement.closest('#choices-container');
+            
+            // Si c'est un formulaire existant, on le marque pour suppression
+            const deleteInput = choiceElement.querySelector('input[type="checkbox"][name$="-DELETE"]');
+            if (deleteInput) {
+                deleteInput.checked = true;
+                choiceElement.style.display = 'none';
+            } else {
+                // Sinon on le supprime directement
+                container.removeChild(choiceElement);
+                updateFormIndices();
+            }
+        });
+    }
+}
 
-    // Ajouter un nouveau choix
-    document.getElementById('add-choice').addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        const formCount = document.getElementById('id_choices-TOTAL_FORMS');
-        const totalForms = parseInt(formCount.value);
-        const container = document.getElementById('choices-container');
-        
-        // Get the first choice form as template
-        const template = document.querySelector('.choice-form');
-        if (!template) return;
-        
-        // Créer un nouvel élément de formulaire
-        const newForm = template.cloneNode(true);
-        
-        // Mettre à jour tous les IDs et noms dans le nouveau formulaire
-        const elements = newForm.querySelectorAll('[id^="id_choices-"]');
+// Fonction pour mettre à jour les indices des formulaires après suppression
+function updateFormIndices() {
+    const container = document.getElementById('choices-container');
+    const forms = container.querySelectorAll('.choice-form');
+    
+    forms.forEach((form, index) => {
+        // Mettre à jour les IDs et noms des champs
+        const elements = form.querySelectorAll('[id^="id_choices-"]');
         elements.forEach(element => {
             const oldId = element.id;
-            const newId = oldId.replace(/\d+/, totalForms);
+            const newId = oldId.replace(/\d+/, index);
             element.id = newId;
             
             // Mettre à jour les labels correspondants
-            const labels = newForm.querySelectorAll(`label[for="${oldId}"]`);
+            const labels = form.querySelectorAll(`label[for="${oldId}"]`);
             labels.forEach(label => {
                 label.htmlFor = newId;
             });
             
             // Mettre à jour l'attribut name pour la soumission du formulaire
             if (element.name) {
-                element.name = element.name.replace(/\d+/, totalForms);
+                element.name = element.name.replace(/\d+/, index);
             }
         });
         
-        // Réinitialiser les valeurs
-        const textInputs = newForm.querySelectorAll('input[type="text"], textarea');
-        textInputs.forEach(input => {
-            input.value = '';
-        });
-        
-        // Réinitialiser les cases à cocher
-        const checkboxes = newForm.querySelectorAll('input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            if (!checkbox.name.includes('DELETE')) {
-                checkbox.checked = false;
-            }
-            // Mettre à jour le nom et l'ID de la case à cocher
-            if (checkbox.name) {
-                checkbox.name = checkbox.name.replace(/\d+/, totalForms);
-                checkbox.id = `id_${checkbox.name}`;
-            }
-        });
-        
-        // Afficher le bouton de suppression et masquer la première case à cocher de suppression
-        const deleteCheckbox = newForm.querySelector('input[type="checkbox"][name$="-DELETE"]');
-        if (deleteCheckbox) {
-            deleteCheckbox.style.display = 'none'; // On laisse le bouton de suppression gérer ça
-        }
-        
-        // Afficher le bouton de suppression
-        const deleteBtn = newForm.querySelector('.delete-choice');
-        if (deleteBtn) {
-            deleteBtn.style.display = 'inline-block';
-        }
-        
-        // Masquer l'explication par défaut
-        const explanationField = newForm.querySelector('.explanation-field');
-        if (explanationField) {
-            explanationField.style.display = 'none';
-        }
-        
-        // Réinitialiser le bouton d'explication
-        const toggleBtn = newForm.querySelector('.toggle-explanation');
-        if (toggleBtn) {
-            toggleBtn.innerHTML = '<i class="fas fa-comment-dots"></i> Ajouter une explication';
-        }
-        
-        // Append the new form
-        container.appendChild(newForm);
-        
-        // Update the form count
-        formCount.value = totalForms + 1;
-        
-        // Initialize any new form widgets (if using a form library)
-        if (typeof django !== 'undefined' && django.jQuery) {
-            django.jQuery(newForm).find('select').select2();
+        // Mettre à jour l'ordre
+        const orderInput = form.querySelector('input[name$="-order"]');
+        if (orderInput) {
+            orderInput.value = index + 1;
         }
     });
     
-    // Function to update form indices after deletion
-    function updateFormIndices() {
-        const forms = document.querySelectorAll('.choice-form:not([style*="display: none"])');
-        let formIndex = 0;
-        
-        forms.forEach((form, index) => {
-            // Update form IDs and names
-            form.querySelectorAll('[id^="id_choices-"]').forEach(element => {
+    // Mettre à jour le compteur total de formulaires
+    document.getElementById('id_choices-TOTAL_FORMS').value = forms.length;
+}
+
+// Initialisation quand le DOM est chargé
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialiser les événements pour les choix existants
+    document.querySelectorAll('.choice-form').forEach(choice => {
+        initChoiceEvents(choice);
+    });
+
+    // Ajouter un nouveau choix
+    const addButton = document.getElementById('add-choice');
+    if (addButton) {
+        addButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const formCount = document.getElementById('id_choices-TOTAL_FORMS');
+            const totalForms = parseInt(formCount.value);
+            const container = document.getElementById('choices-container');
+            
+            // Utiliser le premier formulaire comme modèle
+            const template = document.querySelector('.choice-form');
+            if (!template) return;
+            
+            // Créer un nouvel élément de formulaire
+            const newForm = template.cloneNode(true);
+            
+            // Mettre à jour tous les IDs et noms dans le nouveau formulaire
+            const elements = newForm.querySelectorAll('[id^="id_choices-"]');
+            elements.forEach(element => {
                 const oldId = element.id;
-                const newId = oldId.replace(/\d+/, index);
+                const newId = oldId.replace(/\d+/, totalForms);
                 element.id = newId;
                 
-                // Update for labels
-                const labels = document.querySelectorAll(`label[for="${oldId}"]`);
+                // Mettre à jour les labels correspondants
+                const labels = newForm.querySelectorAll(`label[for="${oldId}"]`);
                 labels.forEach(label => {
                     label.htmlFor = newId;
                 });
                 
-                // Update name attribute for form submission
+                // Mettre à jour l'attribut name pour la soumission du formulaire
                 if (element.name) {
-                    element.name = element.name.replace(/\d+/, index);
+                    element.name = element.name.replace(/\d+/, totalForms);
                 }
             });
             
-            // Update form index in management form
-            document.getElementById('id_choices-TOTAL_FORMS').value = forms.length;
+            // Réinitialiser les valeurs
+            const textInputs = newForm.querySelectorAll('input[type="text"], textarea');
+            textInputs.forEach(input => {
+                input.value = '';
+            });
+            
+            // Réinitialiser les cases à cocher
+            const checkboxes = newForm.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                if (!checkbox.name || !checkbox.name.includes('DELETE')) {
+                    checkbox.checked = false;
+                }
+                // Mettre à jour le nom et l'ID de la case à cocher
+                if (checkbox.name) {
+                    checkbox.name = checkbox.name.replace(/\d+/, totalForms);
+                    checkbox.id = `id_${checkbox.name}`;
+                }
+            });
+            
+            // Afficher le bouton de suppression et masquer la première case à cocher de suppression
+            const deleteCheckbox = newForm.querySelector('input[type="checkbox"][name$="-DELETE"]');
+            if (deleteCheckbox) {
+                deleteCheckbox.style.display = 'none';
+            }
+            
+            // Afficher le bouton de suppression
+            const deleteBtn = newForm.querySelector('.delete-choice');
+            if (deleteBtn) {
+                deleteBtn.style.display = 'inline-block';
+            }
+            
+            // Masquer l'explication par défaut
+            const explanationField = newForm.querySelector('.explanation-field');
+            if (explanationField) {
+                explanationField.style.display = 'none';
+            }
+            
+            // Réinitialiser le bouton d'explication
+            const toggleBtn = newForm.querySelector('.toggle-explanation');
+            if (toggleBtn) {
+                toggleBtn.innerHTML = '<i class="fas fa-comment-dots"></i> Ajouter une explication';
+            }
+            
+            // Ajouter le nouveau formulaire
+            container.appendChild(newForm);
+            
+            // Mettre à jour le compteur de formulaires
+            formCount.value = totalForms + 1;
+            
+            // Initialiser les événements pour le nouveau formulaire
+            initChoiceEvents(newForm);
         });
     }
 });
