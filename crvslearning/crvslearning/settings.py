@@ -20,8 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-9x7p@5n$3z!k^e6%2yq0a_4m#r8t*wb&c+f=1s(j)u!h-l"
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
-
+# DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
+DEBUG = True
 ALLOWED_HOSTS = [
     "crvslearning.etatcivil.cm",
     "www.crvslearning.etatcivil.cm",
@@ -32,6 +32,8 @@ ALLOWED_HOSTS = [
 # ==================================================
 # APPLICATIONS
 # ==================================================
+# Application definition
+
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',          # administration
@@ -61,6 +63,7 @@ INSTALLED_APPS = [
     'sms',   # Application de messagerie instantanée
     'tracking'  # Suivi des apprenants et progression des cours
 ]
+
 
 SITE_ID = 1
 
