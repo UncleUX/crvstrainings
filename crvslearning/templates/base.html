@@ -268,15 +268,6 @@
         <i class="bi bi-collection-play"></i>
         <span></span>
       </a>
-      <a href="{% url 'interactions:chat_global' %}" title="Chat global" style="color: #e0e0e0; text-decoration: none; padding: 0.5rem 0.75rem; border-radius: 6px; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.5rem; position: relative;">
-        <i class="bi bi-chat-dots"></i>
-        <span></span>
-        {% with unread_count=user.get_unread_messages_count %}
-          {% if unread_count > 0 %}
-            <span style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: bold;">{{ unread_count }}</span>
-          {% endif %}
-        {% endwith %}
-      </a>
       <a href="{% url 'users:profile' %}" title="Profil" style="color: #e0e0e0; text-decoration: none; padding: 0.5rem 1rem; border-radius: 8px; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem;">
         <i class="bi bi-person" style="font-weight: 900;"></i>
         <span></span>

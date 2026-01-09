@@ -5,6 +5,7 @@ export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-crvslearning.settings}
 export PYTHONUNBUFFERED=1
 
 python manage.py collectstatic --noinput || true
+python manage.py makemigrations --merge  || true
 python manage.py migrate --noinput
 
 WORKERS=${WORKERS:-4}
